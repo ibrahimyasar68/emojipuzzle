@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/puzzle_config.dart';
+import '../../balloon/widgets/balloon_game_overlay.dart';
 import '../../celebration/widgets/celebration_overlay.dart';
 import '../engine/geometry/coordinate_mapper.dart';
 import '../engine/geometry/snap_calculator.dart';
@@ -62,6 +63,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   /// True from the last piece landing until the celebration is over (§23).
   bool _celebrating = false;
+
+  /// True while the balloon reward is on screen (§23, §24).
+  bool _playingBalloons = false;
 
   /// Watches for a child who has stopped playing (§21).
   late final HintController _hint;
@@ -281,10 +285,20 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   }
 
   /// The celebration ended, by itself or because the child tapped through
-  /// it. Faz 12 puts the balloon game here, Faz 13 the sticker (§23).
+  /// it. The balloons come next; Faz 13 adds the sticker after them (§23).
   void _finishCelebration(GameProvider game) {
     if (!_celebrating) return;
-    setState(() => _celebrating = false);
+    setState(() {
+      _celebrating = false;
+      _playingBalloons = true;
+    });
+  }
+
+  /// The balloons are done — popped, or fifteen seconds went by. Either
+  /// way nothing is counted and nothing is said (§20, §24).
+  void _finishBalloons(GameProvider game) {
+    if (!_playingBalloons) return;
+    setState(() => _playingBalloons = false);
     _hint.resume();
     game.startNextPuzzle();
   }
@@ -424,6 +438,11 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                                     boardSize.height / 2,
                                   ),
                               onFinished: () => _finishCelebration(game),
+                            ),
+                          if (_playingBalloons)
+                            BalloonGameOverlay(
+                              audio: game.audio,
+                              onFinished: () => _finishBalloons(game),
                             ),
                         ],
                       );

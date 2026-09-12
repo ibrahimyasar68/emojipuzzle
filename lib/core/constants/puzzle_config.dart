@@ -111,4 +111,51 @@ abstract final class PuzzleConfig {
 
   /// §42 — the particle budget for the whole screen.
   static const int confettiParticles = 15;
+
+  /// §2 — a balloon is a moving target, so it gets a bigger hit area than
+  /// the 64 px everything else lives by.
+  static const double balloonTouchTargetSize = 72;
+
+  /// §24 — the mini game makes twelve balloons in all, and never has more
+  /// than eight in the air at once.
+  static const int balloonTotal = 12;
+  static const int balloonMaxActive = 8;
+
+  /// §24 — three are waiting when the game opens, then one roughly every
+  /// 1.2 s as long as there is room for it.
+  static const int balloonInitialSpawn = 3;
+  static const Duration balloonSpawnInterval = Duration(milliseconds: 1200);
+
+  /// §24 — the game is over at fifteen seconds however it is going.
+  static const Duration balloonGameDuration = Duration(seconds: 15);
+
+  /// §24 — popping all twelve ends it early; the pause is just long enough
+  /// for the last pop to be seen.
+  static const Duration balloonEarlyFinishDelay = Duration(milliseconds: 500);
+
+  /// §24 — how often the game looks at its clock. Punctual to within a
+  /// frame or two, and cheap.
+  static const Duration balloonTickInterval = Duration(milliseconds: 50);
+
+  /// §24 — a balloon drifts up into the play area over this long, then bobs
+  /// on the spot. Balloons never escape off the top: a child who pops all
+  /// twelve has earned the early finish, and a balloon that floated away
+  /// would quietly take that away.
+  ///
+  /// A balloon drifts up into its own place and fades in as it goes; it
+  /// does not fly up the whole screen. Travelling across the play area
+  /// would take it over balloons that are already resting there, and a
+  /// covered balloon is a touch target a child cannot hit (§2).
+  static const Duration balloonRiseDuration = Duration(milliseconds: 1000);
+  static const double balloonRiseDistance = 0.35;
+  static const Duration balloonBobPeriod = Duration(milliseconds: 2600);
+  static const double balloonBobAmplitude = 7;
+
+  /// §24 — tap to pop: the balloon swells, then bursts.
+  static const Duration balloonPopDuration = Duration(milliseconds: 260);
+  static const double balloonPopScale = 1.25;
+
+  /// §42 — a burst is small; several may overlap and still leave room
+  /// inside the 40 particle budget.
+  static const int balloonPopParticles = 8;
 }

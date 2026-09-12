@@ -76,6 +76,15 @@ Future<void> _watchCelebration(WidgetTester tester) async {
   await tester.pump();
 }
 
+/// The balloons come between the celebration and the next puzzle (§23,
+/// §24). A child pops them; a test can just let the fifteen seconds pass,
+/// which is the other way the game ends.
+Future<void> _watchBalloons(WidgetTester tester) async {
+  expect(find.byKey(const ValueKey('balloon-game')), findsOneWidget);
+  await tester.pump(PuzzleConfig.balloonGameDuration);
+  await tester.pump();
+}
+
 /// Lets the real work behind `startPuzzle` (painting the picture) finish.
 Future<void> _settleAsync(WidgetTester tester) async {
   await tester.runAsync(
@@ -98,6 +107,7 @@ void main() {
     expect(find.byKey(const ValueKey('celebration-overlay')), findsOneWidget);
 
     await _watchCelebration(tester);
+    await _watchBalloons(tester);
     await _settleAsync(tester);
 
     expect(game.puzzle.id, 'cat_01');
@@ -107,6 +117,60 @@ void main() {
       expect(find.byKey(ValueKey('tray-piece-${piece.id}')), findsOneWidget);
     }
     expect(find.byKey(const ValueKey('board-piece-0')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the balloons come between the two puzzles (§23, §24)', (
+    tester,
+  ) async {
+    final game = await _pumpGame(tester);
+    await _solveWithFingers(tester, game);
+
+    // Celebration first, and no balloons underneath it.
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byKey(const ValueKey('celebration-overlay')), findsOneWidget);
+    expect(find.byKey(const ValueKey('balloon-game')), findsNothing);
+
+    await _watchCelebration(tester);
+
+    // Then the balloons, and the puzzle has still not moved on.
+    expect(find.byKey(const ValueKey('celebration-overlay')), findsNothing);
+    expect(find.byKey(const ValueKey('balloon-game')), findsOneWidget);
+    expect(game.puzzle.id, 'apple_01', reason: 'the reward is not skipped');
+
+    // Fourteen seconds in they are still playing.
+    await tester.pump(const Duration(milliseconds: 14000));
+    expect(game.puzzle.id, 'apple_01');
+
+    await tester.pump(const Duration(seconds: 2));
+    await _settleAsync(tester);
+
+    expect(find.byKey(const ValueKey('balloon-game')), findsNothing);
+    expect(game.puzzle.id, 'cat_01');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('popping every balloon moves on sooner (§24)', (tester) async {
+    final game = await _pumpGame(tester);
+    await _solveWithFingers(tester, game);
+    await _watchCelebration(tester);
+
+    expect(find.byKey(const ValueKey('balloon-game')), findsOneWidget);
+
+    // Pop everything that appears, the way a child racing through would.
+    for (var i = 0; i < 60; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+      if (find.byKey(const ValueKey('balloon-game')).evaluate().isEmpty) break;
+      for (var id = 0; id < PuzzleConfig.balloonTotal; id++) {
+        final balloon = find.byKey(ValueKey('balloon-$id'));
+        if (balloon.evaluate().isEmpty) continue;
+        await tester.tap(balloon, warnIfMissed: false);
+        await tester.pump();
+      }
+    }
+
+    await _settleAsync(tester);
+    expect(game.puzzle.id, 'cat_01');
     expect(tester.takeException(), isNull);
   });
 
@@ -169,6 +233,7 @@ void main() {
 
     await _solveWithFingers(tester, game);
     await _watchCelebration(tester);
+    await _watchBalloons(tester);
     await _settleAsync(tester);
 
     // A stale path cache would show the previous puzzle's pieces here; a

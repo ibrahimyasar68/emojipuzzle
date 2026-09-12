@@ -1,7 +1,7 @@
 # Devam Notu — Emoji Puzzle Kids
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 12 Eylül 2026, Faz 11 sonunda.
+Son güncelleme: 12 Eylül 2026, Faz 12 sonunda.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -22,14 +22,15 @@ Son güncelleme: 12 Eylül 2026, Faz 11 sonunda.
 | 8 | SharedPreferences kalıcılık, §25.1 şema politikası | ✅ onaylandı |
 | 9 | AudioService, HapticService, §22 geri bildirim | ✅ onaylandı |
 | 10 | HintController, 4 aşamalı idle hint | ✅ onaylandı |
-| **11** | **Kutlama + konfeti (atlanabilir)** | **⏳ onay bekliyor** |
-| 12 | Balon mini oyunu | ⬜ sırada |
-| 13 | Album, Home, Serbest Mod, progress reset | ⬜ |
+| 11 | Kutlama + konfeti (atlanabilir) | ✅ onaylandı |
+| **12** | **Balon mini oyunu** | **⏳ onay bekliyor** |
+| 13 | Album, Home, Serbest Mod, progress reset | ⬜ sırada |
 | 14 | Navigation, Android Back, lifecycle | ⬜ |
 | 15 | Responsive, tablet, accessibility | ⬜ |
 | 16 | Asset/lisans denetimi, privacy, final cila | ⬜ |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **721 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **758 test**.
+İlk commit atıldı (`483f5e5`); GitHub remote hâlâ yok.
 
 ---
 
@@ -75,7 +76,7 @@ dart run tool/generate_sfx.dart     # ses dosyalarını yeniden üretir
 
 Testler `build/` altına kanıt görselleri bırakır: `preview_2x2.png`,
 `screen_3x3.png`, `solved_2x2.png`, `drag_overlay.png`, `hint_ghost.png`,
-`placement_feedback.png`, `level2_banana.png`.
+`placement_feedback.png`, `level2_banana.png`, `balloon_game.png`.
 
 ---
 
@@ -111,7 +112,11 @@ lib/
     │   ├── widgets/     # board, tray, drag_layer, feedback_layer, hint_layer,
     │   │                # piece_painter, ghost_painter, debug_overlay_painter
     │   └── screens/puzzle_screen.dart
-    └── celebration/widgets/celebration_overlay.dart
+    ├── celebration/widgets/celebration_overlay.dart
+    └── balloon/                     # §24, puzzle'a bağımlı DEĞİL
+        ├── models/balloon.dart
+        ├── providers/balloon_game_controller.dart
+        └── widgets/  # balloon_game_overlay, balloon_layout, balloon_painter
 ```
 
 ---
@@ -142,6 +147,17 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   dosyalarına dokunulmaz — lisans da bu yüzden basit kalıyor.
 - **Bırakılan parça önce uçar, sonra durum değişir.** Parça hiçbir anda iki
   yerde birden çizilmez.
+- **Feature'lar birbirine bağlanmaz.** `features/balloon/` ve
+  `features/celebration/` yalnızca `core`'a bakar; puzzle onları kullanır,
+  tersi olmaz. `test/architecture/feature_independence_test.dart` bunu
+  dosyaları okuyarak denetler.
+- **Balonlar asla üst üste binmez** (§2): hücre tabanlı yerleşim (3 sütun ×
+  4 satır), balon kendi yerinin hemen altından belirerek yükselir. Ekranın
+  altından yükselmek, üstteki sıralarda duran balonların önünden geçmek
+  demekti — dokunma hedefini örtüyordu.
+- **Widget genişliğini `rect.width`'ten alma.** `sağ − sol` kayan noktada
+  tam 72 vermiyor (71.99999999999999); boyut `BalloonLayout.diameterOf`
+  üzerinden verilir.
 
 ---
 
@@ -155,6 +171,12 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   Puzzle'ı bitiren testler açık pump'larla yazılmıştır.
 - Gerçek asset'ler widget testlerinde `rootBundle` üzerinden yüklenir; sorun
   çıkmaz. Ama `startPuzzle` asenkron olduğu için `tester.runAsync` gerekir.
+- **Balon oyunu ekrandayken `pumpAndSettle` kullanılamaz** (kutlama gibi).
+  Puzzle akış testleri balon oyununu 15 sn açık pump'la geçiyor.
+- Balon testinde `pump(1500ms)` dördüncü balonu da getirir (spawn 1.2 sn).
+  "Açılışta üç balon" iddiası için 1100 ms pump'lanır.
+- Salınım (bob), yerleşme anındaki konum karşılaştırmalarını bozar; yükselme
+  yönü iki ara noktayla (200/800 ms) ölçülür.
 
 ---
 
@@ -175,29 +197,18 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 
 ---
 
-## 9. Sıradaki iş: Faz 12 — Balon mini oyunu (§24)
+## 9. Sıradaki iş: Faz 13 — Album + Home + Serbest Mod (§25, §26)
 
-**Kabul kriteri:** "Balonlar çalışıyor, erken bitiş ve 15 sn timeout."
+**Kabul kriteri:** "Album/progress/free mode çalışıyor."
 
-Spec'in istedikleri:
+Faz 12'den devreden bağlantı noktası: §23 akışı şu an
+kutlama → **balon oyunu** → sonraki puzzle. Sticker ödülü ve album
+güncellemesi balon oyunu ile `startNextPuzzle()` arasına girecek
+(`_finishBalloons`, `lib/features/puzzle/screens/puzzle_screen.dart`).
 
-- Ayrı feature modülü (`features/balloon/`), puzzle feature'ına **bağımlı olmaz**.
-- Toplam **12 balon** üretilir; aynı anda en fazla **8 aktif**.
-- Spawn: başta 3 balon, sonra ~1,2 sn'de bir.
-- Minimum dokunma hedefi **72 px** (§2 — puzzle'daki 64 px'ten büyük).
-- Bitiş, hangisi önce olursa: 12 balonun hepsi patlatıldı → **500 ms sonra
-  kapanır**; ya da **15 sn** doldu.
-- Patlatılmamış balon kalması **başarısızlık değildir**, hiçbir geri bildirim
-  verilmez (§20).
-- Akış: idle floating → tap → scale → pop sound → particle → disappear.
-- `AudioService.playBalloonPop()` ve `assets/audio/sfx/balloon_pop.wav` hazır.
+Bu fazda kapanması gereken borçlar:
 
-**Nereye bağlanacak:** `puzzle_screen.dart` içindeki `_finishCelebration`.
-§23'ün akışı şöyle: kutlama → **balon oyunu** → sticker (Faz 13) → sonraki
-puzzle. Şu anda kutlama bitince doğrudan `game.startNextPuzzle()` çağrılıyor;
-balon oyunu bu iki adımın arasına girecek.
-
-**Önerilen yapı:** zamanlama ve spawn mantığı `BalloonGameController` gibi
-zamanlayıcıdan bağımsız test edilebilir bir sınıfta (HintController'daki
-kalıbın aynısı), görsel kısım ayrı widget'ta. Böylece "12 balon, 8 aktif,
-15 sn, erken bitiş" kuralları saniye saniye test edilebilir.
+- **OpenMoji attribution** uygulama içinde görünür olmalı (ebeveyn/hakkında
+  alanı). Metin `assets/LICENSES.md` içinde hazır.
+- **Mute düğmesi** Home'a (K-2; `AudioService.toggleMuted()` hazır ve kalıcı).
+- **Progress reset** (§26).
