@@ -44,7 +44,7 @@ class BalloonGameOverlay extends StatefulWidget {
 }
 
 class _BalloonGameOverlayState extends State<BalloonGameOverlay>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final BalloonGameController _game;
   late final bool _ownsGame;
 
@@ -60,6 +60,7 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _ownsGame = widget.controller == null;
     _game = widget.controller ?? BalloonGameController();
     _game
@@ -82,8 +83,28 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
     widget.onFinished();
   }
 
+  /// §28 — fifteen seconds of a reward do not tick away while the app is
+  /// in somebody's pocket. The game's own clock and the drawing clock stop
+  /// together, so the balloons are exactly where they were on return.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        _game.pause();
+        _clock.stop();
+      case AppLifecycleState.resumed:
+        if (!mounted || _handedBack) return;
+        _game.resume();
+        _clock.forward();
+    }
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _game.removeListener(_onGameChanged);
     _game.onFinished = null;
     if (_ownsGame) _game.dispose();

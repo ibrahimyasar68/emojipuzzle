@@ -1,7 +1,7 @@
 # Devam Notu — Emoji Puzzle Kids
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 12 Eylül 2026, Faz 13 sonunda.
+Son güncelleme: 12 Eylül 2026, Faz 14 sonunda.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -24,13 +24,13 @@ Son güncelleme: 12 Eylül 2026, Faz 13 sonunda.
 | 10 | HintController, 4 aşamalı idle hint | ✅ onaylandı |
 | 11 | Kutlama + konfeti (atlanabilir) | ✅ onaylandı |
 | 12 | Balon mini oyunu | ✅ onaylandı |
-| **13** | **Album, Home, Serbest Mod, progress reset** | **⏳ onay bekliyor** |
-| 14 | Navigation, Android Back, lifecycle | ⬜ sırada |
-| 15 | Responsive, tablet, accessibility | ⬜ |
+| 13 | Album, Home, Serbest Mod, progress reset | ✅ onaylandı |
+| **14** | **Navigation, Android Back, lifecycle** | **⏳ onay bekliyor** |
+| 15 | Responsive, tablet, accessibility | ⬜ sırada |
 | 16 | Asset/lisans denetimi, privacy, final cila | ⬜ |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **779 test**.
-Commit'ler var (`483f5e5`, `c256702`); GitHub remote hâlâ yok.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **789 test**.
+Dört commit var; GitHub remote hâlâ yok.
 
 ---
 
@@ -162,6 +162,14 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   4 satır), balon kendi yerinin hemen altından belirerek yükselir. Ekranın
   altından yükselmek, üstteki sıralarda duran balonların önünden geçmek
   demekti — dokunma hedefini örtüyordu.
+- **Kesinti bir deneme değildir** (§28). Arka plana geçiş sürüklemeyi iptal
+  eder, parça kendi yuvasına döner, `failedAttempts` **artmaz**.
+- **`Timer` arka planda çalışmaya devam eder, `Ticker` etmez.** Balon
+  oyununun 15 saniyesi bu yüzden `pause()/resume()` ile durduruluyor; yoksa
+  çocuk cebindeyken ödülü yanardı. Yeni bir zamanlayıcı yazarken bunu sor.
+- **Geri tuşu ceza değildir** (§30). Kutlama/balon sırasında basılırsa
+  sekans kesilir ama kazanılan sticker durur ve sonraki puzzle hazırlanır —
+  yoksa çocuk çözülmüş bir board'a geri dönerdi.
 - **Bitince boş ekran bırakma.** `startNextPuzzle()` oynanacak yeni puzzle
   kalmayınca Serbest Mod'a düşer (§4). Sessizce dönerse "her şey bitti"
   görüntüsü "yükleniyor" görüntüsüyle aynı olur; emülatörde tam olarak bu
@@ -193,6 +201,12 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   "Açılışta üç balon" iddiası için 1100 ms pump'lanır.
 - Salınım (bob), yerleşme anındaki konum karşılaştırmalarını bozar; yükselme
   yönü iki ara noktayla (200/800 ms) ölçülür.
+- **Lifecycle testleri geçerli sırayı izlemeli:** resumed → inactive →
+  hidden → paused, dönüşte tersi. Geri tuşu
+  `handlePlatformMessage('flutter/navigation', popRoute)` ile gönderilir.
+- **Olmayan bir key'e `findsNothing` demek test değildir.** Faz 14'te
+  `hint-pulse` diye bir key yokken test boşuna geçiyordu; hint'in durduğu
+  artık ses kaydı ve `placedCount` üzerinden ölçülüyor.
 - **Album ve About kaydırılabilir**; `ListView` ekran dışındaki çocukları hiç
   kurmaz. Testler `scrollUntilVisible` kullanır ve **yalnızca tek yöne**
   kaydırır — sticker'lar katalog sırasında değil, album (kategori) sırasında
@@ -214,10 +228,9 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
    Yalnızca yapısal kısmı test edildi (board rebuild yok, kare başına
    notify yok). `flutter run --profile`
    ile bakılmalı.
-4. **Faz 14 için hazır ama bağlanmamış:** `HintController.pause()/resume()`
-   (§28) ve `GameProvider.saveProgress()/pendingWrite` (§30) — lifecycle'a
-   bağlanmadı. Ayrıca puzzle ekranında **Android geri tuşu uygulamadan
-   çıkıyor** (§30 Faz 14'ün işi).
+4. ~~Faz 14 için hazır ama bağlanmamış.~~ **Faz 14'te bağlandı**:
+   `WidgetsBindingObserver`, `PopScope`, drag iptali, progress kaydı.
+   §28'in "müzik durur/devam eder" maddesi **boş geçildi — müzik yok**.
 5. **Idle hint gözetimsiz oyunu kendi bitiriyor.** Emülatörde uygulama açık
    bırakıldı, §21'in 32 sn'lik auto-place merdiveni arka arkaya beş puzzle'ı
    kendi tamamladı. Spec'e uygun davranış ama Faz 16'da gözden geçirmeye
@@ -241,16 +254,19 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 
 ---
 
-## 9. Sıradaki iş: Faz 14 — Navigation, Android Back, lifecycle
+## 9. Sıradaki iş: Faz 15 — Responsive, tablet, accessibility (§40, §31)
 
-**Kabul kriteri:** "Ekran geçişleri ve interruption güvenli."
+**Kabul kriteri:** "Farklı ekranlarda layout bozulmuyor."
 
-Faz 13'ten devreden hazır uçlar:
+Spec'in istedikleri:
 
-- `HintController.pause()/resume()` (§28) — yazıldı, yalnızca kutlama/balon
-  sırasında kullanılıyor; uygulama arka plana alınınca da çağrılmalı.
-- `GameProvider.saveProgress()` / `pendingWrite` (§30) — ekrandan çıkarken
-  ve arka plana geçerken çağrılmalı.
-- Navigation artık var (Home → Puzzle / Album / About, `Navigator.push`).
-  Faz 14 bunun üstüne Android Back davranışını (§30) ekleyecek: **şu an
-  puzzle ekranında geri tuşu doğrudan uygulamadan çıkıyor**, Home'a değil.
+- §40 responsive: board `maxBoardSize`'ı aşmaz, tablet dahil; tepsi kalan
+  yüksekliğe sığar ve parçalar 64 px altına inmez (§16.1).
+- §31 accessibility [TERCİH]: anlamlı semantic label'lar (Home düğmelerinde
+  var), sistem font scaling layout'u bozmamalı, erişilebilirlik servisleri
+  oyun state'ini bozmamalı.
+- Test edilecek ekranlar: 360×640 referans telefon, küçük telefon, tablet,
+  yatay yönelim.
+
+Dikkat: Album ve About ekranları `ListView`; Home ve Puzzle sabit yerleşim.
+Puzzle ekranı yatay yönelimde hiç denenmedi.

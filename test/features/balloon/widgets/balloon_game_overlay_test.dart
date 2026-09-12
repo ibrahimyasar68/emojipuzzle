@@ -227,6 +227,48 @@ void main() {
     await tester.pump(const Duration(seconds: 15));
   });
 
+  testWidgets('the game waits while the app is away (§28, §30)', (
+    tester,
+  ) async {
+    final harness = await _pumpGame(tester);
+
+    await tester.pump(const Duration(seconds: 5));
+    expect(harness.finished(), 0);
+
+    for (final state in [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+      await tester.pump();
+    }
+
+    // Twice the length of the whole game, spent in the background.
+    await tester.pump(const Duration(seconds: 30));
+    expect(
+      harness.finished(),
+      0,
+      reason: 'a reward is not something you can be away for and lose',
+    );
+    expect(harness.game.balloons, isNotEmpty);
+
+    for (final state in [
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+      await tester.pump();
+    }
+
+    // Ten seconds were still owed, and they are still owed.
+    await tester.pump(const Duration(seconds: 9));
+    expect(harness.finished(), 0);
+    await tester.pump(const Duration(seconds: 2));
+    expect(harness.finished(), 1);
+  });
+
   testWidgets('it hands back exactly once', (tester) async {
     final harness = await _pumpGame(tester);
 

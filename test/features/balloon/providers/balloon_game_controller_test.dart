@@ -213,6 +213,50 @@ void main() {
     });
   });
 
+  group('interruption (§28)', () {
+    test('the clock stops while the app is away', () {
+      final game = _game();
+      addTearDown(game.dispose);
+      var finished = 0;
+      game.onFinished = () => finished++;
+      game.start();
+
+      _runFor(game, const Duration(seconds: 5));
+      final spawnedBefore = game.spawnedCount;
+
+      game.pause();
+      expect(game.isPaused, isTrue);
+
+      // Far longer than the whole game, spent in somebody's pocket.
+      _runFor(game, const Duration(seconds: 60));
+      expect(game.isFinished, isFalse, reason: 'no time passed for the child');
+      expect(finished, 0);
+      expect(game.spawnedCount, spawnedBefore);
+
+      game.resume();
+      expect(game.isPaused, isFalse);
+
+      // And what was left is still left: ten of the fifteen seconds.
+      _runFor(game, const Duration(seconds: 9));
+      expect(game.isFinished, isFalse);
+      _runFor(game, const Duration(seconds: 2));
+      expect(game.isFinished, isTrue);
+    });
+
+    test('pausing a finished game changes nothing', () {
+      final game = _game();
+      addTearDown(game.dispose);
+      game.start();
+      _runFor(game, const Duration(seconds: 16));
+      expect(game.isFinished, isTrue);
+
+      game.pause();
+      expect(game.isPaused, isFalse, reason: 'there is nothing left to pause');
+      game.resume();
+      expect(game.isFinished, isTrue);
+    });
+  });
+
   group('no penalty (§20)', () {
     test('balloons left in the air are not counted against the child', () {
       final game = _game();

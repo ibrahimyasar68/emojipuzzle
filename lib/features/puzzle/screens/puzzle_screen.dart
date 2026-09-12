@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -43,7 +44,8 @@ class PuzzleScreen extends StatefulWidget {
   State<PuzzleScreen> createState() => _PuzzleScreenState();
 }
 
-class _PuzzleScreenState extends State<PuzzleScreen> {
+class _PuzzleScreenState extends State<PuzzleScreen>
+    with WidgetsBindingObserver {
   /// The moving piece lives here, not in the provider: it changes on every
   /// pointer frame and must not rebuild the board (§17).
   final ValueNotifier<DragState?> _drag = ValueNotifier<DragState?>(null);
@@ -83,6 +85,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _hint = HintController()
       ..onAutoPlace = _autoPlaceHintTarget
       ..addListener(_onHintStage)
@@ -125,8 +128,82 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     );
   }
 
+  /// §28 — the app went away mid-game.
+  ///
+  /// Whatever the child was holding goes back to its slot. The interruption
+  /// is not a try: no counter moves, so the piece is no easier and no
+  /// harder to place when they come back. Hints stop where they are, and
+  /// progress is written out while there is still time to write it (§30).
+  ///
+  /// `inactive` is treated the same as `paused`: a notification shade or a
+  /// system dialog takes the finger away just as surely as backgrounding
+  /// does, and the pointer stream is not guaranteed to end politely.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        _interrupt();
+      case AppLifecycleState.resumed:
+        // A fresh start, not a continuation: the child has been away and
+        // deserves their own eight seconds to look at the board (§21.2).
+        _hint.resume();
+    }
+  }
+
+  void _interrupt() {
+    if (!mounted) return;
+    final game = context.read<GameProvider>();
+    _cancelDrag(game);
+    _hint.pause();
+    unawaited(game.saveProgress());
+  }
+
+  /// Puts a held piece back where it came from, with nothing recorded.
+  void _cancelDrag(GameProvider game) {
+    final drag = _drag.value;
+    if (drag == null) return;
+    _drag.value = null;
+    game.returnToTray(drag.pieceId);
+  }
+
+  /// §30 — Android Back. No dialog: a child cannot read one, and will not
+  /// be asked a question they cannot answer.
+  ///
+  /// Anything being held goes back to its slot, progress is saved, and the
+  /// screen closes. A sequence still running is cut short, but whatever it
+  /// was celebrating has already been recorded: Back never takes a reward
+  /// away.
+  Future<void> _leaveForHome() async {
+    final game = context.read<GameProvider>();
+    final navigator = Navigator.of(context);
+    final wasCelebrating =
+        _celebrating || _playingBalloons || _stickerAwarded != null;
+
+    _cancelDrag(game);
+    _hint.pause();
+
+    if (wasCelebrating) {
+      setState(() {
+        _celebrating = false;
+        _playingBalloons = false;
+        _stickerAwarded = null;
+      });
+      // The picture behind the sequence is finished. Leaving the game on a
+      // solved board would give the child nothing to come back to, so the
+      // next one is set up on the way out.
+      unawaited(game.startNextPuzzle());
+    }
+
+    await game.saveProgress();
+    if (navigator.canPop()) navigator.pop();
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _hint
       ..removeListener(_onHintStage)
       ..dispose();
@@ -342,6 +419,17 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        unawaited(_leaveForHome());
+      },
+      child: _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF7EF),
       body: SafeArea(

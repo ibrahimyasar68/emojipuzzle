@@ -90,6 +90,7 @@ class BalloonGameController extends ChangeNotifier {
   Duration _sinceSpawn = Duration.zero;
   Duration? _closeAt;
   bool _finished = false;
+  bool _paused = false;
 
   /// The balloons in the air, in the order they arrived.
   List<Balloon> get balloons => List.unmodifiable(_balloons);
@@ -103,6 +104,23 @@ class BalloonGameController extends ChangeNotifier {
   Duration get elapsed => _elapsed;
   bool get isRunning => _timer != null;
   bool get isFinished => _finished;
+  bool get isPaused => _paused;
+
+  /// §28 — the app went away. The clock stops where it stands: a reward is
+  /// not something a child can be away for and lose (§30).
+  void pause() {
+    if (_paused || _finished) return;
+    _paused = true;
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  /// Back again, with exactly as long left as there was.
+  void resume() {
+    if (!_paused || _finished) return;
+    _paused = false;
+    _timer = Timer.periodic(tickInterval, (_) => advance(tickInterval));
+  }
 
   /// Opens the game: the first balloons are already in the air.
   void start() {
@@ -122,7 +140,7 @@ class BalloonGameController extends ChangeNotifier {
   /// directly so fifteen seconds take no time at all.
   @visibleForTesting
   void advance(Duration by) {
-    if (_finished) return;
+    if (_finished || _paused) return;
     _elapsed += by;
 
     // An early finish is already booked: nothing new arrives, we are only
