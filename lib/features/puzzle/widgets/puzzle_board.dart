@@ -100,7 +100,7 @@ class PuzzleBoard extends StatelessWidget {
         size: pieceSize,
         painter: PuzzlePiecePainter(
           image: image,
-          renderPath: paths.renderOf(piece.id),
+          renderPath: paths.of(piece.id),
           background: _backgroundAt(origin),
           rects: PieceImageMapper.rectsOf(
             piece: piece,

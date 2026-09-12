@@ -16,7 +16,14 @@ abstract final class PuzzleConfig {
   /// half-covered anti-aliased edges do not add up to an opaque one.
   /// Painting each piece a hair larger makes neighbours overlap instead.
   /// Snap and hit-testing keep using the exact geometry.
-  static const double renderBleedPixels = 0.5;
+  ///
+  /// A whole pixel, not half of one: the bleed is painted as a stroke along
+  /// the outline, and the stroke has an anti-aliased outer edge of its own.
+  /// Half a pixel left the worst boundary pixel at alpha 237; a full one
+  /// leaves the assembled board with no translucent pixel anywhere. It is
+  /// measured, not guessed — see the seam check in
+  /// `test/features/puzzle/widgets/puzzle_board_preview_test.dart`.
+  static const double renderBleedPixels = 1;
 
   /// §6.1, §40 — The board never grows past this, tablet included.
   static const double maxBoardSize = 500;

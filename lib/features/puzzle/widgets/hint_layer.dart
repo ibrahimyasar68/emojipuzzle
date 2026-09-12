@@ -192,7 +192,7 @@ class _HintLayerState extends State<HintLayer> with TickerProviderStateMixin {
           size: pieceSize,
           painter: PuzzlePiecePainter(
             image: widget.image,
-            renderPath: widget.paths.renderOf(target.id),
+            renderPath: widget.paths.of(target.id),
             background: _backgroundFor(restingOrigin),
             rects: PieceImageMapper.rectsOf(
               piece: target,

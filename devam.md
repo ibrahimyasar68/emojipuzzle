@@ -29,8 +29,8 @@ Son güncelleme: 12 Eylül 2026, Faz 15 sonunda.
 | **15** | **Responsive, tablet, accessibility** | **⏳ onay bekliyor** |
 | 16 | Asset/lisans denetimi, privacy, final cila | ⬜ sırada |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **865 test**.
-Beş commit var; GitHub remote hâlâ yok.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **866 test**.
+Altı commit var; GitHub remote hâlâ yok.
 
 ---
 
@@ -162,6 +162,12 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   4 satır), balon kendi yerinin hemen altından belirerek yükselir. Ekranın
   altından yükselmek, üstteki sıralarda duran balonların önünden geçmek
   demekti — dokunma hedefini örtüyordu.
+- **Parça konturu büyütülmez, boyayıcı taşırır.** Dikişleri kapatan bleed
+  (§14) artık `PuzzlePiecePainter`'da: kontur hem doldurulur hem de
+  `bleed * 2` kalınlığında çizgiyle çizilir. Path'i boolean union ile
+  büyütmek bu eğrilerde **çalışmıyor** — knob'un boynu kendi kendisiyle
+  kesişiyor ve union bambaşka bir şekil döndürürken sınır kutusu doğru
+  kalıyor. İkinci union şekli küçültüyordu bile.
 - **Tepsi bir raftır** (§16.1, §40): sütun sayısı satır sayısından az olamaz.
   Bu kural olmadan uzun bir tepside (tablet) parçalar ekranın ortasında tek
   sütuna diziliyordu. Ödün sırası: dokunma hedefi (asla) > raf biçimi >
@@ -208,6 +214,10 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 - **Lifecycle testleri geçerli sırayı izlemeli:** resumed → inactive →
   hidden → paused, dönüşte tersi. Geri tuşu
   `handlePlatformMessage('flutter/navigation', popRoute)` ile gönderilir.
+- **Sınır kutusu testi şekli test etmez.** Bleed hatası aylarca ayakta
+  kaldı çünkü tek testi "render path her yönde bleed kadar büyüdü mü"ydü;
+  bu doğruydu, ama şekil bozuktu. Artık kontur, kenar boyunca noktasal
+  ölçülüyor (`piece_outline_test.dart`).
 - **Yerleşim testi doğru ekranı seçmeli.** Dış kenar boşluğunu yalnızca
   *genişlik sınırlı* ekranlar (414×896, 1024×1366) kanıtlar; yükseklik
   sınırlı bir ekranda içerik zaten ortalanır ve test mutasyonda kırmızıya
@@ -245,10 +255,8 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
    değer: kimse oynamıyorken de ilerliyor.
 5. **Cila (Faz 16):** konfetinin cihazdaki dağılımı, parıltıların açık
    görseller üzerinde sönük kalması, tamamlanınca kesikli slot çerçevesinin
-   hâlâ görünmesi, **tepsi parçalarında zemin karesi ile şeklin hizasızlığı**
-   (kullanıcı 12 Eylül'de Faz 16'ya bırakılmasını onayladı — ama Faz 15'te
-   görüldü ki geniş ekranda en soldaki parçanın görseli ekran kenarından
-   **kesiliyor**; artık kozmetik değil), Home'un tablette seyrek durması.
+   hâlâ görünmesi, Home'un tablette seyrek durması. (Tepsi parçalarındaki
+   şekil bozukluğu Faz 15 sonunda düzeltildi.)
 
 ---
 
@@ -270,9 +278,10 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 
 Yapılacaklar:
 
-1. **Tepsi parçası hizasızlığı** — zemin karesi ile jigsaw şeklinin hizası;
-   geniş ekranda soldaki parça kesiliyor. Faz 15'te teşhis: görsel, slot'un
-   sol-üstünden yaklaşık `tabSize` kadar dışarı taşıyor.
+1. ~~Tepsi parçası hizasızlığı.~~ **Düzeltildi** (kullanıcı Faz 15 onayıyla
+   birlikte istedi). Sebep hizasızlık değilmiş: `PiecePaths` konturu boolean
+   union ile büyütüyordu ve bu, üst kenarı tırnaklı her parçanın köşesini
+   diyagonal kesiyordu. Bleed boyayıcıya taşındı, `renderOf` kaldırıldı.
 2. **§42 gerçek profiling** — `flutter run --profile`, sürüklemede jank.
 3. **Mağaza açıklamasına OpenMoji attribution** (uygulama içi tamam).
 4. **Idle hint gözetimsiz oyunu bitiriyor** — §21 auto-place merdiveni

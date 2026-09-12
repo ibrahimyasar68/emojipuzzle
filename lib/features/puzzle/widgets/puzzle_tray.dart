@@ -167,7 +167,7 @@ class PuzzleTray extends StatelessWidget {
                           size: pieceSize,
                           painter: PuzzlePiecePainter(
                             image: image,
-                            renderPath: paths.renderOf(piece.id),
+                            renderPath: paths.of(piece.id),
                             background: _backgroundFor(piece),
                             rects: PieceImageMapper.rectsOf(
                               piece: piece,

@@ -137,7 +137,7 @@ void main() {
       };
       final paintedPaths = {
         for (final piece in pieces)
-          piece.id: paths.renderOf(piece.id).shift(
+          piece.id: paths.of(piece.id).shift(
                 CoordinateMapper.pieceOriginOf(
                   normalizedPosition: piece.normalizedPosition,
                   grid: _grid,

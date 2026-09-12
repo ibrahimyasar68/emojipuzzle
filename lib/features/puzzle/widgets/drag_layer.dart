@@ -309,7 +309,7 @@ class _DragLayerState extends State<DragLayer> with TickerProviderStateMixin {
         size: pieceSize,
         painter: PuzzlePiecePainter(
           image: widget.image,
-          renderPath: widget.paths.renderOf(piece.id),
+          renderPath: widget.paths.of(piece.id),
           background: _backgroundFor(piece),
           rects: PieceImageMapper.rectsOf(
             piece: piece,

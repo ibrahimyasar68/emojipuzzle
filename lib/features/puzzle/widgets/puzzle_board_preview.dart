@@ -70,7 +70,7 @@ class PuzzleBoardPreview extends StatelessWidget {
         size: pieceSize,
         painter: PuzzlePiecePainter(
           image: image,
-          renderPath: paths.renderOf(piece.id),
+          renderPath: paths.of(piece.id),
           rects: PieceImageMapper.rectsOf(
             piece: piece,
             grid: grid,

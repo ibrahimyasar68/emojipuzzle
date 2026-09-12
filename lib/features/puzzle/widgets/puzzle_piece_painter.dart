@@ -1,7 +1,9 @@
+import 'dart:typed_data' show Float64List;
 import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 
+import '../../../core/constants/puzzle_config.dart';
 import '../data/puzzle_palette.dart';
 import '../engine/geometry/piece_image_mapper.dart';
 
@@ -17,12 +19,13 @@ class PuzzlePiecePainter extends CustomPainter {
     required this.rects,
     this.background,
     this.elevation = 0,
+    this.bleed = PuzzleConfig.renderBleedPixels,
   });
 
   /// Decoded once per puzzle and shared by every piece (§14).
   final ui.Image image;
 
-  /// Outline including the render bleed, in piece-local coordinates.
+  /// The piece outline, in piece-local coordinates.
   final Path renderPath;
 
   final PieceDrawRects rects;
@@ -37,9 +40,18 @@ class PuzzlePiecePainter extends CustomPainter {
   /// §17 — a dragged piece lifts off the board and casts a shadow.
   final double elevation;
 
-  static final Paint _imagePaint = Paint()
-    ..filterQuality = FilterQuality.medium
-    ..isAntiAlias = true;
+  /// §14 — how far the piece is painted past its own outline.
+  ///
+  /// Two neighbours share a boundary, and two half-covered anti-aliased
+  /// edges do not add up to an opaque one: without this there is a visible
+  /// hairline between them. The piece is drawn once a hair larger and then
+  /// again at its true size on top, so the overlap is real picture rather
+  /// than a smeared edge.
+  ///
+  /// This used to be done by growing the outline itself. It is done here
+  /// instead because dilating these particular curves with boolean path
+  /// operations does not work — see `PiecePaths`.
+  final double bleed;
 
   static const _shadowColour = Color(0xFF6D4C41);
 
@@ -48,23 +60,73 @@ class PuzzlePiecePainter extends CustomPainter {
     if (elevation > 0) {
       canvas.drawShadow(renderPath, _shadowColour, elevation, false);
     }
-    canvas.save();
-    canvas.clipPath(renderPath);
+
     final surface = background;
     if (surface != null) {
       // The gradient runs across the whole board, so neighbouring pieces
       // continue each other instead of forming a patchwork.
-      canvas.drawPaint(
-        Paint()
-          ..shader = ui.Gradient.linear(
-            surface.boardRect.topLeft,
-            surface.boardRect.bottomRight,
-            [surface.from, surface.to],
-          ),
+      _draw(
+        canvas,
+        ui.Gradient.linear(
+          surface.boardRect.topLeft,
+          surface.boardRect.bottomRight,
+          [surface.from, surface.to],
+        ),
       );
     }
-    canvas.drawImageRect(image, rects.src, rects.dst, _imagePaint);
-    canvas.restore();
+    _draw(canvas, _imageShader());
+  }
+
+  /// Fills the outline with [shader], then runs the same shader along the
+  /// outline as a stroke.
+  ///
+  /// The stroke is the bleed (§14): half of a `bleed * 2` line sits outside
+  /// the path, which pushes the painted edge out by exactly [bleed]
+  /// everywhere, including the knob's neck where the boundary doubles back
+  /// on itself. Growing the *path* instead does not survive these curves —
+  /// see `PiecePaths`.
+  void _draw(Canvas canvas, ui.Shader shader) {
+    canvas.drawPath(
+      renderPath,
+      Paint()
+        ..shader = shader
+        ..isAntiAlias = true,
+    );
+    if (bleed <= 0) return;
+    canvas.drawPath(
+      renderPath,
+      Paint()
+        ..shader = shader
+        ..isAntiAlias = true
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = bleed * 2
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  /// The shared puzzle image, positioned so that [PieceDrawRects.src] lands
+  /// on [PieceDrawRects.dst] in piece-local coordinates — the same mapping
+  /// `drawImageRect` would do, as a shader so it can stroke as well as
+  /// fill.
+  ui.ImageShader _imageShader() {
+    final src = rects.src;
+    final dst = rects.dst;
+    final scaleX = dst.width / src.width;
+    final scaleY = dst.height / src.height;
+
+    return ui.ImageShader(
+      image,
+      TileMode.clamp,
+      TileMode.clamp,
+      Float64List.fromList(<double>[
+        scaleX, 0, 0, 0, //
+        0, scaleY, 0, 0, //
+        0, 0, 1, 0, //
+        dst.left - src.left * scaleX, dst.top - src.top * scaleY, 0, 1,
+      ]),
+      filterQuality: FilterQuality.medium,
+    );
   }
 
   @override
@@ -73,5 +135,6 @@ class PuzzlePiecePainter extends CustomPainter {
       !identical(oldDelegate.renderPath, renderPath) ||
       oldDelegate.rects != rects ||
       oldDelegate.background != background ||
-      oldDelegate.elevation != elevation;
+      oldDelegate.elevation != elevation ||
+      oldDelegate.bleed != bleed;
 }
