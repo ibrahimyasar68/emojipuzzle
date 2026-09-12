@@ -5,11 +5,14 @@ import '../core/services/audio_service.dart';
 import '../core/services/sound_player.dart';
 import '../core/services/storage_service.dart';
 import '../features/puzzle/data/progress_repository.dart';
+import '../features/home/screens/home_screen.dart';
 import '../features/puzzle/providers/game_provider.dart';
-import '../features/puzzle/screens/puzzle_screen.dart';
 
-/// App shell. Navigation arrives in Faz 14; until then the home screen is
-/// whatever the current phase is building.
+/// App shell.
+///
+/// The game opens on Home and pushes from there (§29). Standard Flutter
+/// navigation, no router abstraction: four screens do not need one. Android
+/// Back and the lifecycle are Faz 14.
 class EmojiPuzzleApp extends StatefulWidget {
   const EmojiPuzzleApp({super.key, required this.storage});
 
@@ -33,10 +36,12 @@ class _EmojiPuzzleAppState extends State<EmojiPuzzleApp> {
       player: AudioPlayersSoundPlayer(),
       storage: widget.storage,
     )..loadSettings();
+    // Resumed while the child is still looking at Home, so pressing play
+    // opens a puzzle that is already painted (§25, §14).
     _game = GameProvider(
       progressRepository: ProgressRepository(widget.storage),
       audio: _audio,
-    )..resume(); // straight back to where the child left off (§25)
+    )..resume();
   }
 
   @override
@@ -57,7 +62,7 @@ class _EmojiPuzzleAppState extends State<EmojiPuzzleApp> {
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: PuzzleScreen(),
+        home: HomeScreen(),
       ),
     );
   }

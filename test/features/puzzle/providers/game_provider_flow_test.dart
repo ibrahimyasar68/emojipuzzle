@@ -85,7 +85,7 @@ void main() {
     expect(game.nextPuzzle, isNull);
   });
 
-  test('starting the next puzzle with nothing left does nothing', () async {
+  test('with nothing new left the game moves into Free Mode (§4)', () async {
     final game = _provider();
     addTearDown(game.dispose);
 
@@ -97,7 +97,12 @@ void main() {
 
     await game.startNextPuzzle();
 
-    expect(game.puzzle.id, last, reason: 'nothing new to start');
+    // This test used to assert the opposite — that the game stood still —
+    // which is exactly what stranded a finished game on a blank screen.
+    // Free Mode is what §4 asks for once every level is open.
+    expect(game.isInFreeMode, isTrue);
+    expect(game.puzzle.id, isNot(last), reason: 'a different picture');
+    expect(game.progress.completedPuzzleIds, hasLength(9));
   });
 
   test('a new puzzle brings a fresh board and a full tray', () async {

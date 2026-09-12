@@ -119,6 +119,32 @@ class GameProvider extends ChangeNotifier {
         unavailable: _unloadable,
       );
 
+  /// §4 — every finished puzzle, in catalogue order. These are what Free
+  /// Mode offers, and they are exactly the stickers in the album (§25).
+  List<PuzzleDefinition> get replayablePuzzles => [
+        for (final level in _catalog.levels)
+          for (final puzzle in level.puzzles)
+            if (_progress.isCompleted(puzzle.id) &&
+                !_unloadable.contains(puzzle.id))
+              puzzle,
+      ];
+
+  /// True once there is nothing new left and the game lives on replays.
+  bool get isInFreeMode => nextPuzzle == null && replayablePuzzles.isNotEmpty;
+
+  /// The finished puzzle to offer next in Free Mode.
+  ///
+  /// The one after whatever was played last, so a child who keeps pressing
+  /// play walks the album rather than being handed the same picture (§4).
+  PuzzleDefinition? get nextReplay {
+    final replayable = replayablePuzzles;
+    if (replayable.isEmpty) return null;
+
+    final lastPlayed = _progress.lastPlayedPuzzleId;
+    final at = replayable.indexWhere((puzzle) => puzzle.id == lastPlayed);
+    return replayable[(at + 1) % replayable.length];
+  }
+
   // ── One session ───────────────────────────────────────────────────────
 
   PieceRuntimeState stateOf(int pieceId) =>
@@ -206,10 +232,22 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Moves on to the next unfinished puzzle, if there is one.
+  /// Moves on: the next unfinished puzzle, or a finished one again.
+  ///
+  /// Returning quietly here used to leave the app on a blank screen for
+  /// good once all nine were done — "you have finished everything" looked
+  /// exactly like "still loading". Free Mode is what §4 asks for at that
+  /// point, and it is also the honest answer: there is always something to
+  /// play (§2).
   Future<void> startNextPuzzle() async {
-    final next = nextPuzzle;
-    if (next == null) return;
+    final next = nextPuzzle ?? nextReplay;
+    if (next == null) {
+      // Nothing new and nothing finished: the only way here is a catalogue
+      // whose artwork will not load at all (§14).
+      _appState = AppState.error;
+      notifyListeners();
+      return;
+    }
     await startPuzzle(next);
   }
 
@@ -262,7 +300,7 @@ class GameProvider extends ChangeNotifier {
     unawaited(_lastWrite);
   }
 
-  /// §26 — back to a clean slate. No child-facing UI reaches this yet.
+  /// §26 — back to a clean slate. Reached from the parent area (§33).
   Future<void> clearProgress() async {
     _progress = const GameProgress.initial();
     notifyListeners();

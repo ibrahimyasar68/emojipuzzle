@@ -158,4 +158,11 @@ abstract final class PuzzleConfig {
   /// §42 — a burst is small; several may overlap and still leave room
   /// inside the 40 particle budget.
   static const int balloonPopParticles = 8;
+
+  /// §23, §25 — the sticker handover. The shortest step in the sequence:
+  /// the album is where stickers are looked at, this is only the moment of
+  /// being given one. A tap ends it sooner.
+  static const Duration stickerRewardDuration = Duration(milliseconds: 1600);
+  static const Duration stickerRewardPopDuration = Duration(milliseconds: 650);
+  static const double stickerRewardSize = 190;
 }

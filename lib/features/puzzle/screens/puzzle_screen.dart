@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/puzzle_config.dart';
+import '../../album/widgets/sticker_reward_overlay.dart';
 import '../../balloon/widgets/balloon_game_overlay.dart';
 import '../../celebration/widgets/celebration_overlay.dart';
 import '../engine/geometry/coordinate_mapper.dart';
@@ -16,6 +17,7 @@ import '../models/drag_state.dart';
 import '../models/hint_stage.dart';
 import '../models/piece_flight.dart';
 import '../models/placement_burst.dart';
+import '../models/puzzle_definition.dart';
 import '../models/puzzle_piece.dart';
 import '../providers/game_provider.dart';
 import '../providers/hint_controller.dart';
@@ -66,6 +68,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   /// True while the balloon reward is on screen (§23, §24).
   bool _playingBalloons = false;
+
+  /// The sticker just earned, while it is being handed over (§23, §25).
+  PuzzleDefinition? _stickerAwarded;
 
   /// Watches for a child who has stopped playing (§21).
   late final HintController _hint;
@@ -252,9 +257,14 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     _flight.value = null;
     switch (flight.kind) {
       case PieceFlightKind.settle:
+        // Asked before the piece lands: landing the last one is what marks
+        // the puzzle finished, and after that every puzzle looks earned.
+        final alreadyEarned = game.isPuzzleCompleted(game.puzzle.id);
         game.markPlaced(flight.pieceId);
         _sparkleOver(game, flight.pieceId);
-        if (game.isComplete) _beginCelebration();
+        if (game.isComplete) {
+          _beginCelebration(game, alreadyEarned: alreadyEarned);
+        }
       case PieceFlightKind.snapBack:
         game.dropFailed(flight.pieceId);
     }
@@ -279,10 +289,18 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   ///
   /// Hints stop while this runs — the game has nothing left to suggest, and
   /// a pulsing tray behind the confetti would be nonsense (§21).
-  void _beginCelebration() {
+  void _beginCelebration(GameProvider game, {required bool alreadyEarned}) {
     _hint.pause();
+    // Noted now, handed over two steps later (§23). A picture played again
+    // in Free Mode earns nothing new, and a sticker given twice would be a
+    // reward for nothing (§4, §25).
+    _awardedSticker = alreadyEarned ? null : game.puzzle;
     setState(() => _celebrating = true);
   }
+
+  /// The sticker this completion earned, or null when the child already had
+  /// it.
+  PuzzleDefinition? _awardedSticker;
 
   /// The celebration ended, by itself or because the child tapped through
   /// it. The balloons come next; Faz 13 adds the sticker after them (§23).
@@ -296,9 +314,28 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   /// The balloons are done — popped, or fifteen seconds went by. Either
   /// way nothing is counted and nothing is said (§20, §24).
+  ///
+  /// The sticker comes next, and only for a picture finished for the first
+  /// time: in Free Mode the child already owns it, and handing it over
+  /// again would be a reward for nothing (§4, §25).
   void _finishBalloons(GameProvider game) {
     if (!_playingBalloons) return;
-    setState(() => _playingBalloons = false);
+    final earned = _awardedSticker;
+    setState(() {
+      _playingBalloons = false;
+      _stickerAwarded = earned;
+    });
+    if (earned == null) _moveOn(game);
+  }
+
+  /// The sticker has been seen. On to the next picture (§23).
+  void _finishSticker(GameProvider game) {
+    if (_stickerAwarded == null) return;
+    setState(() => _stickerAwarded = null);
+    _moveOn(game);
+  }
+
+  void _moveOn(GameProvider game) {
     _hint.resume();
     game.startNextPuzzle();
   }
@@ -443,6 +480,11 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                             BalloonGameOverlay(
                               audio: game.audio,
                               onFinished: () => _finishBalloons(game),
+                            ),
+                          if (_stickerAwarded != null)
+                            StickerRewardOverlay(
+                              puzzle: _stickerAwarded!,
+                              onFinished: () => _finishSticker(game),
                             ),
                         ],
                       );

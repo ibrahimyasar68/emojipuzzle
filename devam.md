@@ -1,7 +1,7 @@
 # Devam Notu — Emoji Puzzle Kids
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 12 Eylül 2026, Faz 12 sonunda.
+Son güncelleme: 12 Eylül 2026, Faz 13 sonunda.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -23,14 +23,14 @@ Son güncelleme: 12 Eylül 2026, Faz 12 sonunda.
 | 9 | AudioService, HapticService, §22 geri bildirim | ✅ onaylandı |
 | 10 | HintController, 4 aşamalı idle hint | ✅ onaylandı |
 | 11 | Kutlama + konfeti (atlanabilir) | ✅ onaylandı |
-| **12** | **Balon mini oyunu** | **⏳ onay bekliyor** |
-| 13 | Album, Home, Serbest Mod, progress reset | ⬜ sırada |
-| 14 | Navigation, Android Back, lifecycle | ⬜ |
+| 12 | Balon mini oyunu | ✅ onaylandı |
+| **13** | **Album, Home, Serbest Mod, progress reset** | **⏳ onay bekliyor** |
+| 14 | Navigation, Android Back, lifecycle | ⬜ sırada |
 | 15 | Responsive, tablet, accessibility | ⬜ |
 | 16 | Asset/lisans denetimi, privacy, final cila | ⬜ |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **758 test**.
-İlk commit atıldı (`483f5e5`); GitHub remote hâlâ yok.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **779 test**.
+Commit'ler var (`483f5e5`, `c256702`); GitHub remote hâlâ yok.
 
 ---
 
@@ -113,10 +113,17 @@ lib/
     │   │                # piece_painter, ghost_painter, debug_overlay_painter
     │   └── screens/puzzle_screen.dart
     ├── celebration/widgets/celebration_overlay.dart
-    └── balloon/                     # §24, puzzle'a bağımlı DEĞİL
-        ├── models/balloon.dart
-        ├── providers/balloon_game_controller.dart
-        └── widgets/  # balloon_game_overlay, balloon_layout, balloon_painter
+    ├── balloon/                     # §24, puzzle'a bağımlı DEĞİL
+    │   ├── models/balloon.dart
+    │   ├── providers/balloon_game_controller.dart
+    │   └── widgets/  # balloon_game_overlay, balloon_layout, balloon_painter
+    ├── album/                       # §25 — puzzle'a bağımlıdır (stickerlar
+    │   ├── screens/album_screen.dart          # puzzle'ların kendisi)
+    │   └── widgets/  # sticker_tile, sticker_reward_overlay
+    └── home/
+        ├── screens/home_screen.dart    # §29 giriş ekranı
+        ├── screens/about_screen.dart   # §26 sıfırlama + §33 attribution
+        └── widgets/home_button.dart
 ```
 
 ---
@@ -155,6 +162,15 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   4 satır), balon kendi yerinin hemen altından belirerek yükselir. Ekranın
   altından yükselmek, üstteki sıralarda duran balonların önünden geçmek
   demekti — dokunma hedefini örtüyordu.
+- **Bitince boş ekran bırakma.** `startNextPuzzle()` oynanacak yeni puzzle
+  kalmayınca Serbest Mod'a düşer (§4). Sessizce dönerse "her şey bitti"
+  görüntüsü "yükleniyor" görüntüsüyle aynı olur; emülatörde tam olarak bu
+  yaşandı.
+- **Sticker yalnızca ilk bitirişte verilir.** "Zaten kazanılmış mıydı"
+  bilgisi son parça yerleşmeden **önce** okunur; sonrası çok geç.
+- **Widget kendi kimlik key'ini kendi koymaz.** `sticker-<id>` key'i
+  `StickerTile`'ın kendisine, album tarafından verilir; iç GestureDetector'a
+  konunca `tester.widget<StickerTile>` tipi tutmaz.
 - **Widget genişliğini `rect.width`'ten alma.** `sağ − sol` kayan noktada
   tam 72 vermiyor (71.99999999999999); boyut `BalloonLayout.diameterOf`
   üzerinden verilir.
@@ -177,6 +193,11 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   "Açılışta üç balon" iddiası için 1100 ms pump'lanır.
 - Salınım (bob), yerleşme anındaki konum karşılaştırmalarını bozar; yükselme
   yönü iki ara noktayla (200/800 ms) ölçülür.
+- **Album ve About kaydırılabilir**; `ListView` ekran dışındaki çocukları hiç
+  kurmaz. Testler `scrollUntilVisible` kullanır ve **yalnızca tek yöne**
+  kaydırır — sticker'lar katalog sırasında değil, album (kategori) sırasında
+  gezilmeli, yoksa liste bir aşağı bir yukarı gitmek zorunda kalır ve test
+  "Bad state: No element" ile patlar.
 
 ---
 
@@ -184,31 +205,52 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 
 1. **CI hiç çalışmadı.** `git init` yapıldı ama **commit yok**, GitHub remote
    yok. İlk commit + remote bağlanınca workflow devreye girer.
-2. **OpenMoji attribution uygulamada görünmüyor.** Faz 13'te ebeveyn/hakkında
-   alanına ve mağaza açıklamasına eklenmeli (`assets/LICENSES.md` metni hazır).
-3. **§42 gerçek cihaz profiling'i yapılmadı.** Yalnızca yapısal kısmı test
-   edildi (board rebuild yok, kare başına notify yok). `flutter run --profile`
+2. ~~OpenMoji attribution uygulamada görünmüyor.~~ **Faz 13'te yapıldı**:
+   Home → ⓘ → Hakkında ekranı. **Mağaza açıklamasına eklenmesi hâlâ
+   yapılmadı** (Faz 16).
+3. **§42 gerçek cihaz profiling'i yapılmadı.** Faz 12 sonunda Pixel 6
+   emülatöründe uygulama baştan sona elle oynandı (puzzle → kutlama →
+   balon → sonraki puzzle, hepsi çalışıyor) ama bu bir profiling değildi.
+   Yalnızca yapısal kısmı test edildi (board rebuild yok, kare başına
+   notify yok). `flutter run --profile`
    ile bakılmalı.
 4. **Faz 14 için hazır ama bağlanmamış:** `HintController.pause()/resume()`
-   (§28) ve `GameProvider.saveProgress()/pendingWrite` (§30).
+   (§28) ve `GameProvider.saveProgress()/pendingWrite` (§30) — lifecycle'a
+   bağlanmadı. Ayrıca puzzle ekranında **Android geri tuşu uygulamadan
+   çıkıyor** (§30 Faz 14'ün işi).
+5. **Idle hint gözetimsiz oyunu kendi bitiriyor.** Emülatörde uygulama açık
+   bırakıldı, §21'in 32 sn'lik auto-place merdiveni arka arkaya beş puzzle'ı
+   kendi tamamladı. Spec'e uygun davranış ama Faz 16'da gözden geçirmeye
+   değer: kimse oynamıyorken de ilerliyor.
 5. **Cila (Faz 16):** konfetinin cihazdaki dağılımı, parıltıların açık
    görseller üzerinde sönük kalması, tamamlanınca kesikli slot çerçevesinin
-   hâlâ görünmesi.
+   hâlâ görünmesi, **tepsi parçalarında zemin karesi ile şeklin hizasızlığı**
+   (kullanıcı 12 Eylül'de Faz 16'ya bırakılmasını onayladı).
 
 ---
 
-## 9. Sıradaki iş: Faz 13 — Album + Home + Serbest Mod (§25, §26)
+## 8b. Faz 13'e girerken verilmiş kararlar
 
-**Kabul kriteri:** "Album/progress/free mode çalışıyor."
+- **"Her şey bitti" boş ekranı Faz 13'te düzgün çözülecek** (ara çözüm yok).
+  Emülatörde yaşandı: dokuz puzzle da tamamlanınca `resume()` →
+  `startNextPuzzle()` → `nextPuzzle == null` → sessiz çıkış → `appState`
+  sonsuza dek `loading` → boş ekran. Spec'in cevabı §4'ün Serbest Mod'u.
+- **Tepsi parçalarındaki hizalama kusuru Faz 16'ya bırakıldı.** Tepsideki
+  her parçanın arkasındaki `PuzzlePalette` karesi ile jigsaw şekli hizasız;
+  tırnaklar karenin dışında boyasız kalıyor. Board'da sorun yok.
 
-Faz 12'den devreden bağlantı noktası: §23 akışı şu an
-kutlama → **balon oyunu** → sonraki puzzle. Sticker ödülü ve album
-güncellemesi balon oyunu ile `startNextPuzzle()` arasına girecek
-(`_finishBalloons`, `lib/features/puzzle/screens/puzzle_screen.dart`).
+---
 
-Bu fazda kapanması gereken borçlar:
+## 9. Sıradaki iş: Faz 14 — Navigation, Android Back, lifecycle
 
-- **OpenMoji attribution** uygulama içinde görünür olmalı (ebeveyn/hakkında
-  alanı). Metin `assets/LICENSES.md` içinde hazır.
-- **Mute düğmesi** Home'a (K-2; `AudioService.toggleMuted()` hazır ve kalıcı).
-- **Progress reset** (§26).
+**Kabul kriteri:** "Ekran geçişleri ve interruption güvenli."
+
+Faz 13'ten devreden hazır uçlar:
+
+- `HintController.pause()/resume()` (§28) — yazıldı, yalnızca kutlama/balon
+  sırasında kullanılıyor; uygulama arka plana alınınca da çağrılmalı.
+- `GameProvider.saveProgress()` / `pendingWrite` (§30) — ekrandan çıkarken
+  ve arka plana geçerken çağrılmalı.
+- Navigation artık var (Home → Puzzle / Album / About, `Navigator.push`).
+  Faz 14 bunun üstüne Android Back davranışını (§30) ekleyecek: **şu an
+  puzzle ekranında geri tuşu doğrudan uygulamadan çıkıyor**, Home'a değil.

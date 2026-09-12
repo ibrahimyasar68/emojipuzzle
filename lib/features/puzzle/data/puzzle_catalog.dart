@@ -131,6 +131,27 @@ class PuzzleCatalog {
         ),
       );
 
+  /// Every puzzle in the catalogue, in the order a child meets them.
+  List<PuzzleDefinition> get allPuzzles => [
+        for (final level in levels) ...level.puzzles,
+      ];
+
+  /// The album's shape (§25): puzzles grouped under their category.
+  ///
+  /// Only categories that actually have a puzzle appear, and they come in
+  /// the order the enum declares them, so the album does not rearrange
+  /// itself as a child earns stickers.
+  Map<PuzzleCategory, List<PuzzleDefinition>> get byCategory {
+    final grouped = <PuzzleCategory, List<PuzzleDefinition>>{};
+    for (final category in PuzzleCategory.values) {
+      final puzzles = allPuzzles
+          .where((puzzle) => puzzle.category == category)
+          .toList(growable: false);
+      if (puzzles.isNotEmpty) grouped[category] = puzzles;
+    }
+    return Map.unmodifiable(grouped);
+  }
+
   /// How many levels are open, given what has been finished (§4).
   ///
   /// A level opens when the one before it has [LevelDefinition

@@ -85,6 +85,13 @@ Future<void> _watchBalloons(WidgetTester tester) async {
   await tester.pump();
 }
 
+/// The last step of the sequence: the sticker just earned (§23, §25).
+Future<void> _watchSticker(WidgetTester tester) async {
+  expect(find.byKey(const ValueKey('sticker-reward')), findsOneWidget);
+  await tester.pump(PuzzleConfig.stickerRewardDuration);
+  await tester.pump();
+}
+
 /// Lets the real work behind `startPuzzle` (painting the picture) finish.
 Future<void> _settleAsync(WidgetTester tester) async {
   await tester.runAsync(
@@ -108,6 +115,7 @@ void main() {
 
     await _watchCelebration(tester);
     await _watchBalloons(tester);
+    await _watchSticker(tester);
     await _settleAsync(tester);
 
     expect(game.puzzle.id, 'cat_01');
@@ -143,9 +151,12 @@ void main() {
     expect(game.puzzle.id, 'apple_01');
 
     await tester.pump(const Duration(seconds: 2));
+    expect(find.byKey(const ValueKey('balloon-game')), findsNothing);
+
+    // And then the sticker, which is what the balloons were leading to.
+    await _watchSticker(tester);
     await _settleAsync(tester);
 
-    expect(find.byKey(const ValueKey('balloon-game')), findsNothing);
     expect(game.puzzle.id, 'cat_01');
     expect(tester.takeException(), isNull);
   });
@@ -169,8 +180,42 @@ void main() {
       }
     }
 
+    await _watchSticker(tester);
     await _settleAsync(tester);
     expect(game.puzzle.id, 'cat_01');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a picture played again earns no second sticker (§4, §25)', (
+    tester,
+  ) async {
+    final game = await _pumpGame(tester);
+
+    // Finish it once: the sticker is earned.
+    await _solveWithFingers(tester, game);
+    await _watchCelebration(tester);
+    await _watchBalloons(tester);
+    expect(find.byKey(const ValueKey('sticker-reward')), findsOneWidget);
+    await _watchSticker(tester);
+    await _settleAsync(tester);
+
+    // Now play that same picture again, the way Free Mode does.
+    await tester.runAsync(
+      () => game.startPuzzle(PuzzleCatalog.v1.byId('apple_01')),
+    );
+    await tester.pumpAndSettle();
+
+    await _solveWithFingers(tester, game);
+    await _watchCelebration(tester);
+    await _watchBalloons(tester);
+
+    expect(
+      find.byKey(const ValueKey('sticker-reward')),
+      findsNothing,
+      reason: 'it was already in the album; giving it again rewards nothing',
+    );
+    await _settleAsync(tester);
+    expect(game.progress.completedPuzzleIds, contains('apple_01'));
     expect(tester.takeException(), isNull);
   });
 
@@ -234,6 +279,7 @@ void main() {
     await _solveWithFingers(tester, game);
     await _watchCelebration(tester);
     await _watchBalloons(tester);
+    await _watchSticker(tester);
     await _settleAsync(tester);
 
     // A stale path cache would show the previous puzzle's pieces here; a
