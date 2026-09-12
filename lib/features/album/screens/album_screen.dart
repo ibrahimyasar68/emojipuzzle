@@ -18,12 +18,26 @@ class AlbumScreen extends StatelessWidget {
   final void Function(PuzzleDefinition puzzle)? onPlay;
 
   /// One symbol per category, because the child cannot read the name (§2).
+  ///
+  /// Icons from the font Flutter ships, not emoji characters: §33 forbids
+  /// drawing anything from the platform's own emoji glyphs, and the reason
+  /// applies here as much as it does to the artwork — a glyph looks
+  /// different on every device and is missing on some.
   static const _categoryIcons = {
-    PuzzleCategory.fruits: '🍎',
-    PuzzleCategory.animals: '🐾',
-    PuzzleCategory.vehicles: '🚗',
-    PuzzleCategory.nature: '🌿',
-    PuzzleCategory.shapes: '🔵',
+    PuzzleCategory.fruits: Icons.local_dining_rounded,
+    PuzzleCategory.animals: Icons.pets_rounded,
+    PuzzleCategory.vehicles: Icons.directions_car_rounded,
+    PuzzleCategory.nature: Icons.wb_sunny_rounded,
+    PuzzleCategory.shapes: Icons.circle_rounded,
+  };
+
+  /// Read out by a screen reader; never shown (§2, §31).
+  static const _categoryNames = {
+    PuzzleCategory.fruits: 'Meyveler',
+    PuzzleCategory.animals: 'Hayvanlar',
+    PuzzleCategory.vehicles: 'Taşıtlar',
+    PuzzleCategory.nature: 'Doğa',
+    PuzzleCategory.shapes: 'Şekiller',
   };
 
   @override
@@ -49,7 +63,8 @@ class AlbumScreen extends StatelessWidget {
                   for (final entry in grouped.entries)
                     _CategorySection(
                       category: entry.key,
-                      icon: _categoryIcons[entry.key] ?? '⭐',
+                      icon: _categoryIcons[entry.key] ?? Icons.star_rounded,
+                      name: _categoryNames[entry.key] ?? '',
                       puzzles: entry.value,
                       game: game,
                       onPlay: onPlay,
@@ -68,13 +83,15 @@ class _CategorySection extends StatelessWidget {
   const _CategorySection({
     required this.category,
     required this.icon,
+    required this.name,
     required this.puzzles,
     required this.game,
     required this.onPlay,
   });
 
   final PuzzleCategory category;
-  final String icon;
+  final IconData icon;
+  final String name;
   final List<PuzzleDefinition> puzzles;
   final GameProvider game;
   final void Function(PuzzleDefinition puzzle)? onPlay;
@@ -88,7 +105,11 @@ class _CategorySection extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 8, left: 4),
-            child: Text(icon, style: const TextStyle(fontSize: 28)),
+            child: Semantics(
+              header: true,
+              label: name,
+              child: Icon(icon, size: 28, color: const Color(0xFF7A6F65)),
+            ),
           ),
           Wrap(
             spacing: 12,

@@ -123,9 +123,18 @@ void main() {
     expect(apple.dy, banana.dy, reason: 'same row');
 
     // Five categories in v1, each with its own symbol, in enum order.
-    for (final icon in ['🍎', '🐾', '🚗', '🌿', '🔵']) {
-      await _scrollTo(tester, find.text(icon));
-      expect(find.text(icon), findsOneWidget, reason: icon);
+    // Icons from Flutter's own font: §33 rules out emoji characters, which
+    // are the platform's glyphs and differ from device to device.
+    const icons = [
+      Icons.local_dining_rounded,
+      Icons.pets_rounded,
+      Icons.directions_car_rounded,
+      Icons.wb_sunny_rounded,
+      Icons.circle_rounded,
+    ];
+    for (final icon in icons) {
+      await _scrollTo(tester, find.byIcon(icon));
+      expect(find.byIcon(icon), findsOneWidget, reason: '$icon');
     }
   });
 

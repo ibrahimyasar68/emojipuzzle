@@ -1,7 +1,7 @@
 # Devam Notu — Emoji Puzzle Kids
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 12 Eylül 2026, Faz 15 sonunda.
+Son güncelleme: 13 Eylül 2026, Faz 16 sırasında.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -26,10 +26,10 @@ Son güncelleme: 12 Eylül 2026, Faz 15 sonunda.
 | 12 | Balon mini oyunu | ✅ onaylandı |
 | 13 | Album, Home, Serbest Mod, progress reset | ✅ onaylandı |
 | 14 | Navigation, Android Back, lifecycle | ✅ onaylandı |
-| **15** | **Responsive, tablet, accessibility** | **⏳ onay bekliyor** |
-| 16 | Asset/lisans denetimi, privacy, final cila | ⬜ sırada |
+| 15 | Responsive, tablet, accessibility | ✅ onaylandı |
+| **16** | **Asset/lisans denetimi, privacy, final cila** | **⏳ sürüyor** |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **866 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **871 test**.
 Altı commit var; GitHub remote hâlâ yok.
 
 ---
@@ -84,6 +84,8 @@ Testler `build/` altına kanıt görselleri bırakır: `preview_2x2.png`,
 
 ```text
 docs/spec-v2.2.md                   # EMOJI PUZZLE KIDS v2.2 — tek kaynak (§0–§51)
+docs/privacy-policy.md              # §35 — yayımlanacak metin
+docs/store-listing.md               # §33 attribution + mağaza açıklaması
 lib/
 ├── app/app.dart                    # servisleri kurar, MultiProvider
 ├── main.dart                       # StorageService açılır, sonra runApp
@@ -162,6 +164,11 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   4 satır), balon kendi yerinin hemen altından belirerek yükselir. Ekranın
   altından yükselmek, üstteki sıralarda duran balonların önünden geçmek
   demekti — dokunma hedefini örtüyordu.
+- **Platform emoji glyph'i kullanılmaz** (§33). `Text('🍎')` yasak; ikonlar
+  Flutter'ın kendi font'undan, görseller assets'ten gelir.
+  `test/architecture/asset_policy_test.dart` bunu dosyaları tarayarak
+  denetler — ama yalnızca gerçek karakterleri yakalar, `\u{...}` kaçışını
+  değil.
 - **Parça konturu büyütülmez, boyayıcı taşırır.** Dikişleri kapatan bleed
   (§14) artık `PuzzlePiecePainter`'da: kontur hem doldurulur hem de
   `bleed * 2` kalınlığında çizgiyle çizilir. Path'i boolean union ile
@@ -272,21 +279,29 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 
 ---
 
-## 9. Sıradaki iş: Faz 16 — Asset/lisans denetimi, privacy, final cila
+## 9. Faz 16 durumu
 
-**Kabul kriteri:** "Tüm testler yeşil, belirgin jank yok, lisanslar tamam."
+**Bitenler:**
 
-Yapılacaklar:
+- **§33 lisans denetimi** — `assets/LICENSES.md` ile gerçek dosyalar birebir
+  eşleşiyor (13/13), otomatik test eder. **Album kategori başlıklarındaki
+  emoji glyph'leri kaldırıldı** (§33 ihlaliydi, Faz 13'te girmişti).
+- **§35 privacy** — `docs/privacy-policy.md` yazıldı. Yayın manifest'i
+  **hiçbir izin istemiyor**, otomatik test eder.
+- **Mağaza metni** — `docs/store-listing.md`, attribution dahil.
+- **§42 profiling** — Pixel 6 emülatöründe profile derlemesiyle ölçüldü:
+  build (UI thread) ort **1,34 ms**, p99 3,27 ms. Raster ort 15,7 ms ama bu
+  emülatörün yazılım GPU'su. **Gerçek cihazda ölçülmedi.** Bleed stroke'unun
+  maliyeti ölçüldü: yok (15,94 → 15,71 ms).
+- **Tamamlanınca kesikli çerçeve** — dolu hücrelerde artık çizilmiyor.
 
-1. ~~Tepsi parçası hizasızlığı.~~ **Düzeltildi** (kullanıcı Faz 15 onayıyla
-   birlikte istedi). Sebep hizasızlık değilmiş: `PiecePaths` konturu boolean
-   union ile büyütüyordu ve bu, üst kenarı tırnaklı her parçanın köşesini
-   diyagonal kesiyordu. Bleed boyayıcıya taşındı, `renderOf` kaldırıldı.
-2. **§42 gerçek profiling** — `flutter run --profile`, sürüklemede jank.
-3. **Mağaza açıklamasına OpenMoji attribution** (uygulama içi tamam).
-4. **Idle hint gözetimsiz oyunu bitiriyor** — §21 auto-place merdiveni
-   kimse oynamıyorken de ilerliyor; gözden geçirilmeli.
-5. Konfeti dağılımı, parıltıların açık görsellerde sönük kalması,
-   tamamlanınca kesikli slot çerçevesinin görünmesi, Home'un tablette
-   seyrek durması.
-6. `assets/LICENSES.md` ile gerçek dosyaların son denetimi.
+**Kalanlar:**
+
+1. **Idle hint gözetimsiz oyunu bitiriyor** — kullanıcıya soruldu, cevap
+   bekliyor. Öneri: üst üste 2 auto-place'ten sonra merdiven dursun, çocuk
+   ekrana dokununca yeniden başlasın (§21 değişikliği olduğu için onay şart).
+2. **GitHub remote yok** — CI bir kez bile çalışmadı. Depo açma kararı
+   kullanıcınındır (public/private).
+3. **Gerçek cihazda profiling** — emülatör yeterli değil.
+4. Küçük cila: Home tablette seyrek duruyor; parça sınırlarında 1 piksellik
+   ton farkı kalıyor (delik yok, ölçüldü).

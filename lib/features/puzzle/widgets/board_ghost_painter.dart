@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/widgets.dart';
 
 import '../../../core/constants/puzzle_config.dart';
@@ -17,10 +18,19 @@ class BoardGhostPainter extends CustomPainter {
     required this.image,
     required this.grid,
     this.background,
+    this.filledCells = const <int>{},
   });
 
   final ui.Image image;
   final PuzzleGrid grid;
+
+  /// Cells that already hold a piece, as `row * columns + column`.
+  ///
+  /// A filled slot stops asking to be filled: its dashed outline is not
+  /// drawn any more. The piece covers most of it, but a jigsaw edge and a
+  /// straight cell edge are not the same line, so without this the finished
+  /// picture keeps a faint grid of dashes across it (§15).
+  final Set<int> filledCells;
 
   /// The surface the pieces themselves are painted on, so the empty board
   /// promises the picture that is coming (§15, §34).
@@ -67,6 +77,7 @@ class BoardGhostPainter extends CustomPainter {
     final cell = CoordinateMapper.cellSizeOf(grid, size);
     for (var row = 0; row < grid.rows; row++) {
       for (var column = 0; column < grid.columns; column++) {
+        if (filledCells.contains(row * grid.columns + column)) continue;
         canvas.drawPath(
           _dashed(
             Rect.fromLTWH(
@@ -114,6 +125,7 @@ class BoardGhostPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(BoardGhostPainter oldDelegate) =>
+      !setEquals(oldDelegate.filledCells, filledCells) ||
       !identical(oldDelegate.image, image) ||
       oldDelegate.grid != grid ||
       oldDelegate.background != background;

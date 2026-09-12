@@ -58,6 +58,10 @@ class PuzzleBoard extends StatelessWidget {
               image: image,
               grid: grid,
               background: _backgroundAt(Offset.zero),
+              filledCells: {
+                for (final piece in placedPieces)
+                  piece.row * grid.columns + piece.column,
+              },
             ),
           ),
           for (final piece in placedPieces)
