@@ -1,7 +1,7 @@
 # Devam Notu — Emoji Puzzle Kids
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 12 Eylül 2026, Faz 14 sonunda.
+Son güncelleme: 12 Eylül 2026, Faz 15 sonunda.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -25,12 +25,12 @@ Son güncelleme: 12 Eylül 2026, Faz 14 sonunda.
 | 11 | Kutlama + konfeti (atlanabilir) | ✅ onaylandı |
 | 12 | Balon mini oyunu | ✅ onaylandı |
 | 13 | Album, Home, Serbest Mod, progress reset | ✅ onaylandı |
-| **14** | **Navigation, Android Back, lifecycle** | **⏳ onay bekliyor** |
-| 15 | Responsive, tablet, accessibility | ⬜ sırada |
-| 16 | Asset/lisans denetimi, privacy, final cila | ⬜ |
+| 14 | Navigation, Android Back, lifecycle | ✅ onaylandı |
+| **15** | **Responsive, tablet, accessibility** | **⏳ onay bekliyor** |
+| 16 | Asset/lisans denetimi, privacy, final cila | ⬜ sırada |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **789 test**.
-Dört commit var; GitHub remote hâlâ yok.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **865 test**.
+Beş commit var; GitHub remote hâlâ yok.
 
 ---
 
@@ -162,6 +162,10 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   4 satır), balon kendi yerinin hemen altından belirerek yükselir. Ekranın
   altından yükselmek, üstteki sıralarda duran balonların önünden geçmek
   demekti — dokunma hedefini örtüyordu.
+- **Tepsi bir raftır** (§16.1, §40): sütun sayısı satır sayısından az olamaz.
+  Bu kural olmadan uzun bir tepside (tablet) parçalar ekranın ortasında tek
+  sütuna diziliyordu. Ödün sırası: dokunma hedefi (asla) > raf biçimi >
+  dış kenar boşluğu (yer darsa ilk o gider — yatay telefon + 9 parça).
 - **Kesinti bir deneme değildir** (§28). Arka plana geçiş sürüklemeyi iptal
   eder, parça kendi yuvasına döner, `failedAttempts` **artmaz**.
 - **`Timer` arka planda çalışmaya devam eder, `Ticker` etmez.** Balon
@@ -204,6 +208,10 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 - **Lifecycle testleri geçerli sırayı izlemeli:** resumed → inactive →
   hidden → paused, dönüşte tersi. Geri tuşu
   `handlePlatformMessage('flutter/navigation', popRoute)` ile gönderilir.
+- **Yerleşim testi doğru ekranı seçmeli.** Dış kenar boşluğunu yalnızca
+  *genişlik sınırlı* ekranlar (414×896, 1024×1366) kanıtlar; yükseklik
+  sınırlı bir ekranda içerik zaten ortalanır ve test mutasyonda kırmızıya
+  dönmez. Bu bir kez yaşandı.
 - **Olmayan bir key'e `findsNothing` demek test değildir.** Faz 14'te
   `hint-pulse` diye bir key yokken test boşuna geçiyordu; hint'in durduğu
   artık ses kaydı ve `placedCount` üzerinden ölçülüyor.
@@ -238,7 +246,9 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 5. **Cila (Faz 16):** konfetinin cihazdaki dağılımı, parıltıların açık
    görseller üzerinde sönük kalması, tamamlanınca kesikli slot çerçevesinin
    hâlâ görünmesi, **tepsi parçalarında zemin karesi ile şeklin hizasızlığı**
-   (kullanıcı 12 Eylül'de Faz 16'ya bırakılmasını onayladı).
+   (kullanıcı 12 Eylül'de Faz 16'ya bırakılmasını onayladı — ama Faz 15'te
+   görüldü ki geniş ekranda en soldaki parçanın görseli ekran kenarından
+   **kesiliyor**; artık kozmetik değil), Home'un tablette seyrek durması.
 
 ---
 
@@ -254,19 +264,20 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 
 ---
 
-## 9. Sıradaki iş: Faz 15 — Responsive, tablet, accessibility (§40, §31)
+## 9. Sıradaki iş: Faz 16 — Asset/lisans denetimi, privacy, final cila
 
-**Kabul kriteri:** "Farklı ekranlarda layout bozulmuyor."
+**Kabul kriteri:** "Tüm testler yeşil, belirgin jank yok, lisanslar tamam."
 
-Spec'in istedikleri:
+Yapılacaklar:
 
-- §40 responsive: board `maxBoardSize`'ı aşmaz, tablet dahil; tepsi kalan
-  yüksekliğe sığar ve parçalar 64 px altına inmez (§16.1).
-- §31 accessibility [TERCİH]: anlamlı semantic label'lar (Home düğmelerinde
-  var), sistem font scaling layout'u bozmamalı, erişilebilirlik servisleri
-  oyun state'ini bozmamalı.
-- Test edilecek ekranlar: 360×640 referans telefon, küçük telefon, tablet,
-  yatay yönelim.
-
-Dikkat: Album ve About ekranları `ListView`; Home ve Puzzle sabit yerleşim.
-Puzzle ekranı yatay yönelimde hiç denenmedi.
+1. **Tepsi parçası hizasızlığı** — zemin karesi ile jigsaw şeklinin hizası;
+   geniş ekranda soldaki parça kesiliyor. Faz 15'te teşhis: görsel, slot'un
+   sol-üstünden yaklaşık `tabSize` kadar dışarı taşıyor.
+2. **§42 gerçek profiling** — `flutter run --profile`, sürüklemede jank.
+3. **Mağaza açıklamasına OpenMoji attribution** (uygulama içi tamam).
+4. **Idle hint gözetimsiz oyunu bitiriyor** — §21 auto-place merdiveni
+   kimse oynamıyorken de ilerliyor; gözden geçirilmeli.
+5. Konfeti dağılımı, parıltıların açık görsellerde sönük kalması,
+   tamamlanınca kesikli slot çerçevesinin görünmesi, Home'un tablette
+   seyrek durması.
+6. `assets/LICENSES.md` ile gerçek dosyaların son denetimi.

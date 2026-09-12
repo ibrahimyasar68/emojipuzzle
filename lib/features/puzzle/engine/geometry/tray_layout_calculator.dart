@@ -69,19 +69,80 @@ abstract final class TrayLayoutCalculator {
 
     final aspectRatio = boardPieceSize.width / boardPieceSize.height;
 
+    // A tray is a shelf: it is looked along, not down. Arrangements at
+    // least as wide as they are tall are considered first, and the rest
+    // only if none of those can hold the pieces at full size.
+    //
+    // Without this a tall tray — a tablet, where the board stops at 500 px
+    // and everything below it is spare — produces a single column of
+    // pieces running down the middle of the screen. Every piece is still
+    // big enough to hit, so nothing fails; it simply stops looking like a
+    // tray (§16.1, §40).
+    //
+    // The margin around the outside is the first thing given up when space
+    // runs short — a phone held sideways with nine pieces has none to
+    // spare — and the shelf shape is the second. The touch target is never
+    // given up (§2).
+    for (final (shelvesOnly, outerMargin) in const [
+      (true, true),
+      (true, false),
+      (false, true),
+      (false, false),
+    ]) {
+      final layout = _bestFit(
+        traySize: traySize,
+        pieceCount: pieceCount,
+        boardPieceSize: boardPieceSize,
+        aspectRatio: aspectRatio,
+        spacing: spacing,
+        minTouchTarget: minTouchTarget,
+        preferredScale: preferredScale,
+        shelvesOnly: shelvesOnly,
+        outerMargin: outerMargin,
+      );
+      if (layout != null) return layout;
+    }
+
+    return _fallback(
+      traySize: traySize,
+      pieceCount: pieceCount,
+      aspectRatio: aspectRatio,
+      spacing: spacing,
+      minTouchTarget: minTouchTarget,
+    );
+  }
+
+  /// The arrangement whose pieces land closest to [preferredScale], or null
+  /// when none of them keeps every piece above the touch target.
+  static TrayLayout? _bestFit({
+    required Size traySize,
+    required int pieceCount,
+    required Size boardPieceSize,
+    required double aspectRatio,
+    required double spacing,
+    required double minTouchTarget,
+    required double preferredScale,
+    required bool shelvesOnly,
+    required bool outerMargin,
+  }) {
+    final edges = outerMargin ? 1 : -1;
     TrayLayout? best;
     var bestDistance = double.infinity;
-    // Ascending rows, so the first candidate is also the flattest one.
-    TrayLayout? fewestRows;
 
     for (var rows = 1; rows <= pieceCount; rows++) {
       final columns = (pieceCount / rows).ceil();
-      final widthCap = (traySize.width - (columns - 1) * spacing) / columns;
-      final heightCap = (traySize.height - (rows - 1) * spacing) / rows;
+      // The gap is counted on the outside edges as well, not only between
+      // pieces: a tray whose content is exactly as wide as the tray leaves
+      // the outermost pieces flush against the screen, where a jigsaw tab
+      // has nowhere to stick out (§16.1).
+      final widthCap = (traySize.width - (columns + edges) * spacing) / columns;
+      final heightCap = (traySize.height - (rows + edges) * spacing) / rows;
       if (widthCap <= 0 || heightCap <= 0) continue;
 
       final itemWidth = min(widthCap, heightCap * aspectRatio);
       final itemHeight = itemWidth / aspectRatio;
+
+      if (shelvesOnly && columns < rows) continue;
 
       final candidate = TrayLayout(
         traySize: traySize,
@@ -94,7 +155,6 @@ abstract final class TrayLayoutCalculator {
         meetsTouchTarget:
             itemWidth >= minTouchTarget && itemHeight >= minTouchTarget,
       );
-      fewestRows ??= candidate;
       if (!candidate.meetsTouchTarget) continue;
 
       final distance =
@@ -105,18 +165,41 @@ abstract final class TrayLayoutCalculator {
       }
     }
 
+    return best;
+  }
+
+  /// Nothing fits at full size. Release builds must still show something,
+  /// so the flattest arrangement is used rather than crashing a child's
+  /// game; debug builds say so first.
+  static TrayLayout _fallback({
+    required Size traySize,
+    required int pieceCount,
+    required double aspectRatio,
+    required double spacing,
+    required double minTouchTarget,
+  }) {
     assert(
-      best != null,
+      false,
       'no tray layout keeps $pieceCount pieces at ${minTouchTarget}px in '
       '$traySize — this grid cannot be played on this screen (§2, §16.1)',
     );
 
-    // Release builds must still show something, so fall back to the
-    // flattest arrangement rather than crashing a child's game.
-    final result = best ?? fewestRows;
-    if (result == null) {
-      throw StateError('tray $traySize is too small for any layout');
+    for (var rows = 1; rows <= pieceCount; rows++) {
+      final columns = (pieceCount / rows).ceil();
+      final widthCap = (traySize.width - (columns + 1) * spacing) / columns;
+      final heightCap = (traySize.height - (rows + 1) * spacing) / rows;
+      if (widthCap <= 0 || heightCap <= 0) continue;
+
+      final itemWidth = min(widthCap, heightCap * aspectRatio);
+      return TrayLayout(
+        traySize: traySize,
+        rows: rows,
+        columns: columns,
+        itemSize: Size(itemWidth, itemWidth / aspectRatio),
+        spacing: spacing,
+        meetsTouchTarget: false,
+      );
     }
-    return result;
+    throw StateError('tray $traySize is too small for any layout');
   }
 }

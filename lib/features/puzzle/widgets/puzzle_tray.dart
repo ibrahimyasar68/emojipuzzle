@@ -146,29 +146,35 @@ class PuzzleTray extends StatelessWidget {
             ? const SizedBox.expand()
             : _HintPulse(
                 pulsing: piece.id == hintPieceId,
-                child: SizedBox(
-                  // The slot is the touch target, so it is the box that
-                  // carries the key and the size a test can measure (§2).
-                  key: ValueKey('tray-piece-${piece.id}'),
-                  width: rect.width,
-                  height: rect.height,
-                  child: Transform.scale(
-                    scale: scale,
-                    alignment: Alignment.topLeft,
-                    child: SizedBox(
-                      width: pieceSize.width,
-                      height: pieceSize.height,
-                      child: CustomPaint(
-                        size: pieceSize,
-                        painter: PuzzlePiecePainter(
-                          image: image,
-                          renderPath: paths.renderOf(piece.id),
-                          background: _backgroundFor(piece),
-                          rects: PieceImageMapper.rectsOf(
-                            piece: piece,
-                            grid: grid,
-                            boardSize: boardSize,
-                            imageSize: imageSize,
+                child: Semantics(
+                  // §31 — a jigsaw piece has no name a child would know, so
+                  // the label says the only true thing about it: which one
+                  // it is and that it can be moved.
+                  label: 'Puzzle parçası ${piece.id + 1}',
+                  child: SizedBox(
+                    // The slot is the touch target, so it is the box that
+                    // carries the key and the size a test can measure (§2).
+                    key: ValueKey('tray-piece-${piece.id}'),
+                    width: rect.width,
+                    height: rect.height,
+                    child: Transform.scale(
+                      scale: scale,
+                      alignment: Alignment.topLeft,
+                      child: SizedBox(
+                        width: pieceSize.width,
+                        height: pieceSize.height,
+                        child: CustomPaint(
+                          size: pieceSize,
+                          painter: PuzzlePiecePainter(
+                            image: image,
+                            renderPath: paths.renderOf(piece.id),
+                            background: _backgroundFor(piece),
+                            rects: PieceImageMapper.rectsOf(
+                              piece: piece,
+                              grid: grid,
+                              boardSize: boardSize,
+                              imageSize: imageSize,
+                            ),
                           ),
                         ),
                       ),

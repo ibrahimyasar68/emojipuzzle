@@ -79,14 +79,18 @@ void main() {
         boardPieceSize: _pieceSizeOf(grid),
       );
       expect(layout.meetsTouchTarget, isTrue);
-      expect(layout.itemSize.width, closeTo(73, 1));
+      // 73 before Faz 15, when the outermost pieces were allowed to sit
+      // flush against the edge of the tray. The gap now counts on the
+      // outside too, which costs a few pixels and still clears 64.
+      expect(layout.itemSize.width, closeTo(67, 1));
     });
   });
 
   group('choosing between fitting layouts', () {
     test('picks the candidate closest to the preferred scale', () {
-      // Candidates here are ~90px (1 row), ~154px (2 rows) and ~99px
-      // (3 rows) against a 200px board piece, i.e. scales .45, .77, .49.
+      // Candidates here are ~86px (1 row), ~142px (2 rows) and ~94px
+      // (3 rows) against a 200px board piece, i.e. scales .43, .71, .47.
+      // The two-row arrangement is nearest the 0.70 the tray aims for.
       final layout = TrayLayoutCalculator.calculate(
         traySize: const Size(600, 320),
         pieceCount: 6,
@@ -94,7 +98,7 @@ void main() {
       );
       expect(layout.rows, 2);
       expect(layout.columns, 3);
-      expect(layout.itemSize.width, closeTo(154, 1));
+      expect(layout.itemSize.width, closeTo(142, 1));
     });
 
     test('the touch target beats the preferred scale', () {

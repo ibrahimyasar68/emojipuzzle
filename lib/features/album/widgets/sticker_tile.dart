@@ -43,40 +43,49 @@ class StickerTile extends StatelessWidget {
       filterQuality: FilterQuality.medium,
     );
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            // The same gradient the puzzle itself was played on, so a
-            // sticker is recognisably the picture the child made (§25).
-            gradient: earned
-                ? LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      PuzzlePalette.gradientOf(puzzle.category).$1,
-                      PuzzlePalette.gradientOf(puzzle.category).$2,
-                    ],
-                  )
-                : null,
-            color: earned ? null : const Color(0x0F000000),
-            borderRadius: BorderRadius.circular(size * 0.18),
-          ),
-          child: Center(
-            child: earned
-                ? artwork
-                : ColorFiltered(
-                    // Everything that is left of the picture is its shape.
-                    colorFilter: const ColorFilter.mode(
-                      Color(0xFFBDB5AC),
-                      BlendMode.srcATop,
+    return Semantics(
+      // §31 — the game never needs this, but a label that says which
+      // picture it is, and whether it has been made, costs nothing and
+      // means something.
+      button: onTap != null,
+      label: earned
+          ? '${puzzle.displayName}, tamamlandı'
+          : '${puzzle.displayName}, henüz yapılmadı',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              // The same gradient the puzzle itself was played on, so a
+              // sticker is recognisably the picture the child made (§25).
+              gradient: earned
+                  ? LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        PuzzlePalette.gradientOf(puzzle.category).$1,
+                        PuzzlePalette.gradientOf(puzzle.category).$2,
+                      ],
+                    )
+                  : null,
+              color: earned ? null : const Color(0x0F000000),
+              borderRadius: BorderRadius.circular(size * 0.18),
+            ),
+            child: Center(
+              child: earned
+                  ? artwork
+                  : ColorFiltered(
+                      // Everything that is left of the picture is its shape.
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xFFBDB5AC),
+                        BlendMode.srcATop,
+                      ),
+                      child: Opacity(opacity: 0.55, child: artwork),
                     ),
-                    child: Opacity(opacity: 0.55, child: artwork),
-                  ),
+            ),
           ),
         ),
       ),
