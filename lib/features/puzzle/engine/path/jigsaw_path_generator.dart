@@ -4,7 +4,7 @@ import '../../models/edge_type.dart';
 import '../../models/puzzle_piece.dart';
 import '../geometry/coordinate_mapper.dart';
 
-/// One cubic segment of the knob, expressed in edge space.
+/// Tırnağın tek bir kübik parçası, kenar uzayında ifade edilmiş.
 class _KnobCubic {
   const _KnobCubic(this.control1, this.control2, this.end);
 
@@ -13,42 +13,42 @@ class _KnobCubic {
   final Offset end;
 }
 
-/// Knob profile in edge space (§7).
+/// Kenar uzayında tırnak profili (§7).
 ///
-/// `dx` = u, the fraction travelled along the edge (0 → 1).
-/// `dy` = v, the perpendicular distance in tabSize units; positive points
-/// away from the cell, so a tab uses `+v` and a blank the mirrored `-v`.
+/// `dx` = u, kenar boyunca alınan yolun oranı (0 → 1).
+/// `dy` = v, tabSize biriminde dik uzaklık; pozitif değer hücreden dışarı
+/// bakar, yani tırnak `+v`, oyuk ise aynalanmış `-v` kullanır.
 ///
-/// Two properties of this table are load-bearing:
+/// Bu tablonun iki özelliği yük taşır:
 ///
-/// 1. It is symmetric about `u = 0.5`. A tab and the neighbouring blank
-///    trace the same edge in opposite directions, so the two pieces meet
-///    without a gap or an overlap.
-/// 2. No control point exceeds `v = 1.0`, so the knob reaches exactly the
-///    piece bounding box and never spills out of it (§7).
+/// 1. `u = 0.5` etrafında simetriktir. Bir tırnak ile komşusundaki oyuk
+///    aynı kenarı ters yönlerde çizer, böylece iki parça boşluk ya da
+///    üst üste binme olmadan buluşur.
+/// 2. Hiçbir kontrol noktası `v = 1.0`'ı aşmaz; tırnak parçanın sınır
+///    kutusuna tam olarak değer ve dışına taşmaz (§7).
 const _knobLeadInU = 0.35;
 
 const _knobCurves = <_KnobCubic>[
-  // Neck: swings out, then back in to undercut the head.
+  // Boyun: dışarı savrulur, sonra başın altını oymak için geri döner.
   _KnobCubic(Offset(0.45, 0.00), Offset(0.27, 0.45), Offset(0.31, 0.72)),
-  // Head, left half, up to the apex.
+  // Baş, sol yarı, tepe noktasına kadar.
   _KnobCubic(Offset(0.35, 1.00), Offset(0.44, 1.00), Offset(0.50, 1.00)),
-  // Head, right half (mirror of the left).
+  // Baş, sağ yarı (solun aynası).
   _KnobCubic(Offset(0.56, 1.00), Offset(0.65, 1.00), Offset(0.69, 0.72)),
-  // Neck, mirrored.
+  // Boyun, aynalanmış.
   _KnobCubic(Offset(0.73, 0.45), Offset(0.55, 0.00), Offset(0.65, 0.00)),
 ];
 
-/// Which side of the cell an edge is on.
+/// Bir kenarın hücrenin hangi tarafında olduğu.
 enum PieceSide { top, right, bottom, left }
 
-/// Builds the outline of a single piece (§5, §7).
+/// Tek bir parçanın konturunu kurar (§5, §7).
 ///
-/// The path is in **piece-local coordinates**: `(0,0)` is the top-left of
-/// the piece bounding box, and the cell body starts at `(tabSize, tabSize)`.
-/// Tabs reach the bounding box edge; blanks bite into the cell.
+/// Path **parça-yerel koordinattadır**: `(0,0)` parçanın sınır kutusunun sol
+/// üstüdür ve hücre gövdesi `(tabSize, tabSize)` noktasında başlar. Tırnaklar
+/// sınır kutusunun kenarına ulaşır; oyuklar hücrenin içine ısırır.
 abstract final class JigsawPathGenerator {
-  /// Traverses the cell clockwise: top, right, bottom, left.
+  /// Hücreyi saat yönünde gezer: üst, sağ, alt, sol.
   static Path build({required PuzzlePiece piece, required Size cellSize}) {
     assert(!cellSize.isEmpty, 'cellSize must be non-empty');
     final corners = _cornersOf(cellSize);
@@ -91,13 +91,13 @@ abstract final class JigsawPathGenerator {
     return path..close();
   }
 
-  /// One edge on its own, always drawn left to right or top to bottom.
+  /// Tek bir kenar, her zaman soldan sağa ya da yukarıdan aşağı çizilir.
   ///
-  /// The direction is fixed on purpose. Two neighbours share an edge — one
-  /// side's tab is the other's blank, and they trace the same curve — so
-  /// walking it the same way from both sides produces the *same path*, down
-  /// to the point. Anything derived from it, dashes especially, then lines
-  /// up instead of interleaving into a solid line (§15).
+  /// Yön bilerek sabitlenmiştir. İki komşu bir kenarı paylaşır — birinin
+  /// tırnağı diğerinin oyuğudur ve aynı eğriyi çizerler — bu yüzden iki
+  /// taraftan da aynı şekilde yürümek *aynı path'i* noktası noktasına
+  /// üretir. Ondan türeyen her şey, özellikle kesikler, o zaman üst üste
+  /// oturur; iç içe geçip düz çizgiye dönmez (§15).
   static Path edgePath({
     required PuzzlePiece piece,
     required PieceSide side,
@@ -155,10 +155,9 @@ abstract final class JigsawPathGenerator {
     );
   }
 
-  /// [outward] points away from the cell, whichever way the edge is being
-  /// walked. It cannot be derived from the direction of travel any more:
-  /// [edgePath] walks the bottom and left edges the opposite way round from
-  /// [build].
+  /// [outward] kenar hangi yönde yürünürse yürünsün hücreden dışarı bakar.
+  /// Artık yürüme yönünden türetilemez: [edgePath] alt ve sol kenarları
+  /// [build]'in tersi yönde gezer.
   static void _addEdge(
     Path path,
     Offset start,

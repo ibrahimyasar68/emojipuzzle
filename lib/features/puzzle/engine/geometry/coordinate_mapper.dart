@@ -4,7 +4,7 @@ import 'dart:ui' show Offset, Size;
 import '../../../../core/constants/puzzle_config.dart';
 import '../../models/puzzle_grid.dart';
 
-/// Single owner of every coordinate-space conversion (§8, §9).
+/// Bütün koordinat uzayı dönüşümlerinin tek sahibi (§8, §9).
 ///
 /// ```text
 /// Global (screen / Stack)
@@ -16,7 +16,7 @@ import '../../models/puzzle_grid.dart';
 /// Piece origin
 /// ```
 ///
-/// Widgets must call these instead of doing coordinate math inline.
+/// Widget'lar koordinat hesabını kendi içlerinde yapmaz, bunları çağırır.
 abstract final class CoordinateMapper {
   // ── Global ↔ board ────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ abstract final class CoordinateMapper {
   static Offset boardToGlobal(Offset boardLocal, Offset boardOriginGlobal) =>
       boardLocal + boardOriginGlobal;
 
-  // ── Board pixel ↔ normalized (§8.4) ───────────────────────────────────
+  // ── Board pikseli ↔ normalize (§8.4) ──────────────────────────────────
 
   static Offset pixelOf(Offset normalized, Size boardSize) {
     assert(!boardSize.isEmpty, 'boardSize must be non-empty');
@@ -44,28 +44,30 @@ abstract final class CoordinateMapper {
     );
   }
 
-  // ── Cell / piece geometry (§6, §7) ────────────────────────────────────
+  // ── Hücre / parça geometrisi (§6, §7) ─────────────────────────────────
 
-  /// Top-left of a cell in normalized board space (§8.5).
+  /// Bir hücrenin sol üstü, normalize board uzayında (§8.5).
   ///
-  /// Always in `[0.0, 1.0)` because `column < columns` and `row < rows`.
+  /// Her zaman `[0.0, 1.0)` aralığındadır, çünkü `column < columns` ve
+  /// `row < rows`.
   static Offset normalizedCellOrigin(PuzzleGrid grid, int row, int column) {
     assert(row >= 0 && row < grid.rows, 'row $row out of range');
     assert(column >= 0 && column < grid.columns, 'column $column out of range');
     return Offset(column / grid.columns, row / grid.rows);
   }
 
-  /// Cells need not be square: a 2×3 grid on a 500 board is 166.67 × 250.
+  /// Hücrelerin kare olması gerekmez: 500'lük board'da 2×3 grid
+  /// 166,67 × 250 verir.
   static Size cellSizeOf(PuzzleGrid grid, Size boardSize) {
     assert(!boardSize.isEmpty, 'boardSize must be non-empty');
     return Size(boardSize.width / grid.columns, boardSize.height / grid.rows);
   }
 
-  /// §7 — based on the shorter cell edge.
+  /// §7 — hücrenin kısa kenarına göre.
   static double tabSizeOf(Size cellSize) =>
       min(cellSize.width, cellSize.height) * PuzzleConfig.tabSizeRatio;
 
-  /// §7 — cell plus a tab-sized margin on every side.
+  /// §7 — hücre, artı her kenarda bir tırnak boyu pay.
   static Size pieceSizeOf(Size cellSize) {
     final tabSize = tabSizeOf(cellSize);
     return Size(
@@ -74,10 +76,11 @@ abstract final class CoordinateMapper {
     );
   }
 
-  /// Top-left of the piece's bounding box in board pixels (§8.5).
+  /// Parçanın sınır kutusunun sol üstü, board pikselinde (§8.5).
   ///
-  /// Equals the cell origin minus `(tabSize, tabSize)`; for border pieces
-  /// this is negative, which is expected (§7: overflow is not an error).
+  /// Hücre başlangıcından `(tabSize, tabSize)` çıkarılmış hali; kenar
+  /// parçalarında negatiftir ve bu beklenen bir durumdur (§7: taşma hata
+  /// değildir).
   static Offset pieceOriginOf({
     required Offset normalizedPosition,
     required PuzzleGrid grid,
@@ -87,16 +90,16 @@ abstract final class CoordinateMapper {
     return pixelOf(normalizedPosition, boardSize) - Offset(tabSize, tabSize);
   }
 
-  // ── Drag contract (§9) ────────────────────────────────────────────────
+  // ── Sürükleme sözleşmesi (§9) ─────────────────────────────────────────
 
-  /// Where inside the piece the finger landed. Fixed for the whole drag.
+  /// Parmağın parçanın neresine bastığı. Sürükleme boyunca sabittir.
   static Offset grabOffsetOf({
     required Offset pointerBoardLocal,
     required Offset pieceOriginBoardLocal,
   }) =>
       pointerBoardLocal - pieceOriginBoardLocal;
 
-  /// Piece origin that keeps the grab point under the finger.
+  /// Tutma noktasını parmağın altında tutan parça başlangıcı.
   static Offset pieceOriginFromPointer({
     required Offset pointerBoardLocal,
     required Offset grabOffset,

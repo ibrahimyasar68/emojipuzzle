@@ -1,21 +1,21 @@
-/// How loudly the game is offering help (§21).
+/// Oyunun yardımı ne kadar yüksek sesle önerdiği (§21).
 ///
-/// The ladder only ever climbs while the child does nothing, and any touch
-/// sends it back to [none]. Nothing here costs the child anything: a hint
-/// is an offer, never a correction (§20).
+/// Merdiven yalnızca çocuk hiçbir şey yapmazken tırmanır ve herhangi bir
+/// dokunuş onu [none]'a geri gönderir. Buradaki hiçbir şey çocuğa bir şeye
+/// mal olmaz: ipucu bir tekliftir, asla bir düzeltme değil (§20).
 enum HintStage {
-  /// The child is playing. Say nothing.
+  /// Çocuk oynuyor. Hiçbir şey söyleme.
   none,
 
-  /// 8 s — the piece that would be easiest pulses twice.
+  /// 8 sn — en kolay yerleşecek parça iki kez nabız atar.
   pulsePiece,
 
-  /// 16 s — the piece and the slot it belongs to pulse together.
+  /// 16 sn — parça ve ait olduğu yuva birlikte nabız atar.
   pulseBoth,
 
-  /// 24 s — a ghost of the piece drifts from the tray to the slot.
+  /// 24 sn — parçanın hayaleti tepsiden yuvaya doğru süzülür.
   ghostMove,
 
-  /// 32 s — the game places it, and starts over from silence.
+  /// 32 sn — oyun parçayı kendisi yerleştirir ve sessizlikten başlar.
   autoPlace,
 }

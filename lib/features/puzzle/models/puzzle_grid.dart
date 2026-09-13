@@ -1,7 +1,7 @@
-/// Grid dimensions of a puzzle (§13).
+/// Bir puzzle'ın grid ölçüleri (§13).
 ///
-/// Any `rows × columns` combination is supported by the engine; which grids
-/// actually ship is a content decision (§4).
+/// Engine her `rows × columns` bileşimini destekler; hangi gridlerin
+/// içerikte yer aldığı ayrı bir içerik kararıdır (§4).
 class PuzzleGrid {
   const PuzzleGrid({required this.rows, required this.columns})
       : assert(rows > 0, 'rows must be positive'),
@@ -12,7 +12,8 @@ class PuzzleGrid {
 
   int get pieceCount => rows * columns;
 
-  /// Piece id contract (§8.6): row-major, `0 .. pieceCount - 1`, gap-free.
+  /// Parça kimliği sözleşmesi (§8.6): satır öncelikli, `0 .. pieceCount - 1`,
+  /// boşluksuz.
   int idOf(int row, int column) {
     assert(row >= 0 && row < rows, 'row $row out of range 0..${rows - 1}');
     assert(

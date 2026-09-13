@@ -2,21 +2,21 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 
-/// Decodes puzzle artwork, once per picture (§14, §39).
+/// Puzzle görsellerini çözer, resim başına bir kez (§14, §39).
 ///
-/// Decoding belongs here rather than in a provider or a widget: one puzzle
-/// image is shared by every piece of that puzzle, and it has to be disposed
-/// deliberately when the puzzle changes.
+/// Çözme işi provider'a ya da widget'a değil buraya aittir: bir puzzle
+/// görselini o puzzle'ın bütün parçaları paylaşır ve puzzle değiştiğinde
+/// bilerek serbest bırakılması gerekir.
 class PuzzleImageLoader {
   PuzzleImageLoader({AssetBundle? bundle}) : _bundle = bundle ?? rootBundle;
 
   final AssetBundle _bundle;
   final Map<String, ui.Image> _cache = <String, ui.Image>{};
 
-  /// Decodes [assetPath], or returns the copy already in memory.
+  /// [assetPath]'i çözer ya da bellekteki kopyayı döndürür.
   ///
-  /// [cacheWidth] downsamples while decoding, so a board that is 500 px wide
-  /// never holds a 1024 px bitmap it cannot show (§34).
+  /// [cacheWidth] çözerken küçültür; böylece 500 px genişliğindeki bir board
+  /// asla gösteremeyeceği 1024 px'lik bir bitmap tutmaz (§34).
   Future<ui.Image> load(String assetPath, {int? cacheWidth}) async {
     final cached = _cache[assetPath];
     if (cached != null) return cached;
@@ -29,7 +29,7 @@ class PuzzleImageLoader {
     final frame = await codec.getNextFrame();
     codec.dispose();
 
-    // Another caller may have finished first while we were awaiting.
+    // Biz beklerken başka bir çağıran önce bitirmiş olabilir.
     final raced = _cache[assetPath];
     if (raced != null) {
       frame.image.dispose();
@@ -38,7 +38,7 @@ class PuzzleImageLoader {
     return _cache[assetPath] = frame.image;
   }
 
-  /// Drops one picture from memory. Safe to call for a path never loaded.
+  /// Bir resmi bellekten düşürür. Hiç yüklenmemiş bir yol için de güvenlidir.
   void evict(String assetPath) {
     _cache.remove(assetPath)?.dispose();
   }

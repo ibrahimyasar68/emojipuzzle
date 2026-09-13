@@ -1,18 +1,19 @@
 import 'dart:math' show Random;
 
-/// Decides which tray slot each piece starts in (§16.3).
+/// Her parçanın hangi tepsi yuvasında başlayacağını belirler (§16.3).
 ///
-/// Randomness is injected so a test can pin the arrangement, and so Serbest
-/// Mod can reshuffle the same puzzle every session.
+/// Rastgelelik dışarıdan verilir; böylece bir test dizilimi sabitleyebilir
+/// ve Serbest Mod aynı puzzle'ı her oturumda yeniden karıştırabilir.
 class TrayShuffler {
   TrayShuffler({Random? random}) : _random = random ?? Random();
 
   final Random _random;
 
-  /// Returns a slot index per piece id: `result[pieceId] == slotIndex`.
+  /// Parça kimliği başına bir yuva indeksi döndürür:
+  /// `result[pieceId] == slotIndex`.
   ///
-  /// The result is a permutation of `0 .. pieceCount - 1`, so no two pieces
-  /// share a slot and no slot is skipped.
+  /// Sonuç `0 .. pieceCount - 1` aralığının bir permütasyonudur; yani iki
+  /// parça aynı yuvayı paylaşmaz ve hiçbir yuva atlanmaz.
   List<int> assignSlots(int pieceCount) {
     assert(pieceCount > 0, 'pieceCount must be positive');
     final slots = List<int>.generate(pieceCount, (i) => i);

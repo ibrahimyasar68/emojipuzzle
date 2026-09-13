@@ -2,10 +2,10 @@ import 'dart:ui' show Offset;
 
 import 'edge_type.dart';
 
-/// Immutable domain description of a single jigsaw piece (§12).
+/// Tek bir yapboz parçasının değişmez alan tanımı (§12).
 ///
-/// Runtime concerns (drag position, tray slot, attempts) live elsewhere
-/// and are introduced in Faz 4.
+/// Çalışma anına ait bilgiler (sürükleme konumu, tepsi yuvası, deneme
+/// sayısı) başka yerde tutulur ve Faz 4'te eklenir.
 class PuzzlePiece {
   const PuzzlePiece({
     required this.id,
@@ -30,13 +30,14 @@ class PuzzlePiece {
   final EdgeType bottom;
   final EdgeType left;
 
-  /// Top-left corner of the piece's *cell* in normalized board space (§8.5).
+  /// Parçanın *hücresinin* sol üst köşesi, normalize board uzayında (§8.5).
   ///
-  /// Does not include tab overflow, so it is always in `[0.0, 1.0)`.
-  /// The piece path's own top-left is this minus `(tabSize, tabSize)`.
+  /// Tırnak taşmasını içermez, bu yüzden her zaman `[0.0, 1.0)` aralığındadır.
+  /// Parça path'inin kendi sol üstü, bundan `(tabSize, tabSize)` çıkarılmış
+  /// halidir.
   final Offset normalizedPosition;
 
-  /// Number of flat sides; drives hint target selection (§21.1).
+  /// Düz kenar sayısı; ipucu hedefinin seçiminde kullanılır (§21.1).
   int get flatEdgeCount =>
       [top, right, bottom, left].where((e) => e == EdgeType.flat).length;
 

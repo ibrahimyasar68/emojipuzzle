@@ -4,22 +4,22 @@ import '../../models/puzzle_grid.dart';
 import '../../models/puzzle_piece.dart';
 import 'coordinate_mapper.dart';
 
-/// The two rectangles `canvas.drawImageRect` needs for one piece.
+/// `canvas.drawImageRect`'in bir parça için ihtiyaç duyduğu iki dikdörtgen.
 ///
-/// [src] is in **source image pixels**, [dst] in **piece-local** coordinates,
-/// i.e. the same space as the piece path, so the painter can clip and draw
-/// without any further conversion.
+/// [src] **kaynak görsel pikseli**, [dst] ise **parça-yerel** koordinattadır;
+/// yani parça path'iyle aynı uzayda. Böylece boyayıcı başka bir dönüşüm
+/// yapmadan kırpıp çizebilir.
 typedef PieceDrawRects = ({Rect src, Rect dst});
 
-/// Maps a piece onto the region of the source image it shows (§14).
+/// Bir parçayı, gösterdiği kaynak görsel bölgesiyle eşler (§14).
 abstract final class PieceImageMapper {
-  /// Both rectangles carry the same scale, so the image is never stretched.
+  /// İki dikdörtgen de aynı ölçeği taşır, böylece görsel asla gerilmez.
   ///
-  /// Border pieces stick out of the board by `tabSize` (§7). That overflow
-  /// has no image behind it, so [src] is clamped to the image and [dst] is
-  /// shrunk by exactly the same amount instead of silently stretching the
-  /// picture. The assert guards the pathological case — a piece that lies
-  /// outside the image altogether — not the expected tab overflow.
+  /// Kenar parçaları board'un dışına `tabSize` kadar taşar (§7). Bu taşmanın
+  /// arkasında görsel yoktur; bu yüzden [src] görsele kırpılır ve [dst] de
+  /// tam olarak aynı miktarda küçültülür — resim sessizce gerilmez. Assert,
+  /// beklenen tırnak taşmasını değil, patolojik durumu korur: tamamen
+  /// görselin dışında kalan bir parçayı.
   static PieceDrawRects rectsOf({
     required PuzzlePiece piece,
     required PuzzleGrid grid,

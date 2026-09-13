@@ -5,17 +5,19 @@ import '../../models/puzzle_piece.dart';
 import 'coordinate_mapper.dart';
 import 'edge_resolver.dart';
 
-/// Builds the immutable piece list for a grid (§5).
+/// Bir grid için değişmez parça listesini kurar (§5).
 ///
-/// Randomness is injected so tests can pin it with `Random(seed)`.
+/// Rastgelelik dışarıdan verilir; böylece testler `Random(seed)` ile
+/// sonucu sabitleyebilir.
 class PuzzleGenerator {
   PuzzleGenerator({Random? random}) : _random = random ?? Random();
 
   final Random _random;
 
-  /// Returns one piece per cell, ordered by id (row-major, §8.6).
+  /// Hücre başına bir parça döndürür, kimliğe göre sıralı (satır öncelikli,
+  /// §8.6).
   ///
-  /// The returned list is unmodifiable.
+  /// Dönen liste değiştirilemez.
   List<PuzzlePiece> generate(PuzzleGrid grid) {
     final edges = EdgeResolver.resolve(grid, _random);
 

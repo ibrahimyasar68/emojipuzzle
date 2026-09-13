@@ -1,8 +1,8 @@
-/// Content groups a puzzle can belong to (§4).
+/// Bir puzzle'ın ait olabileceği içerik grupları (§4).
 ///
-/// v1 has exactly these five. `colors`, `numbers` and friends are §47
-/// material and must not be added here on a whim: the album groups by
-/// category, so every new value changes a screen a child has learned.
+/// v1'de tam olarak bu beşi var. `colors`, `numbers` ve benzerleri §47
+/// kapsamındadır ve buraya gelişigüzel eklenmez: albüm kategoriye göre
+/// gruplanır, yani her yeni değer çocuğun öğrendiği bir ekranı değiştirir.
 enum PuzzleCategory {
   fruits,
   animals,

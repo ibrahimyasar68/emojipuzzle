@@ -6,24 +6,25 @@ import '../../models/puzzle_piece.dart';
 import '../geometry/coordinate_mapper.dart';
 import 'jigsaw_path_generator.dart';
 
-/// Immutable path cache for one board size (§14, §42).
+/// Tek bir board boyutu için değişmez path önbelleği (§14, §42).
 ///
-/// Paths are built once per puzzle and reused for every frame; nothing
-/// builds a [Path] inside `build()` or `paint()`.
+/// Path'ler puzzle başına bir kez kurulur ve her karede yeniden kullanılır;
+/// `build()` ya da `paint()` içinde hiçbir [Path] üretilmez.
 ///
-/// One path per piece, used for hit-testing, snapping, clipping and
-/// painting alike.
+/// Parça başına tek path; hit-test, snap, kırpma ve boyama aynı path'i
+/// kullanır.
 ///
-/// There used to be a second, slightly larger copy of each outline, so that
-/// neighbours overlapped by a hair and anti-aliasing could not leave a
-/// visible seam between them (§14). Growing these curves with boolean path
-/// operations turned out not to work at all — the knob's neck crosses its
-/// own head, and the union came back as a different shape while its
-/// bounding box looked exactly right. The bleed now belongs to
-/// `PuzzlePiecePainter`, which strokes the outline.
+/// Eskiden her konturun bir de biraz büyütülmüş ikinci kopyası vardı;
+/// komşular bir kıl payı örtüşsün ve kenar yumuşatma aralarında görünür bir
+/// dikiş bırakmasın diye (§14). Bu eğrileri boolean path işlemleriyle
+/// büyütmenin hiç çalışmadığı ortaya çıktı — knob'un boynu kendi başının
+/// altını keser ve birleşim, sınır kutusu birebir doğru görünürken bambaşka
+/// bir şekil döndürür. Taşma artık konturu çizgiyle boyayan
+/// `PuzzlePiecePainter`'a ait.
 ///
-/// Paths depend on the board size, so a resize invalidates the whole set.
-/// Callers check [matches] and rebuild only when it returns false.
+/// Path'ler board boyutuna bağlıdır, bu yüzden yeniden boyutlandırma tüm
+/// kümeyi geçersiz kılar. Çağıranlar [matches]'e bakar ve yalnızca false
+/// dönerse yeniden kurar.
 class PiecePaths {
   PiecePaths._(this.boardSize, this._paths, this._dashedSlots);
 
@@ -38,8 +39,8 @@ class PiecePaths {
       for (final piece in pieces)
         piece.id: JigsawPathGenerator.build(piece: piece, cellSize: cellSize),
     };
-    // §15 — the dashed outline a child sees around an empty slot, built
-    // here so `paint` never has to walk a path (§42).
+    // §15 — çocuğun boş bir yuvanın etrafında gördüğü kesikli kontur;
+    // `paint` hiçbir zaman path yürütmesin diye burada kurulur (§42).
     final slots = <int, Path>{
       for (final piece in pieces)
         piece.id: _dashedSlot(
@@ -57,36 +58,36 @@ class PiecePaths {
     );
   }
 
-  /// The board size these paths were built for.
+  /// Bu path'lerin hangi board boyutu için kurulduğu.
   final Size boardSize;
 
   final Map<int, Path> _paths;
   final Map<int, Path> _dashedSlots;
 
-  /// Exact piece outline, in piece-local coordinates.
+  /// Parçanın tam konturu, parça-yerel koordinatlarda.
   Path of(int pieceId) => _pathFrom(_paths, pieceId);
 
-  /// The dashed outline of every slot, by piece id (§15).
+  /// Her yuvanın kesikli konturu, parça kimliğine göre (§15).
   ///
-  /// **These are in board coordinates**, unlike [of], which is piece-local:
-  /// they are drawn by the board's ghost layer, which has no piece to be
-  /// local to. The translation is done once, here.
+  /// **Bunlar board koordinatındadır**, parça-yerel olan [of]'un aksine:
+  /// board'un hayalet katmanı tarafından çizilirler ve o katmanın yerel
+  /// olacağı bir parça yoktur. Dönüşüm bir kez, burada yapılır.
   Map<int, Path> get dashedSlots => _dashedSlots;
 
   int get length => _paths.length;
 
-  /// Whether this cache is still valid for [candidate].
+  /// Bu önbelleğin [candidate] için hâlâ geçerli olup olmadığı.
   bool matches(Size candidate) => boardSize == candidate;
 
-  /// The four edges of one slot, dashed, in board coordinates.
+  /// Bir yuvanın dört kenarı, kesikli, board koordinatlarında.
   ///
-  /// Built edge by edge rather than from the closed outline, because each
-  /// edge has to be walked in a fixed direction: a piece's right edge and
-  /// its neighbour's left edge are the same curve, and only identical
-  /// walks produce identical dashes. Dashing the closed outline instead
-  /// starts each piece at its own corner, so the two sides of every seam
-  /// fall out of step and fill each other's gaps — a seam that should be
-  /// dashed comes out solid.
+  /// Kapalı kontur yerine kenar kenar kurulur, çünkü her kenarın sabit bir
+  /// yönde yürünmesi gerekir: bir parçanın sağ kenarı ile komşusunun sol
+  /// kenarı aynı eğridir ve yalnızca birebir aynı yürüyüş birebir aynı
+  /// kesikleri üretir. Kapalı konturu kesikleştirmek her parçayı kendi
+  /// köşesinden başlatır; böylece her dikişin iki yakası fazdan çıkar ve
+  /// birbirinin boşluklarını doldurur — kesikli olması gereken dikiş düz
+  /// çıkar.
   static Path _dashedSlot({
     required PuzzlePiece piece,
     required PuzzleGrid grid,

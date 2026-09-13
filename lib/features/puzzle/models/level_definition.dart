@@ -1,6 +1,6 @@
 import 'puzzle_definition.dart';
 
-/// One rung of the ladder (§4, §13).
+/// Merdivenin bir basamağı (§4, §13).
 class LevelDefinition {
   const LevelDefinition({
     required this.index,
@@ -13,15 +13,16 @@ class LevelDefinition {
           'before the child played anything',
         );
 
-  /// 1-based, the way the child's progress is counted.
+  /// 1'den başlar; çocuğun ilerlemesi de böyle sayılır.
   final int index;
 
   final List<PuzzleDefinition> puzzles;
 
-  /// How many of [puzzles] must be finished before the next level opens.
+  /// Sonraki kademenin açılması için [puzzles] içinden kaç tanesinin
+  /// bitirilmesi gerektiği.
   ///
-  /// Data, not a constant: content grows, and a hard-coded "2" would
-  /// quietly become wrong the day a level has five puzzles (§4).
+  /// Sabit değil, veri: içerik büyür ve gömülü bir "2", bir kademe beş
+  /// puzzle içerdiği gün sessizce yanlışa döner (§4).
   final int requiredCompletions;
 
   @override

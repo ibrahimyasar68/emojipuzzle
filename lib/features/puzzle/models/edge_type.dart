@@ -1,17 +1,17 @@
-/// Shape of one side of a jigsaw piece (§11).
+/// Bir yapboz parçasının tek bir kenarının biçimi (§11).
 enum EdgeType {
-  /// Straight side. Only on the outer border of the board.
+  /// Düz kenar. Yalnızca board'un dış sınırında bulunur.
   flat,
 
-  /// Knob that sticks out of the cell.
+  /// Hücrenin dışına taşan tırnak.
   tab,
 
-  /// Socket cut into the cell.
+  /// Hücrenin içine oyulmuş yuva.
   blank;
 
-  /// The edge a neighbour must have on the shared side.
+  /// Komşunun ortak kenarda taşıması gereken kenar tipi.
   ///
-  /// `tab ↔ blank`, and `flat` stays `flat` (§11 rule 6).
+  /// `tab ↔ blank`, `flat` ise `flat` kalır (§11, kural 6).
   EdgeType get complement => switch (this) {
         EdgeType.flat => EdgeType.flat,
         EdgeType.tab => EdgeType.blank,

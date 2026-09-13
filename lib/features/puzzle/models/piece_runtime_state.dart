@@ -2,10 +2,11 @@ import 'dart:ui' show Offset;
 
 import 'piece_status.dart';
 
-/// Mutable-in-spirit, immutable-in-code runtime state of one piece (§12).
+/// Bir parçanın çalışma anı durumu: ruhen değişken, kod olarak değişmez
+/// (§12).
 ///
-/// The geometry lives in `PuzzlePiece` and never changes; everything that
-/// changes while playing lives here.
+/// Geometri `PuzzlePiece` içindedir ve hiç değişmez; oynarken değişen her
+/// şey buradadır.
 class PieceRuntimeState {
   const PieceRuntimeState({
     required this.pieceId,
@@ -19,19 +20,19 @@ class PieceRuntimeState {
 
   final int pieceId;
 
-  /// Fixed tray slot (§16.2). Set once when the puzzle starts; the slot
-  /// stays empty after the piece leaves, so nothing reflows under the
-  /// child's fingers.
+  /// Sabit tepsi yuvası (§16.2). Puzzle başlarken bir kez atanır; parça
+  /// ayrıldıktan sonra yuva boş kalır, böylece çocuğun parmağının altında
+  /// hiçbir şey yeniden dizilmez.
   final int traySlotIndex;
 
   final PieceStatus status;
 
-  /// Where the piece sits while being dragged (Faz 5), in board pixels.
+  /// Parça sürüklenirken nerede durduğu (Faz 5), board pikselinde.
   final Offset? dragOffset;
 
-  /// Failed drops for this piece; drives assist mode (§19). Reset only when
-  /// the piece is placed or the puzzle restarts — never carried to another
-  /// piece.
+  /// Bu parçanın başarısız bırakma sayısı; assist modunu tetikler (§19).
+  /// Yalnızca parça yerleştiğinde ya da puzzle yeniden başladığında sıfırlanır
+  /// — asla başka bir parçaya taşınmaz.
   final int failedAttempts;
 
   PieceRuntimeState copyWith({

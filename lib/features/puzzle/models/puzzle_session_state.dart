@@ -1,14 +1,14 @@
-/// What the current puzzle session is doing (§38).
+/// Şu anki puzzle oturumunun ne yaptığı (§38).
 enum PuzzleSessionState {
-  /// Waiting for the child to pick a piece up.
+  /// Çocuğun bir parça almasını bekliyor.
   idle,
 
-  /// A piece is being dragged (Faz 5).
+  /// Bir parça sürükleniyor (Faz 5).
   dragging,
 
-  /// A piece is animating into place (Faz 6).
+  /// Bir parça yerine doğru uçuyor (Faz 6).
   snapping,
 
-  /// Every piece is placed (§23).
+  /// Bütün parçalar yerleşti (§23).
   completed,
 }

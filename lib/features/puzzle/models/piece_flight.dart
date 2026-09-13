@@ -1,19 +1,19 @@
 import 'dart:ui' show Offset;
 
-/// What a piece is doing after the finger let go.
+/// Parmak bırakıldıktan sonra parçanın ne yaptığı.
 enum PieceFlightKind {
-  /// A correct drop settling into its slot (§3).
+  /// Doğru bırakma: parça yuvasına yerleşiyor (§3).
   settle,
 
-  /// A wrong drop wobbling home to the tray (§20).
+  /// Yanlış bırakma: parça sallanarak tepsiye dönüyor (§20).
   snapBack,
 }
 
-/// One post-drop animation (§3, §20).
+/// Bırakma sonrası tek bir animasyon (§3, §20).
 ///
-/// Like [DragState] this lives outside the provider: it changes every
-/// frame. The piece keeps belonging to the drag layer until the flight
-/// ends, so it is never drawn twice — once in flight and once at rest.
+/// [DragState] gibi bu da provider'ın dışında yaşar: her karede değişir.
+/// Uçuş bitene kadar parça sürükleme katmanına ait kalır; böylece hiçbir an
+/// iki kez çizilmez — bir uçarken, bir dururken.
 class PieceFlight {
   const PieceFlight({
     required this.pieceId,
@@ -26,7 +26,7 @@ class PieceFlight {
 
   final int pieceId;
 
-  /// Both in the drag layer's own coordinate space.
+  /// İkisi de sürükleme katmanının kendi koordinat uzayında.
   final Offset from;
   final Offset to;
 

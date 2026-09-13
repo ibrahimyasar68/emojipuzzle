@@ -1,6 +1,6 @@
-/// What the child has achieved so far (§25).
+/// Çocuğun şimdiye kadar başardıkları (§25).
 ///
-/// Persistence arrives in Faz 8; this is the shape that will be stored.
+/// Kalıcılık Faz 8'de geldi; saklanan yapı budur.
 class GameProgress {
   const GameProgress({
     required this.unlockedLevel,
@@ -15,20 +15,21 @@ class GameProgress {
         lastPlayedPuzzleId = null,
         schemaVersion = currentSchemaVersion;
 
-  /// Bump when the stored shape changes; §25.1 says what to do on a
-  /// mismatch.
+  /// Saklanan yapı değiştiğinde artırılır; uyuşmazlıkta ne yapılacağını
+  /// §25.1 söyler.
   static const int currentSchemaVersion = 1;
 
   final int unlockedLevel;
   final Set<String> completedPuzzleIds;
 
-  /// Where to pick up when the app is opened again (§25).
+  /// Uygulama yeniden açıldığında nereden devam edileceği (§25).
   final String? lastPlayedPuzzleId;
 
   final int schemaVersion;
 
-  /// Derived, never stored (§25): a finished puzzle *is* its sticker, so
-  /// there is no second set that can drift out of step with this one.
+  /// Türetilir, asla saklanmaz (§25): tamamlanan puzzle *zaten* kendi
+  /// çıkartmasıdır, dolayısıyla bununla desenkron olabilecek ikinci bir
+  /// küme yoktur.
   Set<String> get unlockedStickerIds => completedPuzzleIds;
 
   bool isCompleted(String puzzleId) => completedPuzzleIds.contains(puzzleId);
@@ -49,8 +50,9 @@ class GameProgress {
     );
   }
 
-  /// Marks a puzzle finished. Completing the same puzzle twice changes
-  /// nothing — replaying is always allowed and never costs anything (§4).
+  /// Bir puzzle'ı tamamlanmış işaretler. Aynı puzzle'ı ikinci kez bitirmek
+  /// hiçbir şeyi değiştirmez — tekrar oynamak her zaman serbesttir ve hiçbir
+  /// bedeli yoktur (§4).
   GameProgress withCompleted(String puzzleId) => copyWith(
         completedPuzzleIds: {...completedPuzzleIds, puzzleId},
         lastPlayedPuzzleId: puzzleId,

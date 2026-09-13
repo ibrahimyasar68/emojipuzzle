@@ -3,7 +3,7 @@ import 'dart:math' show Random;
 import '../../models/edge_type.dart';
 import '../../models/puzzle_grid.dart';
 
-/// The four sides of one cell, as produced by [EdgeResolver].
+/// Bir hücrenin dört kenarı; [EdgeResolver] bunu üretir.
 typedef PieceEdges = ({
   EdgeType top,
   EdgeType right,
@@ -11,16 +11,16 @@ typedef PieceEdges = ({
   EdgeType left,
 });
 
-/// Assigns edge shapes to every cell of a grid (§11).
+/// Bir gridin her hücresine kenar biçimlerini atar (§11).
 abstract final class EdgeResolver {
-  /// Returns edges for every cell, indexed by piece id (§8.6).
+  /// Her hücrenin kenarlarını, parça kimliğine göre sıralı döndürür (§8.6).
   ///
-  /// Cells are visited row by row, left to right. `top` and `left` are
-  /// inherited from already-visited neighbours as their complement;
-  /// `right` and `bottom` are drawn from [random]. Board borders are flat.
+  /// Hücreler satır satır, soldan sağa gezilir. `top` ve `left`, daha önce
+  /// gezilmiş komşulardan tümleyeni olarak devralınır; `right` ve `bottom`
+  /// [random]'dan çekilir. Board sınırları düzdür.
   ///
-  /// The draw order (right, then bottom, per cell) is part of the
-  /// determinism contract: the same seed always yields the same puzzle.
+  /// Çekim sırası (hücre başına önce sağ, sonra alt) determinizm
+  /// sözleşmesinin parçasıdır: aynı seed her zaman aynı puzzle'ı verir.
   static List<PieceEdges> resolve(PuzzleGrid grid, Random random) {
     final edges = <PieceEdges>[];
 

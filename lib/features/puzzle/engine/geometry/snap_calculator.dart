@@ -6,13 +6,14 @@ import '../../models/puzzle_grid.dart';
 import '../../models/puzzle_piece.dart';
 import 'coordinate_mapper.dart';
 
-/// Decides whether a dropped piece belongs where it was dropped (§18).
+/// Bırakılan bir parçanın bırakıldığı yere ait olup olmadığına karar verir
+/// (§18).
 ///
-/// Only the piece's **own** slot is ever considered. Being near the wrong
-/// cell means nothing; a piece can never snap into a neighbour's place
-/// (§18.2), which is what makes a wrong drop harmless.
+/// Yalnızca parçanın **kendi** yuvası dikkate alınır. Yanlış bir hücrenin
+/// yakınında olmak hiçbir şey ifade etmez; bir parça asla komşusunun yerine
+/// oturmaz (§18.2) — yanlış bırakmayı zararsız kılan da budur.
 abstract final class SnapCalculator {
-  /// How close is close enough, in board pixels (§18, §19).
+  /// Ne kadar yakının yeterli olduğu, board pikselinde (§18, §19).
   static double thresholdFor({
     required Size cellSize,
     int failedAttempts = 0,
@@ -28,12 +29,11 @@ abstract final class SnapCalculator {
         : base;
   }
 
-  /// Distance between the centre of the piece and the centre of its slot
-  /// (§18.1).
+  /// Parçanın merkezi ile yuvasının merkezi arasındaki mesafe (§18.1).
   ///
-  /// Centres, not corners: the tab margin is symmetric, so a piece sitting
-  /// exactly right has its centre exactly on the cell's centre, whatever
-  /// its edges look like.
+  /// Köşeler değil merkezler: tırnak payı simetriktir, bu yüzden tam yerinde
+  /// duran bir parçanın merkezi, kenarları nasıl olursa olsun, hücrenin
+  /// merkeziyle tam olarak çakışır.
   static double distanceToSlot({
     required Offset pieceOriginBoardLocal,
     required PuzzlePiece piece,
@@ -52,7 +52,7 @@ abstract final class SnapCalculator {
     return (pieceCentre - slotCentre).distance;
   }
 
-  /// Whether this drop counts as "in place".
+  /// Bu bırakmanın "yerine oturdu" sayılıp sayılmayacağı.
   static bool snaps({
     required Offset pieceOriginBoardLocal,
     required PuzzlePiece piece,
@@ -73,7 +73,7 @@ abstract final class SnapCalculator {
         );
   }
 
-  /// Where a snapped piece comes to rest, in board coordinates (§8.5).
+  /// Yerine oturan parçanın durduğu nokta, board koordinatlarında (§8.5).
   static Offset restingOrigin({
     required PuzzlePiece piece,
     required PuzzleGrid grid,

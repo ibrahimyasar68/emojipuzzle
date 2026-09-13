@@ -1,12 +1,12 @@
-/// Top-level readiness of the game (§38).
+/// Oyunun en üst düzey hazırlık durumu (§38).
 enum AppState {
-  /// Building the puzzle and getting its picture ready.
+  /// Puzzle kuruluyor ve görseli hazırlanıyor.
   loading,
 
-  /// Playable.
+  /// Oynanabilir.
   ready,
 
-  /// Nothing could be loaded. The child is never shown an error (§14);
-  /// this exists so the app can fall back quietly.
+  /// Hiçbir şey yüklenemedi. Çocuğa asla hata gösterilmez (§14); bu durum
+  /// yalnızca uygulamanın sessizce geri çekilebilmesi için var.
   error,
 }

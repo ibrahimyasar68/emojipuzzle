@@ -2,11 +2,11 @@ import 'dart:ui' show Offset;
 
 import '../engine/geometry/coordinate_mapper.dart';
 
-/// One in-flight drag (§9, §17).
+/// Süren tek bir sürükleme (§9, §17).
 ///
-/// This deliberately does not live in the provider: it changes on every
-/// pointer move, and waking the whole widget tree that often is exactly
-/// what §17 forbids. It travels through a `ValueNotifier` instead.
+/// Bilerek provider'da tutulmaz: her işaretçi hareketinde değişir ve tüm
+/// widget ağacını bu sıklıkta uyandırmak §17'nin yasakladığı şeyin ta
+/// kendisidir. Bunun yerine bir `ValueNotifier` üzerinden taşınır.
 class DragState {
   const DragState({
     required this.pieceId,
@@ -17,17 +17,17 @@ class DragState {
 
   final int pieceId;
 
-  /// Where inside the piece the finger landed, at board scale. Fixed for
-  /// the whole drag, so the piece never jumps to the finger's centre (§9).
+  /// Parmağın parçanın neresine bastığı, board ölçeğinde. Sürükleme boyunca
+  /// sabittir; böylece parça parmağın ortasına zıplamaz (§9).
   final Offset grabOffset;
 
-  /// Current pointer position in board coordinates.
+  /// İşaretçinin board koordinatlarındaki güncel konumu.
   final Offset pointerBoardLocal;
 
-  /// Scale the piece had in the tray, where the lift animation starts.
+  /// Parçanın tepsideki ölçeği; kaldırma animasyonu buradan başlar.
   final double fromScale;
 
-  /// Top-left of the piece, in board coordinates (§9).
+  /// Parçanın sol üstü, board koordinatlarında (§9).
   Offset get pieceOriginBoardLocal => CoordinateMapper.pieceOriginFromPointer(
         pointerBoardLocal: pointerBoardLocal,
         grabOffset: grabOffset,

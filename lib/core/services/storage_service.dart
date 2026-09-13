@@ -1,15 +1,15 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Thin wrapper around the device's key-value store (§25).
+/// Cihazın anahtar-değer deposu etrafında ince bir sarmalayıcı (§25).
 ///
-/// It knows nothing about what is stored — that belongs to whoever owns the
-/// data, so the shape of the game's progress cannot leak into `core`. What
-/// it does own is the awkward part: the store is asynchronous to open and
-/// synchronous to read, and everything above wants it already open.
+/// Ne saklandığını bilmez — o, verinin sahibinin işidir; böylece oyunun
+/// ilerleme yapısı `core`'a sızmaz. Üstlendiği şey işin zahmetli kısmıdır:
+/// depo açılırken asenkron, okunurken senkrondur ve üstündeki her şey onu
+/// çoktan açılmış ister.
 class StorageService {
   StorageService(this._preferences);
 
-  /// Opens the store. Call once, during start-up.
+  /// Depoyu açar. Açılışta bir kez çağrılır.
   static Future<StorageService> create() async =>
       StorageService(await SharedPreferences.getInstance());
 

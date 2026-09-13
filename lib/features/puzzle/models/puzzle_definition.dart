@@ -1,7 +1,7 @@
 import 'puzzle_category.dart';
 import 'puzzle_grid.dart';
 
-/// One puzzle in the catalogue (§13).
+/// Katalogdaki tek bir puzzle (§13).
 class PuzzleDefinition {
   const PuzzleDefinition({
     required this.id,
@@ -11,17 +11,17 @@ class PuzzleDefinition {
     required this.displayName,
   });
 
-  /// Stable id; also the sticker id (§25).
+  /// Değişmeyen kimlik; aynı zamanda çıkartma kimliğidir (§25).
   final String id;
 
-  /// Asset following the §34 naming: `assets/images/puzzles/apple.png`.
+  /// §34 adlandırmasına uyan asset: `assets/images/puzzles/apple.png`.
   final String imagePath;
 
   final PuzzleCategory category;
   final PuzzleGrid grid;
 
-  /// Turkish, shown as-is. v1 is single-language, so there is no key to
-  /// resolve and no l10n layer to resolve it with (§13).
+  /// Türkçe, olduğu gibi gösterilir. v1 tek dillidir; çözülecek bir anahtar
+  /// da, onu çözecek bir l10n katmanı da yoktur (§13).
   final String displayName;
 
   @override
