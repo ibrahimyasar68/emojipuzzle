@@ -56,4 +56,8 @@ uygulamanın mağaza sayfasında duyurulur. v1 için böyle bir plan yoktur.
 
 ### İletişim
 
-Sorular için: <ibrahimyasar68@hotmail.com>
+Sorular için: _(mağaza yayınından önce buraya bir iletişim adresi yazılmalı)_
+
+> Not: Depo herkese açık olduğu için buraya gerçek bir adres yazmak, o
+> adresin taranmasına açık olması demektir. Yayın öncesi uygulamaya özel
+> bir adres kullanmak daha iyidir.
