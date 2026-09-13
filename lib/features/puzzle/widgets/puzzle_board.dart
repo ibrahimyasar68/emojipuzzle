@@ -12,7 +12,7 @@ import '../models/puzzle_piece.dart';
 import 'board_ghost_painter.dart';
 import 'puzzle_piece_painter.dart';
 
-/// The play area: ghost underneath, solved pieces on top (§15).
+/// Oyun alanı: altta hayalet, üstte yerleşmiş parçalar (§15).
 class PuzzleBoard extends StatelessWidget {
   const PuzzleBoard({
     super.key,
@@ -30,7 +30,7 @@ class PuzzleBoard extends StatelessWidget {
   final List<PuzzlePiece> placedPieces;
   final Size boardSize;
 
-  /// Picks the surface painted under the transparent artwork (§34).
+  /// Şeffaf görselin altına boyanacak yüzeyi seçer (§34).
   final PuzzleCategory? backgroundCategory;
 
   @override
@@ -49,7 +49,7 @@ class PuzzleBoard extends StatelessWidget {
       width: boardSize.width,
       height: boardSize.height,
       child: Stack(
-        // Tabs of the outer pieces stick out of the board (§7).
+        // Dış parçaların tırnakları board'un dışına taşar (§7).
         clipBehavior: Clip.none,
         children: [
           CustomPaint(
@@ -71,8 +71,9 @@ class PuzzleBoard extends StatelessWidget {
     );
   }
 
-  /// The board's gradient, expressed in the coordinates of a piece drawn at
-  /// [origin], so every piece continues the one next to it.
+  /// Board'un gradyanı, [origin] noktasında çizilen bir parçanın
+  /// koordinatlarında ifade edilmiş; böylece her parça yanındakini
+  /// sürdürür.
   PieceBackground? _backgroundAt(Offset origin) {
     final category = backgroundCategory;
     if (category == null) return null;

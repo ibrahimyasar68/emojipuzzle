@@ -5,8 +5,8 @@ import '../engine/geometry/snap_calculator.dart';
 import '../models/drag_state.dart';
 import '../models/puzzle_grid.dart';
 
-/// Developer overlay (K-4): cell bounds, the snap radius around each slot,
-/// and the live grab-offset vector. Debug builds only.
+/// Geliştirici katmanı (K-4): hücre sınırları, her yuvanın etrafındaki snap
+/// yarıçapı ve anlık tutma vektörü. Yalnızca debug derlemelerinde.
 class DebugOverlayPainter extends CustomPainter {
   const DebugOverlayPainter({required this.grid, required this.drag});
 
@@ -30,7 +30,7 @@ class DebugOverlayPainter extends CustomPainter {
       ..strokeWidth = 1
       ..color = _snapColour;
 
-    // The radius a drop is actually judged against (§18).
+    // Bir bırakmanın gerçekte hangi yarıçapa göre değerlendirildiği (§18).
     final snapRadius = SnapCalculator.thresholdFor(cellSize: cell);
 
     for (var row = 0; row < grid.rows; row++) {

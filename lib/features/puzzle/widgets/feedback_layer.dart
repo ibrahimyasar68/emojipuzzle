@@ -6,12 +6,12 @@ import 'package:flutter/widgets.dart';
 import '../../../core/constants/puzzle_config.dart';
 import '../models/placement_burst.dart';
 
-/// The sparkles that say "yes, that one" (§22).
+/// "Evet, o" diyen parıltılar (§22).
 ///
-/// It sits above everything and takes no touches: the feedback must never
-/// stand between a child and the next piece. It is also purely additive —
-/// the game is exactly as playable with this layer removed, which is what
-/// keeps it honest as *feedback* rather than information.
+/// Her şeyin üstünde durur ve hiçbir dokunuşu almaz: geri bildirim asla
+/// çocuk ile sonraki parça arasına girmemelidir. Ayrıca tamamen eklemedir
+/// — bu katman kaldırıldığında oyun tıpatıp aynı oynanır ve onu bilgi
+/// değil *geri bildirim* olarak dürüst tutan da budur.
 class FeedbackLayer extends StatefulWidget {
   const FeedbackLayer({super.key, required this.burst});
 
@@ -70,10 +70,10 @@ class _FeedbackLayerState extends State<FeedbackLayer>
             return AnimatedBuilder(
               animation: _controller,
               builder: (context, _) {
-                // Nothing before it starts, and nothing once it is over — a
-                // finished flourish must leave no widget behind. Judged by
-                // whether it is running, not by its value: the very first
-                // frame of a burst sits at 0 and still has to be drawn.
+                // Başlamadan önce hiçbir şey, bittikten sonra da hiçbir
+                // şey — biten bir gösteri arkasında widget bırakmamalıdır.
+                // Değerine değil, çalışıp çalışmadığına bakılır: bir
+                // patlamanın ilk karesi 0'dadır ve yine de çizilmelidir.
                 if (_controller.isCompleted ||
                     (_controller.isDismissed && !_controller.isAnimating)) {
                   return const SizedBox.shrink();
@@ -99,9 +99,9 @@ class _SparklePainter extends CustomPainter {
   final Offset centre;
   final double progress;
 
-  // Written channel by channel so the painter does not depend on the
-  // Color.r/g/b accessors, which only exist from Flutter 3.27 (§0 allows
-  // 3.24).
+  // Kanal kanal yazılır ki boyayıcı, yalnızca Flutter 3.27'den itibaren
+  // var olan Color.r/g/b erişimcilerine bağlı olmasın (§0 3.24'e izin
+  // veriyor).
   static const _red = 255;
   static const _green = 196;
   static const _blue = 61;

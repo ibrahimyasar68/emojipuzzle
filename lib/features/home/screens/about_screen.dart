@@ -4,17 +4,17 @@ import 'package:provider/provider.dart';
 import '../../puzzle/providers/game_provider.dart';
 import '../widgets/home_button.dart';
 
-/// The grown-ups' corner: attribution and the reset switch (§26, §33).
+/// Yetişkinlerin köşesi: attribution ve sıfırlama anahtarı (§26, §33).
 ///
-/// It is deliberately dull — words, no pictures, nothing that rewards a
-/// child for finding it. The reset needs a long press, so the button that
-/// throws away every sticker cannot be hit by accident. §2's ban on long
-/// press is about what a *child* must do to play; this is the opposite of
-/// that.
+/// Bilerek sıkıcıdır — yazı var, resim yok, çocuğu burayı bulduğu için
+/// ödüllendiren hiçbir şey yok. Sıfırlama basılı tutmayı gerektirir;
+/// böylece bütün çıkartmaları çöpe atan düğmeye yanlışlıkla basılamaz.
+/// §2'nin uzun basma yasağı, *çocuğun* oynamak için yapmak zorunda olduğu
+/// şeylerle ilgilidir; bu ise onun tam tersidir.
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
-  /// The attribution OpenMoji's licence requires (§33, assets/LICENSES.md).
+  /// OpenMoji lisansının gerektirdiği attribution (§33, assets/LICENSES.md).
   static const String openMojiAttribution =
       'Emoji artwork: OpenMoji — the open-source emoji and icon project.\n'
       'Licence: CC BY-SA 4.0';
@@ -28,8 +28,8 @@ class AboutScreen extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           children: [
             Align(
-              // A ListView stretches its children, and a stretched fixed-size
-              // button ends up in the middle of the screen.
+              // ListView çocuklarını gerer ve gerilmiş sabit boyutlu bir
+              // düğme ekranın ortasında kalır.
               alignment: Alignment.centerLeft,
               child: HomeButton(
                 key: const ValueKey('about-back'),
@@ -92,7 +92,7 @@ class AboutScreen extends StatelessWidget {
   }
 }
 
-/// §26 — throws away every sticker. Held down, not tapped.
+/// §26 — bütün çıkartmaları çöpe atar. Dokunmayla değil, basılı tutmayla.
 class _ResetTile extends StatefulWidget {
   const _ResetTile();
 

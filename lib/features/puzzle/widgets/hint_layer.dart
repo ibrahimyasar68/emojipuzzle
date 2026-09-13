@@ -13,12 +13,12 @@ import '../models/puzzle_grid.dart';
 import '../models/puzzle_piece.dart';
 import 'puzzle_piece_painter.dart';
 
-/// Draws the louder half of a hint: the slot breathing, and the ghost that
-/// drifts to it (§21).
+/// İpucunun yüksek sesli yarısını çizer: nefes alan yuva ve ona doğru
+/// süzülen hayalet (§21).
 ///
-/// The quiet half — the tray piece pulsing — belongs to the tray, where the
-/// piece already lives. Both take no touches: a hint is an offer, and the
-/// child must be able to ignore it or play straight through it (§20).
+/// Sessiz yarı — tepsideki parçanın nabzı — parçanın zaten yaşadığı yere,
+/// tepsiye aittir. İkisi de dokunuş almaz: ipucu bir tekliftir ve çocuk onu
+/// yok sayabilmeli ya da içinden oynayıp geçebilmelidir (§20).
 class HintLayer extends StatefulWidget {
   const HintLayer({
     super.key,
@@ -36,7 +36,7 @@ class HintLayer extends StatefulWidget {
 
   final HintStage stage;
 
-  /// The piece being pointed at, or null when there is nothing to suggest.
+  /// İşaret edilen parça; önerilecek bir şey yoksa null.
   final PuzzlePiece? target;
 
   final ui.Image image;
@@ -44,7 +44,7 @@ class HintLayer extends StatefulWidget {
   final PiecePaths paths;
   final Size boardSize;
 
-  /// Both in the coordinates of the stack this layer paints into.
+  /// İkisi de bu katmanın boyadığı stack'in koordinatlarında.
   final Offset boardOrigin;
   final Offset trayPieceOrigin;
 
@@ -144,8 +144,8 @@ class _HintLayerState extends State<HintLayer> with TickerProviderStateMixin {
     );
   }
 
-  /// A faded copy of the piece, drifting from the tray to where it belongs
-  /// and starting over until the child does something (§21).
+  /// Parçanın solgun bir kopyası; tepsiden ait olduğu yere süzülür ve çocuk
+  /// bir şey yapana kadar baştan başlar (§21).
   Widget _travellingGhost(PuzzlePiece target) {
     final cellSize = CoordinateMapper.cellSizeOf(widget.grid, widget.boardSize);
     final pieceSize = CoordinateMapper.pieceSizeOf(cellSize);
@@ -167,8 +167,8 @@ class _HintLayerState extends State<HintLayer> with TickerProviderStateMixin {
         final position =
             Offset.lerp(widget.trayPieceOrigin, destination, progress)!;
         final scale = ui.lerpDouble(widget.trayScale, 1, progress)!;
-        // Fades out as it arrives, so the ghost never looks like a piece
-        // that is actually there.
+        // Varırken söner; böylece hayalet hiçbir zaman gerçekten orada
+        // olan bir parçaya benzemez.
         final opacity = PuzzleConfig.hintGhostOpacity * (1 - progress * 0.6);
 
         return Positioned(
@@ -221,7 +221,7 @@ class _HintLayerState extends State<HintLayer> with TickerProviderStateMixin {
   }
 }
 
-/// A slot breathing: "this one is empty, and something fits here" (§21).
+/// Nefes alan bir yuva: "burası boş ve buraya bir şey uyuyor" (§21).
 class _SlotPulsePainter extends CustomPainter {
   const _SlotPulsePainter({required this.progress});
 

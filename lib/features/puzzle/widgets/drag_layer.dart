@@ -18,15 +18,16 @@ import '../models/puzzle_piece.dart';
 import 'debug_overlay_painter.dart';
 import 'puzzle_piece_painter.dart';
 
-/// The layer a piece lives in once the child has hold of it (§10, §17, §20).
+/// Çocuk bir parçayı tuttuğu andan itibaren parçanın yaşadığı katman
+/// (§10, §17, §20).
 ///
-/// It sits above the board and the tray, so the piece is always on top, and
-/// it is the *only* thing that rebuilds while the finger moves — it listens
-/// to notifiers instead of the provider (§17).
+/// Board'un ve tepsinin üstünde durur, böylece parça her zaman en üsttedir;
+/// ve parmak hareket ederken yeniden kurulan *tek* şeydir — provider yerine
+/// notifier'ları dinler (§17).
 ///
-/// It also owns the moment after the drop: the piece keeps belonging to
-/// this layer while it settles into its slot or wobbles home, so it is
-/// never drawn in two places at once.
+/// Bırakma sonrasındaki an da ona aittir: parça yuvasına yerleşirken ya da
+/// sallanarak eve dönerken bu katmana ait kalır, böylece hiçbir zaman iki
+/// yerde birden çizilmez.
 class DragLayer extends StatefulWidget {
   const DragLayer({
     super.key,
@@ -45,8 +46,8 @@ class DragLayer extends StatefulWidget {
   final ValueListenable<DragState?> drag;
   final ValueListenable<PieceFlight?> flight;
 
-  /// Called once the post-drop animation has finished, so the piece can
-  /// finally change hands.
+  /// Bırakma sonrası animasyon bittiğinde çağrılır; parça nihayet el
+  /// değiştirebilsin diye.
   final void Function(PieceFlight flight) onFlightComplete;
 
   final PuzzlePiece Function(int pieceId) pieceOf;
@@ -55,10 +56,10 @@ class DragLayer extends StatefulWidget {
   final PiecePaths paths;
   final Size boardSize;
 
-  /// Where the board starts inside this layer's coordinate space.
+  /// Board'un bu katmanın koordinat uzayında nereden başladığı.
   final Offset boardOrigin;
 
-  /// Picks the surface painted under the transparent artwork (§34).
+  /// Şeffaf görselin altına boyanacak yüzeyi seçer (§34).
   final PuzzleCategory? backgroundCategory;
 
   @override
@@ -66,14 +67,14 @@ class DragLayer extends StatefulWidget {
 }
 
 class _DragLayerState extends State<DragLayer> with TickerProviderStateMixin {
-  /// Built eagerly: a lazy `late final` would be created *by* dispose() if
-  /// the screen closed without a single drag, asking a dying tree for a
-  /// ticker.
+  /// Hemen kurulur: tembel bir `late final`, ekran tek bir sürükleme
+  /// olmadan kapanırsa dispose() *tarafından* oluşturulur ve ölmekte olan
+  /// bir ağaçtan ticker istemiş olur.
   late final AnimationController _lift;
   late final AnimationController _flight;
   int? _liftedPieceId;
 
-  /// §20 — the whole answer to a wrong drop.
+  /// §20 — yanlış bırakmanın tüm karşılığı.
   static final Animatable<double> _rubberBand = TweenSequence<double>([
     TweenSequenceItem(
       tween: Tween<double>(begin: 1, end: PuzzleConfig.rubberBandOvershoot),
@@ -158,8 +159,8 @@ class _DragLayerState extends State<DragLayer> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  /// Grows from the tray scale to full size, swelling past it on the way
-  /// and settling exactly on 1.0 (§17).
+  /// Tepsi ölçeğinden tam boya büyür, yolda biraz aşar ve tam 1.0'da
+  /// durulur (§17).
   double _liftScale(DragState drag) {
     final progress = Curves.easeOut.transform(_lift.value);
     final base = ui.lerpDouble(drag.fromScale, 1, progress)!;
@@ -227,8 +228,8 @@ class _DragLayerState extends State<DragLayer> with TickerProviderStateMixin {
           builder: (context, child) => Transform.scale(
             scale: _liftScale(drag),
             alignment: Alignment.topLeft,
-            // Scale about the grab point so it stays under the finger
-            // while the piece grows (§9).
+            // Ölçekleme tutma noktası etrafında yapılır; böylece parça
+            // büyürken o nokta parmağın altında kalır (§9).
             origin: drag.grabOffset,
             child: child,
           ),
@@ -246,8 +247,9 @@ class _DragLayerState extends State<DragLayer> with TickerProviderStateMixin {
         final position = Offset.lerp(flight.from, flight.to, progress)!;
         final scale =
             ui.lerpDouble(flight.fromScale, flight.toScale, progress)!;
-        // §20 sends a wrong drop home with a wobble; §22 gives a right one
-        // a small squash as it lands. Neither changes where it ends up.
+        // §20 yanlış bırakmayı sallanarak eve yollar; §22 doğru olana
+        // inerken küçük bir ezilme verir. İkisi de varış yerini
+        // değiştirmez.
         final wobble = switch (flight.kind) {
           PieceFlightKind.snapBack => _rubberBand.transform(_flight.value),
           PieceFlightKind.settle => 1 +
@@ -272,8 +274,8 @@ class _DragLayerState extends State<DragLayer> with TickerProviderStateMixin {
     );
   }
 
-  /// The board's gradient as seen from this piece's home, so a piece keeps
-  /// its own shade while it is in the air.
+  /// Board'un gradyanı, bu parçanın evinden görüldüğü haliyle; böylece
+  /// parça havadayken kendi tonunu korur.
   PieceBackground? _backgroundFor(PuzzlePiece piece) {
     final category = widget.backgroundCategory;
     if (category == null) return null;

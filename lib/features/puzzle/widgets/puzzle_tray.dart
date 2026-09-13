@@ -13,20 +13,21 @@ import '../models/puzzle_grid.dart';
 import '../models/puzzle_piece.dart';
 import 'puzzle_piece_painter.dart';
 
-/// The tray of unplayed pieces (§16).
+/// Henüz oynanmamış parçaların tepsisi (§16).
 ///
-/// It never scrolls: every piece is visible at once. Slots are fixed — when
-/// a piece leaves, its slot stays empty and nothing shuffles around, so the
-/// child's memory of "that one was over there" keeps working (§16.2).
+/// Asla kaydırılmaz: bütün parçalar aynı anda görünür. Yuvalar sabittir —
+/// bir parça ayrıldığında yuvası boş kalır ve hiçbir şey yer değiştirmez;
+/// böylece çocuğun "o şuradaydı" hafızası çalışmaya devam eder (§16.2).
 ///
-/// The gestures belong to the **slot**, not to the piece. A piece leaves
-/// the tray the moment it is picked up, and a detector that left with it
-/// would take the "let go" event with it — the drop would never arrive.
-/// Slots outlive pieces, so the whole drag is reported from one place.
+/// Jestler parçaya değil, **yuvaya** aittir. Parça alındığı anda tepsiden
+/// ayrılır ve onunla birlikte giden bir dinleyici "bırakma" olayını da
+/// götürürdü — bırakma hiç ulaşmazdı. Yuvalar parçalardan uzun yaşar, bu
+/// yüzden sürüklemenin tamamı tek bir yerden bildirilir.
 ///
-/// Pieces are drawn from the same cached board-size paths, scaled down.
-/// That keeps one set of paths for the whole puzzle and makes the pick-up
-/// animation a plain scale from tray size to board size (§17).
+/// Parçalar, board boyutunda önbelleklenmiş aynı path'lerden küçültülerek
+/// çizilir. Bu, puzzle boyunca tek bir path kümesi tutar ve alma
+/// animasyonunu tepsi boyundan board boyuna sade bir ölçeklemeye indirger
+/// (§17).
 class PuzzleTray extends StatelessWidget {
   const PuzzleTray({
     super.key,
@@ -48,11 +49,11 @@ class PuzzleTray extends StatelessWidget {
   final PuzzleGrid grid;
   final PiecePaths paths;
 
-  /// Pieces currently resting in the tray. A piece in the air is missing
-  /// from this list; its slot stays, empty.
+  /// Şu anda tepside duran parçalar. Havadaki bir parça bu listede yoktur;
+  /// yuvası boş olarak kalır.
   final List<PuzzlePiece> trayPieces;
 
-  /// Fixed slot index of a piece (§16.2).
+  /// Bir parçanın sabit yuva indeksi (§16.2).
   final int Function(PuzzlePiece piece) slotOf;
 
   final TrayLayout layout;
@@ -63,12 +64,12 @@ class PuzzleTray extends StatelessWidget {
   final void Function(DragUpdateDetails details) onPieceDragUpdate;
   final VoidCallback onPieceDragEnd;
 
-  /// Picks the surface painted under the transparent artwork (§34). A tray
-  /// piece wears the shade of the place it belongs to.
+  /// Şeffaf görselin altına boyanacak yüzeyi seçer (§34). Tepsideki bir
+  /// parça, ait olduğu yerin tonunu giyer.
   final PuzzleCategory? backgroundCategory;
 
-  /// The piece a hint is pointing at, if any: it breathes until the child
-  /// does something (§21).
+  /// Varsa ipucunun işaret ettiği parça: çocuk bir şey yapana kadar nefes
+  /// alır (§21).
   final int? hintPieceId;
 
   @override
@@ -86,8 +87,8 @@ class PuzzleTray extends StatelessWidget {
       width: layout.traySize.width,
       height: layout.traySize.height,
       child: Stack(
-        // A pulsing hint swells past its slot; clipping it would look like
-        // a mistake (§21).
+        // Nabız atan bir ipucu yuvasının dışına taşar; onu kırpmak hata
+        // gibi görünürdü (§21).
         clipBehavior: Clip.none,
         children: [
           for (var slot = 0; slot < grid.pieceCount; slot++)
@@ -97,7 +98,7 @@ class PuzzleTray extends StatelessWidget {
     );
   }
 
-  /// The board's gradient as seen from where this piece will end up.
+  /// Board'un gradyanı, bu parçanın varacağı yerden görüldüğü haliyle.
   PieceBackground? _backgroundFor(PuzzlePiece piece) {
     final category = backgroundCategory;
     if (category == null) return null;
@@ -134,8 +135,9 @@ class PuzzleTray extends StatelessWidget {
       height: rect.height,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        // No piece to pick up right now — but the update and end callbacks
-        // stay wired, so a drag that started here still reports its drop.
+        // Şu an alınacak parça yok — ama güncelleme ve bitiş geri
+        // çağrıları bağlı kalır; böylece burada başlayan bir sürükleme
+        // bırakmasını yine de bildirir.
         onPanStart: piece == null
             ? null
             : (details) => onPieceDragStart(piece, details),
@@ -147,13 +149,14 @@ class PuzzleTray extends StatelessWidget {
             : _HintPulse(
                 pulsing: piece.id == hintPieceId,
                 child: Semantics(
-                  // §31 — a jigsaw piece has no name a child would know, so
-                  // the label says the only true thing about it: which one
-                  // it is and that it can be moved.
+                  // §31 — bir yapboz parçasının çocuğun bileceği bir adı
+                  // yoktur; bu yüzden etiket onun hakkındaki tek doğru şeyi
+                  // söyler: hangisi olduğunu ve taşınabileceğini.
                   label: 'Puzzle parçası ${piece.id + 1}',
                   child: SizedBox(
-                    // The slot is the touch target, so it is the box that
-                    // carries the key and the size a test can measure (§2).
+                    // Dokunma hedefi yuvadır; bu yüzden anahtarı taşıyan
+                    // ve bir testin ölçebileceği boyutu veren kutu odur
+                    // (§2).
                     key: ValueKey('tray-piece-${piece.id}'),
                     width: rect.width,
                     height: rect.height,
@@ -187,7 +190,7 @@ class PuzzleTray extends StatelessWidget {
   }
 }
 
-/// Breathes while [pulsing], and is an ordinary box otherwise (§21).
+/// [pulsing] iken nefes alır, değilken sıradan bir kutudur (§21).
 class _HintPulse extends StatefulWidget {
   const _HintPulse({required this.pulsing, required this.child});
 

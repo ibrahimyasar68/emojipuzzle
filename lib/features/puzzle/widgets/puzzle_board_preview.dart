@@ -9,10 +9,10 @@ import '../models/puzzle_grid.dart';
 import '../models/puzzle_piece.dart';
 import 'puzzle_piece_painter.dart';
 
-/// Every piece drawn in its solved position — the assembled picture.
+/// Her parça çözülmüş konumunda çizilir — birleştirilmiş resim.
 ///
-/// Faz 3 uses this to check the geometry on screen. Later phases keep it
-/// for the completed board, while unsolved pieces move to the tray.
+/// Faz 3 geometriyi ekranda denetlemek için bunu kullanır. Sonraki fazlar
+/// bunu tamamlanmış board için korur; çözülmemiş parçalar tepsiye taşınır.
 class PuzzleBoardPreview extends StatelessWidget {
   const PuzzleBoardPreview({
     super.key,
@@ -43,8 +43,8 @@ class PuzzleBoardPreview extends StatelessWidget {
     return SizedBox(
       width: boardSize.width,
       height: boardSize.height,
-      // Tabs stick out of the board by tabSize (§7); clipping them would be
-      // the bug, not the overflow.
+      // Tırnaklar board'un dışına tabSize kadar taşar (§7); asıl hata
+      // taşma değil, onları kırpmak olurdu.
       child: Stack(
         clipBehavior: Clip.none,
         children: [

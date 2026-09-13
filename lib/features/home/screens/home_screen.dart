@@ -9,11 +9,11 @@ import '../../puzzle/screens/puzzle_screen.dart';
 import '../widgets/home_button.dart';
 import 'about_screen.dart';
 
-/// Where the game starts (§29).
+/// Oyunun başladığı yer (§29).
 ///
-/// Four things to touch, and §2 allows five: play, the album, sound on or
-/// off, and the small grown-ups' door. No words anywhere a child has to
-/// read.
+/// Dokunulacak dört şey var, §2 beşe izin veriyor: oyna, albüm, sesi aç ya
+/// da kapat ve küçük yetişkin kapısı. Çocuğun okuması gereken hiçbir yazı
+/// yok.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -105,7 +105,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// Free Mode: the album closes and that picture starts again (§4).
+  /// Serbest Mod: albüm kapanır ve o resim yeniden başlar (§4).
   Future<void> _replay(
     NavigatorState navigator,
     GameProvider game,

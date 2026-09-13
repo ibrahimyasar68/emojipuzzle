@@ -7,11 +7,11 @@ import '../../../core/constants/puzzle_config.dart';
 import '../data/puzzle_palette.dart';
 import '../engine/geometry/piece_image_mapper.dart';
 
-/// Draws one piece: clip to its outline, then blit its slice of the shared
-/// puzzle image (§14).
+/// Tek bir parçayı çizer: konturuna kırp, sonra paylaşılan puzzle
+/// görselinden kendi dilimini bas (§14).
 ///
-/// Everything expensive is precomputed: the path comes from the cache and
-/// the rectangles from [PieceImageMapper], so `paint` only clips and draws.
+/// Pahalı olan her şey önceden hesaplanır: path önbellekten, dikdörtgenler
+/// [PieceImageMapper]'dan gelir; `paint` yalnızca kırpar ve çizer.
 class PuzzlePiecePainter extends CustomPainter {
   const PuzzlePiecePainter({
     required this.image,
@@ -22,35 +22,35 @@ class PuzzlePiecePainter extends CustomPainter {
     this.bleed = PuzzleConfig.renderBleedPixels,
   });
 
-  /// Decoded once per puzzle and shared by every piece (§14).
+  /// Puzzle başına bir kez çözülür ve bütün parçalarca paylaşılır (§14).
   final ui.Image image;
 
-  /// The piece outline, in piece-local coordinates.
+  /// Parçanın konturu, parça-yerel koordinatlarda.
   final Path renderPath;
 
   final PieceDrawRects rects;
 
-  /// Painted inside the outline, under the picture.
+  /// Konturun içine, resmin altına boyanır.
   ///
-  /// The artwork is transparent by design (§34), and a see-through piece is
-  /// one a child can neither see in the tray nor aim at. Null leaves the
-  /// piece unpainted, for artwork that is already opaque.
+  /// Görseller tasarım gereği şeffaftır (§34) ve şeffaf bir parça, çocuğun
+  /// tepside ne görebildiği ne de nişan alabildiği bir parçadır. Null
+  /// verilirse parça boyanmaz; zaten opak olan görseller için.
   final PieceBackground? background;
 
-  /// §17 — a dragged piece lifts off the board and casts a shadow.
+  /// §17 — sürüklenen parça board'dan kalkar ve gölge düşürür.
   final double elevation;
 
-  /// §14 — how far the piece is painted past its own outline.
+  /// §14 — parçanın kendi konturunun ne kadar dışına boyandığı.
   ///
-  /// Two neighbours share a boundary, and two half-covered anti-aliased
-  /// edges do not add up to an opaque one: without this there is a visible
-  /// hairline between them. The piece is drawn once a hair larger and then
-  /// again at its true size on top, so the overlap is real picture rather
-  /// than a smeared edge.
+  /// İki komşu bir sınırı paylaşır ve yarı örtülü iki yumuşatılmış kenar
+  /// bir araya gelip opak bir kenar etmez: bu olmadan aralarında görünür
+  /// bir kıl çizgi kalır. Parça önce bir kıl payı büyük, sonra üstüne
+  /// gerçek boyutunda çizilir; böylece örtüşme bulanık bir kenar değil,
+  /// gerçek resimdir.
   ///
-  /// This used to be done by growing the outline itself. It is done here
-  /// instead because dilating these particular curves with boolean path
-  /// operations does not work — see `PiecePaths`.
+  /// Bu iş eskiden konturun kendisini büyüterek yapılıyordu. Artık burada
+  /// yapılıyor, çünkü bu eğrileri boolean path işlemleriyle genişletmek
+  /// çalışmıyor — bkz. `PiecePaths`.
   final double bleed;
 
   static const _shadowColour = Color(0xFF6D4C41);
@@ -63,8 +63,8 @@ class PuzzlePiecePainter extends CustomPainter {
 
     final surface = background;
     if (surface != null) {
-      // The gradient runs across the whole board, so neighbouring pieces
-      // continue each other instead of forming a patchwork.
+      // Gradyan board'un tamamı boyunca uzanır; böylece komşu parçalar
+      // yamalı bohça oluşturmak yerine birbirini sürdürür.
       _draw(
         canvas,
         ui.Gradient.linear(
@@ -77,14 +77,14 @@ class PuzzlePiecePainter extends CustomPainter {
     _draw(canvas, _imageShader());
   }
 
-  /// Fills the outline with [shader], then runs the same shader along the
-  /// outline as a stroke.
+  /// Konturu [shader] ile doldurur, sonra aynı shader'ı kontur boyunca
+  /// çizgi olarak geçirir.
   ///
-  /// The stroke is the bleed (§14): half of a `bleed * 2` line sits outside
-  /// the path, which pushes the painted edge out by exactly [bleed]
-  /// everywhere, including the knob's neck where the boundary doubles back
-  /// on itself. Growing the *path* instead does not survive these curves —
-  /// see `PiecePaths`.
+  /// Bu çizgi taşmadır (§14): `bleed * 2` kalınlığındaki çizginin yarısı
+  /// path'in dışında kalır ve boyalı kenarı her yerde tam [bleed] kadar
+  /// dışarı iter — sınırın kendi üstüne katlandığı tırnak boynu dahil.
+  /// Bunun yerine *path*'i büyütmek bu eğrilerde ayakta kalmıyor — bkz.
+  /// `PiecePaths`.
   void _draw(Canvas canvas, ui.Shader shader) {
     canvas.drawPath(
       renderPath,
@@ -105,10 +105,10 @@ class PuzzlePiecePainter extends CustomPainter {
     );
   }
 
-  /// The shared puzzle image, positioned so that [PieceDrawRects.src] lands
-  /// on [PieceDrawRects.dst] in piece-local coordinates — the same mapping
-  /// `drawImageRect` would do, as a shader so it can stroke as well as
-  /// fill.
+  /// Paylaşılan puzzle görseli; [PieceDrawRects.src], parça-yerel
+  /// koordinatlarda [PieceDrawRects.dst] üzerine düşecek şekilde
+  /// yerleştirilir — `drawImageRect`'in yapacağı eşlemenin aynısı, ama
+  /// shader olarak, böylece doldurmanın yanında çizgi de çekebilir.
   ui.ImageShader _imageShader() {
     final src = rects.src;
     final dst = rects.dst;

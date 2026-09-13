@@ -6,23 +6,24 @@ import '../../puzzle/models/puzzle_definition.dart';
 import '../../puzzle/providers/game_provider.dart';
 import '../widgets/sticker_tile.dart';
 
-/// Everything the child has made, grouped by category (§25).
+/// Çocuğun yaptığı her şey, kategorilere göre gruplanmış (§25).
 ///
-/// It is also the way into Free Mode (§4): an earned sticker is a picture
-/// that can be played again, shuffled afresh. The ones still to be found
-/// are grey and do nothing — an album never tells a child off for a gap.
+/// Aynı zamanda Serbest Mod'un kapısıdır (§4): kazanılmış bir çıkartma,
+/// yeniden karıştırılıp tekrar oynanabilecek bir resimdir. Henüz
+/// bulunmamış olanlar gridir ve hiçbir şey yapmaz — albüm bir çocuğu
+/// eksiği için asla azarlamaz.
 class AlbumScreen extends StatelessWidget {
   const AlbumScreen({super.key, this.onPlay});
 
-  /// Called with a finished puzzle the child wants to play again.
+  /// Çocuğun yeniden oynamak istediği, bitirilmiş bir puzzle ile çağrılır.
   final void Function(PuzzleDefinition puzzle)? onPlay;
 
-  /// One symbol per category, because the child cannot read the name (§2).
+  /// Kategori başına bir simge, çünkü çocuk adı okuyamaz (§2).
   ///
-  /// Icons from the font Flutter ships, not emoji characters: §33 forbids
-  /// drawing anything from the platform's own emoji glyphs, and the reason
-  /// applies here as much as it does to the artwork — a glyph looks
-  /// different on every device and is missing on some.
+  /// Emoji karakteri değil, Flutter'ın birlikte getirdiği fonttan ikonlar:
+  /// §33 platformun kendi emoji glyph'lerinden bir şey çizmeyi yasaklar ve
+  /// gerekçe burada da görseller için olduğu kadar geçerlidir — bir glyph
+  /// her cihazda farklı görünür, bazılarında hiç yoktur.
   static const _categoryIcons = {
     PuzzleCategory.fruits: Icons.local_dining_rounded,
     PuzzleCategory.animals: Icons.pets_rounded,
@@ -31,7 +32,7 @@ class AlbumScreen extends StatelessWidget {
     PuzzleCategory.shapes: Icons.circle_rounded,
   };
 
-  /// Read out by a screen reader; never shown (§2, §31).
+  /// Ekran okuyucu tarafından seslendirilir; hiç gösterilmez (§2, §31).
   static const _categoryNames = {
     PuzzleCategory.fruits: 'Meyveler',
     PuzzleCategory.animals: 'Hayvanlar',
@@ -137,7 +138,7 @@ class _CategorySection extends StatelessWidget {
   }
 }
 
-/// The only way out, and big enough for a small finger (§2).
+/// Tek çıkış yolu ve küçük bir parmak için yeterince büyük (§2).
 class _BackButton extends StatelessWidget {
   const _BackButton({required this.onTap});
 

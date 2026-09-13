@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// A round button with a picture on it and no words (§2).
+/// Üzerinde resim olan, yazısı olmayan yuvarlak bir düğme (§2).
 ///
-/// Every one of these is far above the 64 px minimum: a home screen a child
-/// has to aim at carefully is a home screen they will mis-tap.
+/// Bunların hepsi 64 px'lik alt sınırın çok üstündedir: çocuğun dikkatle
+/// nişan alması gereken bir ana ekran, yanlış basacağı bir ana ekrandır.
 class HomeButton extends StatelessWidget {
   const HomeButton({
     super.key,
@@ -18,8 +18,8 @@ class HomeButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  /// Read out by TalkBack. The game never needs it, but it costs nothing to
-  /// mean something (§31).
+  /// TalkBack tarafından seslendirilir. Oyunun buna ihtiyacı yok, ama bir
+  /// şey ifade etmenin maliyeti de yok (§31).
   final String semanticLabel;
 
   final double size;

@@ -6,12 +6,12 @@ import '../../../core/constants/puzzle_config.dart';
 import '../../puzzle/models/puzzle_definition.dart';
 import 'sticker_tile.dart';
 
-/// "This one is yours now." The sticker the child just earned, shown for a
-/// moment before the next picture (§23, §25).
+/// "Bu artık senin." Çocuğun az önce kazandığı çıkartma, sonraki resimden
+/// önce bir an gösterilir (§23, §25).
 ///
-/// It is the last step of the completion sequence and the shortest: the
-/// album is where stickers live, this is only the handover. A tap ends it
-/// at once, like everything else in the sequence (§23).
+/// Tamamlama dizisinin son ve en kısa adımıdır: çıkartmaların yaşadığı yer
+/// albümdür, burası yalnızca teslim anıdır. Dizideki her şey gibi, bir
+/// dokunuş onu anında bitirir (§23).
 class StickerRewardOverlay extends StatefulWidget {
   const StickerRewardOverlay({
     super.key,

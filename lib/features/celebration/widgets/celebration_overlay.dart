@@ -5,15 +5,15 @@ import 'package:flutter/widgets.dart';
 
 import '../../../core/constants/puzzle_config.dart';
 
-/// The moment after the last piece: a ring opening out over the finished
-/// picture, and confetti (§23).
+/// Son parçadan sonraki an: tamamlanmış resmin üzerinde açılan bir halka
+/// ve konfeti (§23).
 ///
-/// It sits above the board so the picture the child just made stays in
-/// view — the celebration is about that picture, not a screen that replaces
-/// it.
+/// Board'un üstünde durur ki çocuğun az önce yaptığı resim görünür kalsın —
+/// kutlama o resimle ilgilidir, onun yerini alan bir ekranla değil.
 ///
-/// A tap anywhere ends it at once. That is the whole point of §23: the
-/// flourish is a gift, and a gift a child cannot decline is a delay.
+/// Herhangi bir yere dokunmak onu anında bitirir. §23'ün bütün meselesi
+/// budur: gösteri bir armağandır ve çocuğun reddedemediği bir armağan,
+/// oyalanmadır.
 class CelebrationOverlay extends StatefulWidget {
   const CelebrationOverlay({
     super.key,
@@ -22,10 +22,10 @@ class CelebrationOverlay extends StatefulWidget {
     this.duration = PuzzleConfig.celebrationDuration,
   });
 
-  /// Called once, when the celebration is over or the child skips it.
+  /// Kutlama bittiğinde ya da çocuk atladığında bir kez çağrılır.
   final VoidCallback onFinished;
 
-  /// Middle of the finished board, where the ring opens from.
+  /// Tamamlanmış board'un ortası; halka buradan açılır.
   final Offset? origin;
 
   final Duration duration;
@@ -50,7 +50,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
     )..forward();
     _confetti = ConfettiController(duration: widget.duration)..play();
 
-    // The sequence ends on its own; a tap gets there sooner.
+    // Dizi kendiliğinden biter; bir dokunuş oraya daha erken ulaşır.
     _end = Timer(widget.duration, _finish);
   }
 
@@ -92,8 +92,8 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                   size: Size.infinite,
                 ),
               ),
-            // Given the whole screen to fly in: a confetti widget squeezed
-            // into a small box clips its own particles.
+            // Uçmak için bütün ekran verilir: küçük bir kutuya sıkıştırılmış
+            // bir konfeti widget'ı kendi parçacıklarını kırpar.
             Positioned.fill(
               child: Align(
                 alignment: Alignment.topCenter,
@@ -122,7 +122,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
   }
 }
 
-/// A ring opening out from the finished picture: "look what you made".
+/// Tamamlanmış resimden dışarı açılan bir halka: "bak ne yaptın".
 class _CompletionRingPainter extends CustomPainter {
   const _CompletionRingPainter({required this.centre, required this.progress});
 
