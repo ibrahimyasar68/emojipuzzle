@@ -30,7 +30,8 @@ Son güncelleme: 13 Eylül 2026, Faz 16 sırasında.
 | **16** | **Asset/lisans denetimi, privacy, final cila** | **⏳ sürüyor** |
 
 **Durum:** `flutter analyze` temiz, `flutter test` yeşil — **875 test**.
-Altı commit var; GitHub remote hâlâ yok.
+Dokuz commit, **GitHub'da yayında**:
+<https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
 
 ---
 
@@ -72,7 +73,10 @@ flutter analyze
 flutter test
 dart format lib test tool
 dart run tool/generate_sfx.dart     # ses dosyalarını yeniden üretir
+git push                            # CI'yi tetikler
 ```
+
+**Not:** `gh` bu makinede kurulu değil; depo işleri düz `git` ile yapılıyor.
 
 Testler `build/` altına kanıt görselleri bırakır: `preview_2x2.png`,
 `screen_3x3.png`, `solved_2x2.png`, `drag_overlay.png`, `hint_ghost.png`,
@@ -245,8 +249,9 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 
 ## 8. Açık borçlar
 
-1. **CI hiç çalışmadı.** `git init` yapıldı ama **commit yok**, GitHub remote
-   yok. İlk commit + remote bağlanınca workflow devreye girer.
+1. ~~CI hiç çalışmadı.~~ **Çözüldü** (13 Eylül): depo
+   <https://github.com/ibrahimyasar68/emojipuzzle> (public), dokuz commit
+   push edildi, `.github/workflows/ci.yml` her push'ta çalışıyor.
 2. ~~OpenMoji attribution uygulamada görünmüyor.~~ **Faz 13'te yapıldı**:
    Home → ⓘ → Hakkında ekranı. **Mağaza açıklamasına eklenmesi hâlâ
    yapılmadı** (Faz 16).
@@ -305,8 +310,7 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
    auto-place'ten sonra merdiven uykuya geçer; **yalnızca ekrana dokunmak**
    uyandırır. Arka plandan dönmek ve sonraki puzzle'a geçmek uyandırmaz —
    uyandırsaydı gözlemlenen sonsuz döngü aynen sürerdi.
-2. ~~GitHub remote yok.~~ Kullanıcı 13 Eylül'de public depo açılmasını
-   istedi.
+2. ~~GitHub remote yok.~~ **Çözüldü**, depo public ve push edildi.
 3. **Gerçek cihazda profiling** — emülatör yeterli değil.
 4. Küçük cila: Home tablette seyrek duruyor; parça sınırlarında 1 piksellik
    ton farkı kalıyor (delik yok, ölçüldü).
