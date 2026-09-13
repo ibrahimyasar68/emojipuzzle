@@ -1,11 +1,22 @@
-# Mağaza metni — Emoji Puzzle Kids
+# Mağaza metni — EmojiPuzzle
 
 Google Play ve App Store sayfalarında kullanılacak metinler. Attribution
 (§33) **zorunludur** ve açıklamanın içinde yer almalıdır.
 
 ## Uygulama adı
 
-Emoji Puzzle Kids
+EmojiPuzzle
+
+Telefonda ikonun altında da bu ad görünür (`android:label`,
+`CFBundleDisplayName`).
+
+## İkon
+
+- Mağaza (Google Play, 512×512): `docs/branding/play-store-icon-512.png`
+- App Store (1024×1024): `docs/branding/app-icon-1024.png`
+
+İkisi de tam kare ve köşesizdir; köşe maskesini mağaza uygular. Kaynak ve
+lisans kaydı `assets/LICENSES.md` içinde.
 
 ## Kısa açıklama (80 karakter)
 
@@ -13,7 +24,7 @@ Emoji Puzzle Kids
 
 ## Uzun açıklama
 
-Emoji Puzzle Kids, okuma yazma bilmeyen çocuklar için yapılmış sakin bir
+EmojiPuzzle, okuma yazma bilmeyen çocuklar için yapılmış sakin bir
 yapboz oyunudur.
 
 - **Kaybedilmez.** Yanlış yerleştirilen parça yumuşakça yerine döner. Kırmızı

@@ -1,4 +1,4 @@
-# Emoji Puzzle Kids
+# EmojiPuzzle
 
 [![CI](https://github.com/ibrahimyasar68/emojipuzzle/actions/workflows/ci.yml/badge.svg)](https://github.com/ibrahimyasar68/emojipuzzle/actions/workflows/ci.yml)
 

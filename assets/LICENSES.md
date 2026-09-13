@@ -71,6 +71,41 @@ They are deliberately plain: short, soft and in tune, so nothing startles a
 change — same filenames, same folder — but anything downloaded must be listed
 here first, with its licence and attribution.
 
+## App icon
+
+- **Source:** generated with OpenAI's image model (`gpt-image`) in ChatGPT on
+  13 September 2026 and supplied by the project owner. The file carries a C2PA
+  manifest marking it as `trainedAlgorithmicMedia`.
+- **Licence:** OpenAI's terms assign the output to the user. Machine-generated
+  artwork may not be protected by copyright in every jurisdiction, so treat it
+  as the project's own asset rather than as something a licence can enforce.
+- **Attribution:** not required
+- **Includes:** the "IY Labs" mark, as a small label on the red piece.
+
+The original is kept as `docs/branding/app-icon-source.png`. Two things in it
+had to change, and `python3 tool/generate_app_icon.py` makes both changes
+before writing every size from one square master:
+
+- Its corners are pre-rounded on a white ground, which both stores reject
+  (they apply their own mask). The corners are filled from the neighbouring
+  colours.
+- The "IY Labs" mark sat on a large swoosh in the bottom-right corner, outside
+  Android's 66 dp safe zone; Pixel's circular mask showed only "IY". The
+  swoosh is removed, the red piece's hidden corner is redrawn from its visible
+  edges, and the original lettering is scaled to 74 % on a smaller label whose
+  corners stay inside the safe zone.
+
+| Output | Where |
+| ------ | ----- |
+| square master, 1024×1024 | `docs/branding/app-icon-1024.png` |
+| Google Play listing, 512×512 | `docs/branding/play-store-icon-512.png` |
+| Android launcher, API 24–25 | `android/app/src/main/res/mipmap-*/ic_launcher.png` |
+| Android adaptive icon, API 26+ | `mipmap-*/ic_launcher_foreground.png`, `mipmap-anydpi-v26/ic_launcher.xml` |
+| iOS | `ios/Runner/Assets.xcassets/AppIcon.appiconset/` (RGB, no alpha) |
+
+These files are not under `assets/`, so `asset_policy_test.dart` does not see
+them; this entry is kept by hand.
+
 ## Voice and music
 
 None. If either is ever added it goes in `assets/audio/voice/` and
