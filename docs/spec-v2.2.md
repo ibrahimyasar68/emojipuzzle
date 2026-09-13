@@ -84,7 +84,13 @@ Yalnızca debug build'de hücre sınırlarını, snap yarıçapını ve grab off
 * Landscape desteği ileride değerlendirilecek; mimari landscape'e hazır olmalı.
 * Dil:
 
-  * kod, sınıf/değişken isimleri ve yorumlar İngilizce
+  * kod ve sınıf/değişken isimleri İngilizce
+  * **kod yorumları Türkçe** — *13 Eylül 2026'da değiştirildi. v2.2 bu
+    maddede "yorumlar İngilizce" diyordu; proje sahibi yorumların Türkçeye
+    çevrilmesini istedi ve §45 gereği bu değişiklik önce sorulup onaylandı.
+    `lib/` altındaki bütün yorumlar çevrildi. §46'nın "her `PuzzleConfig`
+    sabiti hangi spec bölümünden geldiğini yorumda belirtir" kuralı aynen
+    geçerli; `§` atıfları değişmedi.*
   * kullanıcıya görünen metinler ve seslendirme Türkçe
 
 ---

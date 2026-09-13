@@ -6,12 +6,13 @@ import 'package:flutter/foundation.dart';
 import '../../../core/constants/puzzle_config.dart';
 import '../models/hint_stage.dart';
 
-/// Counts how long the child has been still, and says how much help to
-/// offer (§21).
+/// Çocuğun ne kadar süredir kıpırdamadığını sayar ve ne kadar yardım
+/// önerileceğini söyler (§21).
 ///
-/// Only the timing lives here. Which piece to point at is a separate rule
-/// (`HintTarget`), and what a hint looks like belongs to the widgets — so
-/// the ladder itself can be tested second by second without a screen.
+/// Burada yalnızca zamanlama yaşar. Hangi parçanın gösterileceği ayrı bir
+/// kuraldır (`HintTarget`) ve bir ipucunun neye benzediği widget'lara
+/// aittir — böylece merdivenin kendisi ekransız, saniye saniye test
+/// edilebilir.
 class HintController extends ChangeNotifier {
   HintController({
     this.firstDelay = PuzzleConfig.hintFirstDelay,
@@ -20,27 +21,28 @@ class HintController extends ChangeNotifier {
     this.maxAutoPlacesInARow = PuzzleConfig.hintMaxAutoPlacesInARow,
   });
 
-  /// Silence before the first offer of help.
+  /// İlk yardım teklifinden önceki sessizlik.
   final Duration firstDelay;
 
-  /// Gap between one stage and the next.
+  /// Bir aşama ile diğeri arasındaki aralık.
   final Duration stageInterval;
 
-  /// How often the clock is looked at. Small enough to be punctual, large
-  /// enough to cost nothing.
+  /// Saate ne sıklıkta bakıldığı. Dakik olacak kadar küçük, hiçbir şeye mal
+  /// olmayacak kadar büyük.
   final Duration tickInterval;
 
-  /// How many pieces the game will place by itself, one after another,
-  /// before it stops offering.
+  /// Oyunun, önermeyi bırakmadan önce arka arkaya kaç parçayı kendi
+  /// yerleştireceği.
   ///
-  /// The ladder exists for a child who is stuck, not for an empty room. Left
-  /// alone, it used to finish the puzzle, then the next one, and the one
-  /// after that — a game playing itself on a table nobody is sitting at.
-  /// After this many in a row it goes quiet and waits to be touched.
+  /// Merdiven takılan bir çocuk için vardır, boş bir oda için değil. Kendi
+  /// haline bırakıldığında puzzle'ı, sonra bir sonrakini, sonra ondan
+  /// sonrakini bitiriyordu — kimsenin oturmadığı bir masada kendi kendine
+  /// oynayan bir oyun. Arka arkaya bu sayıya ulaşınca susar ve dokunulmayı
+  /// bekler.
   final int maxAutoPlacesInARow;
 
-  /// Called when the last stage is reached: the game places the piece
-  /// itself (§21).
+  /// Son aşamaya gelindiğinde çağrılır: oyun parçayı kendisi yerleştirir
+  /// (§21).
   VoidCallback? onAutoPlace;
 
   Timer? _timer;
@@ -55,15 +57,16 @@ class HintController extends ChangeNotifier {
   bool get isRunning => _timer != null;
   bool get isPaused => _paused;
 
-  /// True once the game has placed [maxAutoPlacesInARow] pieces with no
-  /// sign of anybody there. Only a touch brings it back.
+  /// Oyun, orada kimsenin olduğuna dair bir işaret olmadan
+  /// [maxAutoPlacesInARow] parça yerleştirdiğinde true olur. Yalnızca bir
+  /// dokunuş onu geri getirir.
   bool get isDormant => _dormant;
 
-  /// Starts watching. Safe to call twice.
+  /// İzlemeye başlar. İki kez çağrılması güvenlidir.
   ///
-  /// Does nothing while dormant: coming back from the background, or moving
-  /// on to the next puzzle, is not evidence that a child is there. Only
-  /// [registerInteraction] is.
+  /// Uyku modundayken hiçbir şey yapmaz: arka plandan dönmek ya da sonraki
+  /// puzzle'a geçmek, orada bir çocuk olduğunun kanıtı değildir. Kanıt
+  /// yalnızca [registerInteraction]'dır.
   void start() {
     if (_timer != null || _dormant) return;
     _paused = false;
@@ -78,7 +81,7 @@ class HintController extends ChangeNotifier {
     _reset(notify: false);
   }
 
-  /// §28 — the app went to the background: the clock stops where it is.
+  /// §28 — uygulama arka plana gitti: saat olduğu yerde durur.
   void pause() {
     if (_paused) return;
     _paused = true;
@@ -86,16 +89,16 @@ class HintController extends ChangeNotifier {
     _timer = null;
   }
 
-  /// §21.2 — coming back is a fresh start, not a continuation: the child
-  /// has been away and should get their own time to look at the board.
+  /// §21.2 — dönüş bir devam değil, temiz bir başlangıçtır: çocuk uzakta
+  /// kalmıştır ve board'a bakmak için kendi süresini hak eder.
   void resume() {
     _paused = false;
     _reset(notify: true);
     start();
   }
 
-  /// Any touch at all means the child is busy (§21.2) — and, if the game
-  /// had given up on the room being occupied, that it is occupied.
+  /// Herhangi bir dokunuş çocuğun meşgul olduğu anlamına gelir (§21.2) —
+  /// ve oyun odanın dolu olduğundan ümidi kestiyse, dolu olduğu anlamına.
   void registerInteraction() {
     _autoPlacesInARow = 0;
     if (_dormant) {
@@ -108,8 +111,8 @@ class HintController extends ChangeNotifier {
     _reset(notify: true);
   }
 
-  /// Moves the clock on. The timer calls this; tests call it directly, so
-  /// the ladder can be checked without waiting 32 real seconds.
+  /// Saati ilerletir. Zamanlayıcı bunu çağırır; testler doğrudan çağırır,
+  /// böylece merdiven gerçek 32 saniye beklemeden denetlenebilir.
   @visibleForTesting
   void advance(Duration by) {
     if (_paused || _dormant) return;
@@ -123,21 +126,21 @@ class HintController extends ChangeNotifier {
       onAutoPlace?.call();
       _autoPlacesInARow++;
       if (_autoPlacesInARow >= maxAutoPlacesInARow) {
-        // Nobody has touched the screen through two whole ladders. The game
-        // stops playing itself and waits (§21).
+        // İki tam merdiven boyunca ekrana kimse dokunmadı. Oyun kendi
+        // kendine oynamayı bırakır ve bekler (§21).
         _dormant = true;
         _timer?.cancel();
         _timer = null;
       }
-      // Placing it is itself the end of this hint: the next piece gets the
-      // full eight seconds of quiet (§21.2).
+      // Yerleştirmenin kendisi bu ipucunun sonudur: sonraki parça tam sekiz
+      // saniyelik sessizliği alır (§21.2).
       _reset(notify: true);
       return;
     }
     notifyListeners();
   }
 
-  /// The stage that belongs to a stretch of stillness (§21).
+  /// Belirli bir hareketsizlik süresine karşılık gelen aşama (§21).
   HintStage stageFor(Duration idle) {
     if (idle < firstDelay) return HintStage.none;
     final steps = (idle - firstDelay).inMilliseconds ~/

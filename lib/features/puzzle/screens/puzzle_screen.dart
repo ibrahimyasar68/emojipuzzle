@@ -28,15 +28,16 @@ import '../widgets/hint_layer.dart';
 import '../widgets/puzzle_board.dart';
 import '../widgets/puzzle_tray.dart';
 
-/// Board on top, tray underneath, drag layer over both (§40, §10).
+/// Üstte board, altta tepsi, ikisinin de üstünde sürükleme katmanı
+/// (§40, §10).
 ///
-/// The board is solved first, then whatever height is left becomes the
-/// tray — the two are sized together, because the tray is not a leftover:
-/// it has to keep every piece above 64 px (§16.1).
+/// Önce board çözülür, kalan yükseklik tepsi olur — ikisi birlikte
+/// boyutlandırılır, çünkü tepsi artakalan değildir: her parçayı 64 px'in
+/// üstünde tutmak zorundadır (§16.1).
 ///
-/// This screen also makes the snap decision. It is the layer that knows the
-/// board size, and geometry is not the provider's job (§39): it asks
-/// [SnapCalculator] and tells the provider what happened.
+/// Snap kararını da bu ekran verir. Board boyutunu bilen katman odur ve
+/// geometri provider'ın işi değildir (§39): [SnapCalculator]'a sorar ve
+/// provider'a ne olduğunu söyler.
 class PuzzleScreen extends StatefulWidget {
   const PuzzleScreen({super.key});
 
@@ -46,14 +47,14 @@ class PuzzleScreen extends StatefulWidget {
 
 class _PuzzleScreenState extends State<PuzzleScreen>
     with WidgetsBindingObserver {
-  /// The moving piece lives here, not in the provider: it changes on every
-  /// pointer frame and must not rebuild the board (§17).
+  /// Hareket eden parça provider'da değil burada yaşar: her işaretçi
+  /// karesinde değişir ve board'u yeniden kurmamalıdır (§17).
   final ValueNotifier<DragState?> _drag = ValueNotifier<DragState?>(null);
 
-  /// The piece between "let go" and "arrived" (§3, §20).
+  /// "Bırakıldı" ile "vardı" arasındaki parça (§3, §20).
   final ValueNotifier<PieceFlight?> _flight = ValueNotifier<PieceFlight?>(null);
 
-  /// The sparkles over a piece that just landed (§22).
+  /// Az önce yerleşen bir parçanın üstündeki parıltılar (§22).
   final ValueNotifier<PlacementBurst?> _burst =
       ValueNotifier<PlacementBurst?>(null);
   int _burstCount = 0;
@@ -65,20 +66,21 @@ class _PuzzleScreenState extends State<PuzzleScreen>
   PiecePaths? _paths;
   String? _pathsPuzzleId;
 
-  /// True from the last piece landing until the celebration is over (§23).
+  /// Son parça yerleştiğinden kutlama bitene kadar true (§23).
   bool _celebrating = false;
 
-  /// True while the balloon reward is on screen (§23, §24).
+  /// Balon ödülü ekrandayken true (§23, §24).
   bool _playingBalloons = false;
 
-  /// The sticker just earned, while it is being handed over (§23, §25).
+  /// Az önce kazanılan çıkartma, teslim edilirken (§23, §25).
   PuzzleDefinition? _stickerAwarded;
 
-  /// Watches for a child who has stopped playing (§21).
+  /// Oynamayı bırakmış bir çocuğu gözler (§21).
   late final HintController _hint;
 
-  /// The last layout a frame used, so the hint's automatic placement knows
-  /// where the tray slots are without waiting for a build.
+  /// Bir karenin kullandığı son yerleşim; böylece ipucunun otomatik
+  /// yerleştirmesi, bir build beklemeden tepsi yuvalarının nerede olduğunu
+  /// bilir.
   TrayLayout? _lastLayout;
   double _lastTrayScale = 1;
 
@@ -92,15 +94,15 @@ class _PuzzleScreenState extends State<PuzzleScreen>
       ..start();
   }
 
-  /// §21 — the first offer of help is the only one that speaks. Repeating
-  /// the chime every eight seconds would nag rather than help.
+  /// §21 — yardımın yalnızca ilk teklifi ses çıkarır. Sesi her sekiz
+  /// saniyede bir tekrarlamak yardım değil, dırdır olurdu.
   void _onHintStage() {
     if (_hint.stage != HintStage.pulsePiece) return;
     context.read<GameProvider>().audio.playHint();
   }
 
-  /// §21 — after 32 seconds the game puts the piece in itself, using the
-  /// same landing the child would have got, sound and sparkles included.
+  /// §21 — 32 saniye sonra oyun parçayı kendisi yerleştirir; çocuğun
+  /// alacağı inişin aynısını kullanarak, sesi ve parıltıları dahil.
   void _autoPlaceHintTarget() {
     if (!mounted) return;
     final game = context.read<GameProvider>();
@@ -128,16 +130,17 @@ class _PuzzleScreenState extends State<PuzzleScreen>
     );
   }
 
-  /// §28 — the app went away mid-game.
+  /// §28 — uygulama oyunun ortasında arka plana gitti.
   ///
-  /// Whatever the child was holding goes back to its slot. The interruption
-  /// is not a try: no counter moves, so the piece is no easier and no
-  /// harder to place when they come back. Hints stop where they are, and
-  /// progress is written out while there is still time to write it (§30).
+  /// Çocuk ne tutuyorsa yuvasına döner. Kesinti bir deneme değildir: hiçbir
+  /// sayaç oynamaz, yani çocuk döndüğünde parça ne daha kolay ne daha zor
+  /// yerleşir. İpuçları oldukları yerde durur ve ilerleme, yazmaya hâlâ
+  /// vakit varken yazılır (§30).
   ///
-  /// `inactive` is treated the same as `paused`: a notification shade or a
-  /// system dialog takes the finger away just as surely as backgrounding
-  /// does, and the pointer stream is not guaranteed to end politely.
+  /// `inactive`, `paused` ile aynı muameleyi görür: bir bildirim perdesi ya
+  /// da sistem penceresi parmağı en az arka plana geçmek kadar kesin
+  /// biçimde koparır ve işaretçi akışının kibarca bitmesi garanti
+  /// değildir.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
@@ -147,8 +150,8 @@ class _PuzzleScreenState extends State<PuzzleScreen>
       case AppLifecycleState.detached:
         _interrupt();
       case AppLifecycleState.resumed:
-        // A fresh start, not a continuation: the child has been away and
-        // deserves their own eight seconds to look at the board (§21.2).
+        // Devam değil, temiz bir başlangıç: çocuk uzakta kalmıştır ve
+        // board'a bakmak için kendi sekiz saniyesini hak eder (§21.2).
         _hint.resume();
     }
   }
@@ -161,7 +164,7 @@ class _PuzzleScreenState extends State<PuzzleScreen>
     unawaited(game.saveProgress());
   }
 
-  /// Puts a held piece back where it came from, with nothing recorded.
+  /// Tutulan bir parçayı geldiği yere koyar, hiçbir şey kaydedilmeden.
   void _cancelDrag(GameProvider game) {
     final drag = _drag.value;
     if (drag == null) return;
@@ -169,13 +172,12 @@ class _PuzzleScreenState extends State<PuzzleScreen>
     game.returnToTray(drag.pieceId);
   }
 
-  /// §30 — Android Back. No dialog: a child cannot read one, and will not
-  /// be asked a question they cannot answer.
+  /// §30 — Android geri tuşu. Pencere yok: çocuk okuyamaz ve cevap
+  /// veremeyeceği bir soru sorulmaz.
   ///
-  /// Anything being held goes back to its slot, progress is saved, and the
-  /// screen closes. A sequence still running is cut short, but whatever it
-  /// was celebrating has already been recorded: Back never takes a reward
-  /// away.
+  /// Tutulan ne varsa yuvasına döner, ilerleme kaydedilir ve ekran kapanır.
+  /// Süren bir dizi kesilir, ama neyi kutluyorsa o zaten kaydedilmiştir:
+  /// geri tuşu hiçbir ödülü geri almaz.
   Future<void> _leaveForHome() async {
     final game = context.read<GameProvider>();
     final navigator = Navigator.of(context);
@@ -191,9 +193,9 @@ class _PuzzleScreenState extends State<PuzzleScreen>
         _playingBalloons = false;
         _stickerAwarded = null;
       });
-      // The picture behind the sequence is finished. Leaving the game on a
-      // solved board would give the child nothing to come back to, so the
-      // next one is set up on the way out.
+      // Dizinin arkasındaki resim tamamlandı. Oyunu çözülmüş bir board'da
+      // bırakmak çocuğa dönecek bir şey vermezdi, bu yüzden sonraki puzzle
+      // çıkarken hazırlanır.
       unawaited(game.startNextPuzzle());
     }
 
@@ -213,10 +215,10 @@ class _PuzzleScreenState extends State<PuzzleScreen>
     super.dispose();
   }
 
-  /// Rebuilds the path cache only when it no longer fits.
+  /// Path önbelleğini yalnızca artık uymadığında yeniden kurar.
   ///
-  /// It is tied to a board size *and* to a puzzle: the next puzzle may have
-  /// a different grid entirely (§4).
+  /// Hem bir board boyutuna *hem de* bir puzzle'a bağlıdır: sonraki
+  /// puzzle'ın gridi tamamen farklı olabilir (§4).
   PiecePaths _pathsFor(GameProvider game, Size boardSize) {
     final cached = _paths;
     if (cached != null &&
@@ -253,8 +255,8 @@ class _PuzzleScreenState extends State<PuzzleScreen>
   ) {
     _drag.value = DragState(
       pieceId: piece.id,
-      // The finger grabbed a point on the small tray piece; at board scale
-      // that point is this far into the piece (§9).
+      // Parmak, küçük tepsi parçasının bir noktasını tuttu; board ölçeğinde
+      // o nokta parçanın bu kadar içindedir (§9).
       grabOffset: details.localPosition / trayScale,
       pointerBoardLocal: CoordinateMapper.globalToBoard(
         details.globalPosition,
@@ -262,7 +264,7 @@ class _PuzzleScreenState extends State<PuzzleScreen>
       ),
       fromScale: trayScale,
     );
-    // The provider owns the tap the child feels (§17, §27).
+    // Çocuğun hissettiği dokunuş provider'a aittir (§17, §27).
     game.beginDrag(piece.id);
   }
 
@@ -294,7 +296,7 @@ class _PuzzleScreenState extends State<PuzzleScreen>
       piece: piece,
       grid: game.grid,
       boardSize: boardSize,
-      // §19 — a piece that keeps missing gets a wider target.
+      // §19 — ıskalamaya devam eden bir parça daha geniş bir hedef alır.
       failedAttempts: game.stateOf(piece.id).failedAttempts,
     );
 
@@ -318,7 +320,7 @@ class _PuzzleScreenState extends State<PuzzleScreen>
       return;
     }
 
-    // §20 — the piece wobbles home. Nothing else happens.
+    // §20 — parça sallanarak evine döner. Başka hiçbir şey olmaz.
     final slot = layout.slotRect(game.stateOf(piece.id).traySlotIndex);
     _flight.value = PieceFlight(
       pieceId: piece.id,
@@ -334,8 +336,9 @@ class _PuzzleScreenState extends State<PuzzleScreen>
     _flight.value = null;
     switch (flight.kind) {
       case PieceFlightKind.settle:
-        // Asked before the piece lands: landing the last one is what marks
-        // the puzzle finished, and after that every puzzle looks earned.
+        // Parça yerleşmeden önce sorulur: puzzle'ı bitmiş işaretleyen şey
+        // sonuncunun yerleşmesidir ve ondan sonra her puzzle kazanılmış
+        // görünür.
         final alreadyEarned = game.isPuzzleCompleted(game.puzzle.id);
         game.markPlaced(flight.pieceId);
         _sparkleOver(game, flight.pieceId);
@@ -347,7 +350,8 @@ class _PuzzleScreenState extends State<PuzzleScreen>
     }
   }
 
-  /// Sets off the sparkles over the slot a piece just filled (§22).
+  /// Bir parçanın az önce doldurduğu yuvanın üstünde parıltıları başlatır
+  /// (§22).
   void _sparkleOver(GameProvider game, int pieceId) {
     final boardSize = _paths?.boardSize;
     if (boardSize == null) return;
@@ -362,25 +366,24 @@ class _PuzzleScreenState extends State<PuzzleScreen>
     );
   }
 
-  /// The picture is finished: celebrate it (§23).
+  /// Resim tamamlandı: kutla (§23).
   ///
-  /// Hints stop while this runs — the game has nothing left to suggest, and
-  /// a pulsing tray behind the confetti would be nonsense (§21).
+  /// Bu sürerken ipuçları durur — oyunun önerecek bir şeyi kalmamıştır ve
+  /// konfetinin arkasında nabız atan bir tepsi saçmalık olurdu (§21).
   void _beginCelebration(GameProvider game, {required bool alreadyEarned}) {
     _hint.pause();
-    // Noted now, handed over two steps later (§23). A picture played again
-    // in Free Mode earns nothing new, and a sticker given twice would be a
-    // reward for nothing (§4, §25).
+    // Şimdi not edilir, iki adım sonra teslim edilir (§23). Serbest Mod'da
+    // yeniden oynanan bir resim yeni bir şey kazandırmaz ve iki kez verilen
+    // bir çıkartma, hiçbir şeyin ödülü olurdu (§4, §25).
     _awardedSticker = alreadyEarned ? null : game.puzzle;
     setState(() => _celebrating = true);
   }
 
-  /// The sticker this completion earned, or null when the child already had
-  /// it.
+  /// Bu tamamlamanın kazandırdığı çıkartma; çocukta zaten varsa null.
   PuzzleDefinition? _awardedSticker;
 
-  /// The celebration ended, by itself or because the child tapped through
-  /// it. The balloons come next; Faz 13 adds the sticker after them (§23).
+  /// Kutlama bitti — kendiliğinden ya da çocuk dokunup geçtiği için. Sırada
+  /// balonlar var; Faz 13 onlardan sonra çıkartmayı ekledi (§23).
   void _finishCelebration(GameProvider game) {
     if (!_celebrating) return;
     setState(() {
@@ -389,12 +392,12 @@ class _PuzzleScreenState extends State<PuzzleScreen>
     });
   }
 
-  /// The balloons are done — popped, or fifteen seconds went by. Either
-  /// way nothing is counted and nothing is said (§20, §24).
+  /// Balonlar bitti — patlatıldılar ya da on beş saniye doldu. Her iki
+  /// durumda da hiçbir şey sayılmaz ve hiçbir şey söylenmez (§20, §24).
   ///
-  /// The sticker comes next, and only for a picture finished for the first
-  /// time: in Free Mode the child already owns it, and handing it over
-  /// again would be a reward for nothing (§4, §25).
+  /// Sırada çıkartma var, ve yalnızca ilk kez bitirilen bir resim için:
+  /// Serbest Mod'da çocuk ona zaten sahiptir ve yeniden teslim etmek hiçbir
+  /// şeyin ödülü olurdu (§4, §25).
   void _finishBalloons(GameProvider game) {
     if (!_playingBalloons) return;
     final earned = _awardedSticker;
@@ -405,7 +408,7 @@ class _PuzzleScreenState extends State<PuzzleScreen>
     if (earned == null) _moveOn(game);
   }
 
-  /// The sticker has been seen. On to the next picture (§23).
+  /// Çıkartma görüldü. Sıradaki resme (§23).
   void _finishSticker(GameProvider game) {
     if (_stickerAwarded == null) return;
     setState(() => _stickerAwarded = null);
@@ -437,8 +440,8 @@ class _PuzzleScreenState extends State<PuzzleScreen>
           builder: (context, game, _) {
             final image = game.image;
             if (game.appState != AppState.ready || image == null) {
-              // No spinner, no message: a child gets a calm empty screen
-              // for the moment this takes (§2, §14).
+              // Dönen çark yok, mesaj yok: bu ne kadar sürerse çocuk o
+              // kadar sakin ve boş bir ekran görür (§2, §14).
               return const SizedBox.expand();
             }
 
@@ -464,14 +467,15 @@ class _PuzzleScreenState extends State<PuzzleScreen>
                   boardPieceSize: pieceSize,
                 );
                 final trayScale = layout.itemSize.width / pieceSize.width;
-                // Kept for the automatic placement, which happens on a
-                // timer rather than inside a build (§21).
+                // Otomatik yerleştirme için saklanır; o iş build içinde
+                // değil bir zamanlayıcıda olur (§21).
                 _lastLayout = layout;
                 _lastTrayScale = trayScale;
 
                 return Listener(
                   behavior: HitTestBehavior.translucent,
-                  // Any touch at all means the child is busy (§21.2).
+                  // Herhangi bir dokunuş çocuğun meşgul olduğu anlamına
+                  // gelir (§21.2).
                   onPointerDown: (_) => _hint.registerInteraction(),
                   child: ListenableBuilder(
                     listenable: _hint,

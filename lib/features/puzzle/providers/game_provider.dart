@@ -20,16 +20,15 @@ import '../models/puzzle_grid.dart';
 import '../models/puzzle_piece.dart';
 import '../models/puzzle_session_state.dart';
 
-/// Owns the state of one puzzle session and the walk through the catalogue
+/// Tek bir puzzle oturumunun durumuna ve katalog içindeki yürüyüşe sahiptir
 /// (§38, §39).
 ///
-/// Deliberately not here: geometry, path building, tray layout, image
-/// decoding, audio, persistence and rendering. This class holds state,
-/// calls the engine and the services, and tells the UI what changed.
+/// Bilerek burada olmayanlar: geometri, path kurma, tepsi yerleşimi, görsel
+/// çözme, ses, kalıcılık ve çizim. Bu sınıf durumu tutar, engine ile
+/// servisleri çağırır ve arayüze neyin değiştiğini söyler.
 ///
-/// Layout-dependent things (board size, path cache, tray layout, the snap
-/// decision) are not state either — they belong to whoever knows the screen
-/// size (§40).
+/// Yerleşime bağlı şeyler (board boyutu, path önbelleği, tepsi yerleşimi,
+/// snap kararı) da durum değildir — ekran boyutunu bilene aittirler (§40).
 class GameProvider extends ChangeNotifier {
   GameProvider({
     PuzzleGenerator? generator,
@@ -52,13 +51,13 @@ class GameProvider extends ChangeNotifier {
   final TrayShuffler _shuffler;
   final PuzzleImageLoader _imageLoader;
 
-  /// Null means this session keeps nothing: useful in tests, and the app
-  /// still plays if the store cannot be opened.
+  /// Null, bu oturumun hiçbir şey saklamadığı anlamına gelir: testlerde
+  /// işe yarar ve depo açılamazsa uygulama yine de oynanır.
   final ProgressRepository? _progressRepository;
 
-  /// What the child hears and feels is a consequence of state, so it is
-  /// triggered here (§39 allows calling services). What they *see* at a
-  /// point on the board needs screen coordinates and stays in the widgets.
+  /// Çocuğun duyduğu ve hissettiği şey durumun bir sonucudur, bu yüzden
+  /// burada tetiklenir (§39 servis çağırmaya izin verir). Board üzerinde bir
+  /// noktada *gördüğü* şey ekran koordinatı ister ve widget'larda kalır.
   final AudioService _audio;
   final bool _ownsAudio;
   final HapticService _haptics;
@@ -77,8 +76,8 @@ class GameProvider extends ChangeNotifier {
   ui.Image? _image;
   String? _imagePath;
 
-  /// Puzzles whose picture would not load. They are quietly left out of the
-  /// rotation instead of being shown to a child as an error (§14).
+  /// Görseli yüklenemeyen puzzle'lar. Çocuğa hata olarak gösterilmek yerine
+  /// sessizce sıradan çıkarılırlar (§14).
   final Set<String> _unloadable = <String>{};
 
   AppState get appState => _appState;
@@ -97,7 +96,7 @@ class GameProvider extends ChangeNotifier {
 
   ui.Image? get image => _image;
 
-  // ── The ladder (§4) ───────────────────────────────────────────────────
+  // ── Merdiven (§4) ─────────────────────────────────────────────────────
 
   int get unlockedLevelCount =>
       _catalog.unlockedLevelCount(_progress.completedPuzzleIds);
@@ -110,17 +109,18 @@ class GameProvider extends ChangeNotifier {
 
   bool isPuzzleCompleted(String puzzleId) => _progress.isCompleted(puzzleId);
 
-  /// The next puzzle to offer, or null when everything open is finished.
+  /// Sunulacak sonraki puzzle; açık olan her şey bittiyse null.
   ///
-  /// A puzzle whose artwork is missing is skipped, but it still counts as
-  /// unplayed — it must not unlock anything (§14).
+  /// Görseli eksik olan puzzle atlanır, ama yine de oynanmamış sayılır —
+  /// hiçbir şeyin kilidini açmamalıdır (§14).
   PuzzleDefinition? get nextPuzzle => _catalog.firstUnsolved(
         _progress.completedPuzzleIds,
         unavailable: _unloadable,
       );
 
-  /// §4 — every finished puzzle, in catalogue order. These are what Free
-  /// Mode offers, and they are exactly the stickers in the album (§25).
+  /// §4 — bitirilmiş bütün puzzle'lar, katalog sırasında. Serbest Mod'un
+  /// sunduğu bunlardır ve albümdeki çıkartmaların tam olarak aynısıdırlar
+  /// (§25).
   List<PuzzleDefinition> get replayablePuzzles => [
         for (final level in _catalog.levels)
           for (final puzzle in level.puzzles)
@@ -129,13 +129,14 @@ class GameProvider extends ChangeNotifier {
               puzzle,
       ];
 
-  /// True once there is nothing new left and the game lives on replays.
+  /// Geriye yeni bir şey kalmayıp oyun tekrarlarla yaşamaya başlayınca
+  /// true olur.
   bool get isInFreeMode => nextPuzzle == null && replayablePuzzles.isNotEmpty;
 
-  /// The finished puzzle to offer next in Free Mode.
+  /// Serbest Mod'da sırada sunulacak bitirilmiş puzzle.
   ///
-  /// The one after whatever was played last, so a child who keeps pressing
-  /// play walks the album rather than being handed the same picture (§4).
+  /// En son oynananın bir sonrakidir; böylece oyna'ya basmayı sürdüren bir
+  /// çocuk aynı resmi almak yerine albümde yürür (§4).
   PuzzleDefinition? get nextReplay {
     final replayable = replayablePuzzles;
     if (replayable.isEmpty) return null;
@@ -145,16 +146,16 @@ class GameProvider extends ChangeNotifier {
     return replayable[(at + 1) % replayable.length];
   }
 
-  // ── One session ───────────────────────────────────────────────────────
+  // ── Tek oturum ────────────────────────────────────────────────────────
 
   PieceRuntimeState stateOf(int pieceId) =>
       _runtime[pieceId] ??
       (throw ArgumentError.value(pieceId, 'pieceId', 'unknown piece'));
 
-  /// Pieces sitting in the tray, in slot order (§16.2).
+  /// Tepside duran parçalar, yuva sırasında (§16.2).
   ///
-  /// A piece in the air is not here: it belongs to the drag layer, and its
-  /// slot stays empty until it comes back (§10).
+  /// Havadaki bir parça burada değildir: sürükleme katmanına aittir ve geri
+  /// dönene kadar yuvası boş kalır (§10).
   List<PuzzlePiece> get trayPieces {
     final waiting = _pieces
         .where((p) => _runtime[p.id]!.status == PieceStatus.inTray)
@@ -175,12 +176,12 @@ class GameProvider extends ChangeNotifier {
 
   bool get isComplete => _pieces.isNotEmpty && placedCount == _pieces.length;
 
-  /// Builds a puzzle and gets its picture ready.
+  /// Bir puzzle kurar ve görselini hazırlar.
   ///
-  /// If the artwork cannot be loaded the child sees no error: the puzzle is
-  /// dropped from the rotation and the next playable one starts instead. If
-  /// nothing at all loads, the app settles into [AppState.error] and the
-  /// screen stays calm and empty (§14, §2).
+  /// Görsel yüklenemezse çocuk hiçbir hata görmez: puzzle sıradan çıkarılır
+  /// ve yerine oynanabilir olan bir sonraki başlar. Hiçbir şey yüklenemezse
+  /// uygulama [AppState.error] durumuna yerleşir ve ekran sakin ve boş kalır
+  /// (§14, §2).
   Future<void> startPuzzle(PuzzleDefinition definition) async {
     _appState = AppState.loading;
     _sessionState = PuzzleSessionState.idle;
@@ -196,8 +197,8 @@ class GameProvider extends ChangeNotifier {
         ),
     });
     _progress = _progress.copyWith(lastPlayedPuzzleId: definition.id);
-    // Where we are is worth keeping even if the app never gets to the end
-    // of this puzzle (§25).
+    // Nerede olduğumuz, uygulama bu puzzle'ın sonuna hiç varmasa bile
+    // saklanmaya değer (§25).
     _persist();
     notifyListeners();
 
@@ -232,18 +233,18 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Moves on: the next unfinished puzzle, or a finished one again.
+  /// İlerler: bitirilmemiş sonraki puzzle ya da bitirilmiş bir tanesi
+  /// yeniden.
   ///
-  /// Returning quietly here used to leave the app on a blank screen for
-  /// good once all nine were done — "you have finished everything" looked
-  /// exactly like "still loading". Free Mode is what §4 asks for at that
-  /// point, and it is also the honest answer: there is always something to
-  /// play (§2).
+  /// Burada sessizce dönmek, dokuzu da bitince uygulamayı temelli boş bir
+  /// ekranda bırakıyordu — "her şeyi bitirdin" ile "hâlâ yükleniyor" birbirine
+  /// tıpatıp benziyordu. §4'ün o noktada istediği şey Serbest Mod'dur ve aynı
+  /// zamanda dürüst cevap budur: oynanacak her zaman bir şey vardır (§2).
   Future<void> startNextPuzzle() async {
     final next = nextPuzzle ?? nextReplay;
     if (next == null) {
-      // Nothing new and nothing finished: the only way here is a catalogue
-      // whose artwork will not load at all (§14).
+      // Yeni bir şey de yok, bitirilmiş bir şey de: buraya gelmenin tek
+      // yolu, görselleri hiç yüklenmeyen bir katalogdur (§14).
       _appState = AppState.error;
       notifyListeners();
       return;
@@ -251,16 +252,16 @@ class GameProvider extends ChangeNotifier {
     await startPuzzle(next);
   }
 
-  // ── Progress (§25, §26) ───────────────────────────────────────────────
+  // ── İlerleme (§25, §26) ───────────────────────────────────────────────
 
-  /// Loads saved progress and picks up where the child left off (§25).
+  /// Kayıtlı ilerlemeyi yükler ve çocuğun bıraktığı yerden devam eder (§25).
   Future<void> resume() async {
     final repository = _progressRepository;
     if (repository != null) {
       final stored = await repository.load();
-      // The finished puzzles are the truth; the unlocked level is derived
-      // from them again here, so a stored level can never be more generous
-      // than the catalogue allows (§4).
+      // Doğru olan, bitirilmiş puzzle'lardır; açık kademe burada onlardan
+      // yeniden türetilir, böylece saklanmış bir kademe kataloğun izin
+      // verdiğinden daha cömert olamaz (§4).
       _progress = stored.copyWith(
         unlockedLevel: _catalog.unlockedLevelCount(stored.completedPuzzleIds),
       );
@@ -280,19 +281,19 @@ class GameProvider extends ChangeNotifier {
     await startNextPuzzle();
   }
 
-  /// Writes progress out. Faz 14 calls this before leaving the screen (§30).
+  /// İlerlemeyi yazar. Faz 14 bunu ekrandan çıkmadan önce çağırır (§30).
   Future<void> saveProgress() async {
     final repository = _progressRepository;
     if (repository == null) return;
     try {
       await repository.save(_progress);
     } on Object catch (error) {
-      // Losing a write is not worth interrupting a child's game (§2).
+      // Bir yazmayı kaybetmek, çocuğun oyununu bölmeye değmez (§2).
       debugPrint('Progress could not be saved: $error');
     }
   }
 
-  /// Waits for the last background write. Tests and Faz 14 use this.
+  /// Son arka plan yazmasını bekler. Testler ve Faz 14 bunu kullanır.
   Future<void> get pendingWrite => _lastWrite;
 
   void _persist() {
@@ -300,22 +301,23 @@ class GameProvider extends ChangeNotifier {
     unawaited(_lastWrite);
   }
 
-  /// §26 — back to a clean slate. Reached from the parent area (§33).
+  /// §26 — temiz bir sayfaya dönüş. Ebeveyn alanından ulaşılır (§33).
   Future<void> clearProgress() async {
     _progress = const GameProgress.initial();
     notifyListeners();
     await _progressRepository?.clear();
   }
 
-  // ── Playing (§10, §17, §18, §19) ──────────────────────────────────────
+  // ── Oynama (§10, §17, §18, §19) ───────────────────────────────────────
 
-  /// The child picked a piece up.
+  /// Çocuk bir parça aldı.
   ///
-  /// Notifies once, here — not on every pointer move. The moving position
-  /// travels through the drag layer's own notifier (§17).
+  /// Bir kez, burada haber verir — her işaretçi hareketinde değil. Hareket
+  /// eden konum, sürükleme katmanının kendi notifier'ı üzerinden gider
+  /// (§17).
   void beginDrag(int pieceId) {
     final current = stateOf(pieceId);
-    // A placed piece is locked; it cannot be taken apart again (§10).
+    // Yerleşmiş parça kilitlidir; yeniden sökülemez (§10).
     if (current.status != PieceStatus.inTray) return;
 
     _runtime = Map.unmodifiable({
@@ -323,12 +325,12 @@ class GameProvider extends ChangeNotifier {
       pieceId: current.copyWith(status: PieceStatus.dragging),
     });
     _sessionState = PuzzleSessionState.dragging;
-    // §17 — a small tap the moment the piece comes loose.
+    // §17 — parça yerinden çıktığı anda küçük bir dokunuş.
     _haptics.selection();
     notifyListeners();
   }
 
-  /// The drop was on target; the piece is now flying into its slot (§18).
+  /// Bırakma hedefindeydi; parça artık yuvasına uçuyor (§18).
   void beginSnap(int pieceId) {
     final current = stateOf(pieceId);
     if (current.status != PieceStatus.dragging) return;
@@ -344,10 +346,10 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// §21 — the game gives up waiting and places the piece itself.
+  /// §21 — oyun beklemekten vazgeçer ve parçayı kendisi yerleştirir.
   ///
-  /// It goes straight from the tray into the settling animation: no drag
-  /// happened, so there is nothing to feel and nothing to undo.
+  /// Doğrudan tepsiden yerleşme animasyonuna geçer: sürükleme olmadığı için
+  /// hissedilecek bir şey de, geri alınacak bir şey de yoktur.
   void beginAutoPlace(int pieceId) {
     final current = stateOf(pieceId);
     if (current.status != PieceStatus.inTray) return;
@@ -360,10 +362,10 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// The drop missed. The piece goes home and its counter goes up (§19).
+  /// Bırakma ıskaladı. Parça evine döner ve sayacı artar (§19).
   ///
-  /// Nothing else happens: no score, no sound, no scolding (§20). The
-  /// counter exists only to make the next try easier.
+  /// Başka hiçbir şey olmaz: puan yok, ses yok, azarlama yok (§20). Sayaç
+  /// yalnızca bir sonraki denemeyi kolaylaştırmak için vardır.
   void dropFailed(int pieceId) {
     final current = stateOf(pieceId);
     if (current.status == PieceStatus.placed) return;
@@ -380,10 +382,10 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Sends a dragged piece home to its own slot (§10, §16.2).
+  /// Sürüklenen bir parçayı kendi yuvasına gönderir (§10, §16.2).
   ///
-  /// Used by the lifecycle cancel in Faz 14. Neither this nor a plain drop
-  /// counts as a failed attempt (§28).
+  /// Faz 14'teki lifecycle iptali bunu kullanır. Ne bu, ne de sıradan bir
+  /// bırakma başarısız deneme sayılır (§28).
   void returnToTray(int pieceId) {
     final current = stateOf(pieceId);
     if (current.status != PieceStatus.dragging) return;
@@ -399,8 +401,7 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Locks a piece into its slot, and finishes the puzzle if it was the
-  /// last one.
+  /// Bir parçayı yuvasına kilitler ve sonuncusuysa puzzle'ı bitirir.
   void markPlaced(int pieceId) {
     final current = stateOf(pieceId);
     if (current.status == PieceStatus.placed) return;
@@ -410,14 +411,14 @@ class GameProvider extends ChangeNotifier {
       pieceId: current.copyWith(
         status: PieceStatus.placed,
         clearDragOffset: true,
-        // §19 — the counter belongs to the piece and dies with it.
+        // §19 — sayaç parçaya aittir ve onunla birlikte ölür.
         failedAttempts: 0,
       ),
     });
 
     if (isComplete) {
       _sessionState = PuzzleSessionState.completed;
-      // Finishing is what opens the next rung of the ladder (§4).
+      // Merdivenin sonraki basamağını açan şey, bitirmektir (§4).
       _progress = _progress.withCompleted(puzzle.id).copyWith(
             unlockedLevel: _catalog.unlockedLevelCount({
               ..._progress.completedPuzzleIds,
@@ -425,8 +426,8 @@ class GameProvider extends ChangeNotifier {
             }),
           );
       _persist();
-      // The finishing phrase stands in for the piece's own pop: two sounds
-      // at once on the last piece would be a noise, not a reward (§22, §23).
+      // Bitiş ezgisi parçanın kendi 'pop' sesinin yerine geçer: son parçada
+      // aynı anda iki ses, ödül değil gürültü olurdu (§22, §23).
       _audio.playPuzzleComplete();
       _haptics.medium();
     } else {
@@ -437,7 +438,7 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Sends every piece back to its slot, keeping the same puzzle.
+  /// Bütün parçaları yuvalarına geri gönderir, puzzle aynı kalır.
   void restart() {
     _runtime = Map.unmodifiable({
       for (final entry in _runtime.entries)
@@ -455,7 +456,8 @@ class GameProvider extends ChangeNotifier {
     _image = null;
     _imagePath = null;
     _imageLoader.evictAll();
-    // Only dispose what we made: an injected service belongs to the app.
+    // Yalnızca kendi kurduğumuzu serbest bırakırız: dışarıdan verilen bir
+    // servis uygulamaya aittir.
     if (_ownsAudio) _audio.dispose();
     super.dispose();
   }

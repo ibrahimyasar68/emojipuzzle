@@ -30,6 +30,7 @@ Son güncelleme: 13 Eylül 2026, Faz 16 sırasında.
 | **16** | **Asset/lisans denetimi, privacy, final cila** | **⏳ sürüyor** |
 
 **Durum:** `flutter analyze` temiz, `flutter test` yeşil — **878 test**.
+`lib/` altındaki bütün kod yorumları Türkçe.
 Dokuz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
 
@@ -61,7 +62,9 @@ Dokuz commit, **GitHub'da yayında**:
    testin kırmızıya döndüğü gösterilir, kod geri alınır.
 6. **Test kırıldığında tahmin edilmez, ölçülür** — teşhis çıktısı eklenip
    sebep bulunur. (Bu projede üç kez tahminler yanlış çıktı.)
-7. **Dil:** kullanıcıya Türkçe, kod/yorum/commit İngilizce.
+7. **Dil:** kullanıcıya Türkçe, **kod yorumları da Türkçe** (13 Eylül'de
+   değişti, spec §0 da güncellendi). Sınıf/değişken isimleri ve commit
+   mesajları İngilizce kalır.
 8. **İndirme veya sisteme kurulum öncesi izin istenir.**
 
 ---
