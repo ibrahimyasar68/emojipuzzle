@@ -1,8 +1,8 @@
-/// One balloon in the mini game (§24).
+/// Mini oyundaki tek bir balon (§24).
 ///
-/// It carries no pixels. Everything here is a ratio or a phase, so the
-/// same balloon looks right on a phone and on a tablet, and so the rules
-/// can be tested without a screen.
+/// Hiç piksel taşımaz. Buradaki her şey bir oran ya da bir fazdır; böylece
+/// aynı balon telefonda da tablette de doğru görünür ve kurallar ekransız
+/// test edilebilir.
 class Balloon {
   const Balloon({
     required this.id,
@@ -14,25 +14,25 @@ class Balloon {
     required this.bornAt,
   });
 
-  /// Spawn order, starting at 0. Also the widget key.
+  /// Doğuş sırası, 0'dan başlar. Aynı zamanda widget anahtarıdır.
   final int id;
 
-  /// Where it sits across the play area, `[0, 1]`.
+  /// Oyun alanı boyunca nerede durduğu, `[0, 1]`.
   final double x;
 
-  /// Where it comes to rest, `[0, 1]` from the top of the play area.
+  /// Nerede durakladığı, oyun alanının üstünden itibaren `[0, 1]`.
   final double restY;
 
-  /// Which colour of the balloon palette it wears.
+  /// Balon paletinin hangi rengini giydiği.
   final int colourIndex;
 
-  /// A little variety in size, around 1.
+  /// Boyutta 1 civarında küçük bir çeşitlilik.
   final double sizeFactor;
 
-  /// Offset into the bob cycle, so they do not all sway together.
+  /// Salınım döngüsündeki kayma; böylece hepsi birlikte sallanmaz.
   final double bobPhase;
 
-  /// Time on the game clock when it appeared, for the drift upward.
+  /// Belirdiği andaki oyun saati; yukarı süzülme bunu kullanır.
   final Duration bornAt;
 
   @override

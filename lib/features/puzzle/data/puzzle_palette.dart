@@ -2,7 +2,7 @@ import 'dart:ui' show Color, Rect;
 
 import '../models/puzzle_category.dart';
 
-/// The surface a puzzle's pieces are painted on, in piece-local coordinates.
+/// Puzzle parçalarının üzerine boyandığı yüzey, parça-yerel koordinatlarda.
 class PieceBackground {
   const PieceBackground({
     required this.from,
@@ -13,9 +13,9 @@ class PieceBackground {
   final Color from;
   final Color to;
 
-  /// Where the whole board sits in this piece's own coordinates, so the
-  /// gradient is laid out once across the board rather than restarting in
-  /// every piece.
+  /// Board'un tamamının bu parçanın kendi koordinatlarındaki yeri; böylece
+  /// gradyan her parçada baştan başlamak yerine board boyunca bir kez
+  /// serilir.
   final Rect boardRect;
 
   @override
@@ -29,19 +29,19 @@ class PieceBackground {
   int get hashCode => Object.hash(from, to, boardRect);
 }
 
-/// Colours the pieces sit on.
+/// Parçaların üzerinde durduğu renkler.
 ///
-/// The artwork is transparent by design (§34), and a transparent jigsaw
-/// piece is one a child can neither see in the tray nor aim at. The picture
-/// is therefore composed at runtime: this surface first, the emoji on top.
-/// The asset files stay untouched, which also keeps the licence simple
+/// Görseller tasarım gereği şeffaftır (§34) ve şeffaf bir yapboz parçası,
+/// çocuğun tepside ne görebildiği ne de nişan alabildiği bir parçadır. Bu
+/// yüzden resim çalışma anında bestelenir: önce bu yüzey, üstüne emoji.
+/// Asset dosyalarına dokunulmaz; bu aynı zamanda lisansı da basit tutar
 /// (§33).
 ///
-/// The surface is a gradient across the board, not a flat fill, and that is
-/// the point: an emoji leaves whole pieces empty — the corners of a 3×3 car
-/// hold no car at all — and nine identical blank tiles are nine tiles a
-/// child cannot tell apart. A gradient gives every piece its own shade, and
-/// still assembles into one clean picture.
+/// Yüzey düz bir dolgu değil, board boyunca uzanan bir gradyandır ve asıl
+/// mesele budur: bir emoji bazı parçaları tamamen boş bırakır — 3×3 bir
+/// arabanın köşelerinde hiç araba yoktur — ve birbirinin aynı dokuz boş
+/// kare, çocuğun ayırt edemeyeceği dokuz karedir. Gradyan her parçaya kendi
+/// tonunu verir ve yine de tek bir temiz resimde birleşir.
 abstract final class PuzzlePalette {
   static const _fallback = (Color(0xFFFDF7EF), Color(0xFFF3E4D0));
 
@@ -53,7 +53,7 @@ abstract final class PuzzlePalette {
     PuzzleCategory.shapes: (Color(0xFFF8EEFA), Color(0xFFD8BFE4)),
   };
 
-  /// The two ends of the gradient for a category.
+  /// Bir kategorinin gradyanının iki ucu.
   static (Color, Color) gradientOf(PuzzleCategory category) =>
       _byCategory[category] ?? _fallback;
 

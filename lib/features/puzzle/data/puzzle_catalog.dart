@@ -3,19 +3,19 @@ import '../models/puzzle_category.dart';
 import '../models/puzzle_definition.dart';
 import '../models/puzzle_grid.dart';
 
-/// The content of the game, and the rules for walking through it (§4, §13).
+/// Oyunun içeriği ve içinde ilerleme kuralları (§4, §13).
 ///
-/// Dart, not JSON: nine puzzles are not worth a parser, and the compiler
-/// catches a typo in a grid where a JSON file would only fail on a child's
-/// device. JSON becomes interesting when the content stops fitting on one
-/// screen (§13).
+/// JSON değil Dart: dokuz puzzle bir ayrıştırıcıya değmez ve derleyici,
+/// griddeki bir yazım hatasını JSON dosyasının ancak çocuğun cihazında
+/// patlayacağı yerde yakalar. İçerik tek ekrana sığmamaya başladığında JSON
+/// ilginç hale gelir (§13).
 class PuzzleCatalog {
   const PuzzleCatalog(this.levels);
 
   final List<LevelDefinition> levels;
 
-  /// K-1 = A: three levels, nine puzzles. The engine still supports 1×3 and
-  /// 3×4 — those are engine capabilities, not content (§4).
+  /// K-1 = A: üç kademe, dokuz puzzle. Engine 1×3 ve 3×4'ü desteklemeye
+  /// devam eder — bunlar engine yetenekleridir, içerik değil (§4).
   static const PuzzleCatalog v1 = PuzzleCatalog([
     LevelDefinition(
       index: 1,
@@ -113,8 +113,8 @@ class PuzzleCatalog {
         ),
       );
 
-  /// Null instead of throwing, for ids that come from storage and may name
-  /// a puzzle this build no longer has (§25.1).
+  /// Hata fırlatmak yerine null; depodan gelen ve bu sürümde artık
+  /// bulunmayan bir puzzle'ı adlandırabilecek kimlikler için (§25.1).
   PuzzleDefinition? findById(String puzzleId) {
     for (final puzzle in puzzles) {
       if (puzzle.id == puzzleId) return puzzle;
@@ -131,16 +131,16 @@ class PuzzleCatalog {
         ),
       );
 
-  /// Every puzzle in the catalogue, in the order a child meets them.
+  /// Katalogdaki bütün puzzle'lar, çocuğun onlarla karşılaşma sırasıyla.
   List<PuzzleDefinition> get allPuzzles => [
         for (final level in levels) ...level.puzzles,
       ];
 
-  /// The album's shape (§25): puzzles grouped under their category.
+  /// Albümün biçimi (§25): puzzle'lar kategorilerine göre gruplanmış.
   ///
-  /// Only categories that actually have a puzzle appear, and they come in
-  /// the order the enum declares them, so the album does not rearrange
-  /// itself as a child earns stickers.
+  /// Yalnızca gerçekten puzzle'ı olan kategoriler görünür ve enum'daki
+  /// sırayla gelirler; böylece çocuk çıkartma kazandıkça albüm kendini
+  /// yeniden dizmez.
   Map<PuzzleCategory, List<PuzzleDefinition>> get byCategory {
     final grouped = <PuzzleCategory, List<PuzzleDefinition>>{};
     for (final category in PuzzleCategory.values) {
@@ -152,11 +152,11 @@ class PuzzleCatalog {
     return Map.unmodifiable(grouped);
   }
 
-  /// How many levels are open, given what has been finished (§4).
+  /// Tamamlananlara göre kaç kademenin açık olduğu (§4).
   ///
-  /// A level opens when the one before it has [LevelDefinition
-  /// .requiredCompletions] finished puzzles. The ladder never skips a rung:
-  /// the moment one level falls short, everything above it stays shut.
+  /// Bir kademe, kendisinden öncekinde [LevelDefinition.requiredCompletions]
+  /// kadar puzzle bitince açılır. Merdiven hiçbir basamağı atlamaz: bir
+  /// kademe eksik kaldığı anda üstündeki her şey kapalı kalır.
   int unlockedLevelCount(Set<String> completedPuzzleIds) {
     var unlocked = 1;
     for (var i = 0; i < levels.length - 1; i++) {
@@ -173,12 +173,12 @@ class PuzzleCatalog {
   bool isLevelUnlocked(int levelIndex, Set<String> completedPuzzleIds) =>
       levelIndex <= unlockedLevelCount(completedPuzzleIds);
 
-  /// The next puzzle to offer: the first unfinished one inside the levels
-  /// the child has opened. Null means everything available is done.
+  /// Sunulacak sonraki puzzle: çocuğun açtığı kademeler içindeki ilk
+  /// bitirilmemiş olan. Null, erişilebilir her şeyin bittiği anlamına gelir.
   ///
-  /// [unavailable] holds puzzles that cannot be played right now — artwork
-  /// that would not load (§14). They are skipped over, but unlike finished
-  /// puzzles they unlock nothing.
+  /// [unavailable], şu an oynanamayacak puzzle'ları tutar — yüklenemeyen
+  /// görseller (§14). Atlanırlar, ama tamamlananların aksine hiçbir şeyin
+  /// kilidini açmazlar.
   PuzzleDefinition? firstUnsolved(
     Set<String> completedPuzzleIds, {
     Set<String> unavailable = const {},

@@ -4,32 +4,33 @@ import 'dart:ui' show Offset, Rect, Size;
 import '../../../core/constants/puzzle_config.dart';
 import '../models/balloon.dart';
 
-/// Where a balloon is, in pixels, at a given moment (§24).
+/// Bir balonun belirli bir anda piksel olarak nerede olduğu (§24).
 ///
-/// Pure functions, kept out of the widget so the 72 px rule and the drift
-/// upward can be checked directly.
+/// Saf fonksiyonlar; widget'ın dışında tutulur ki 72 px kuralı ve yukarı
+/// süzülme doğrudan denetlenebilsin.
 abstract final class BalloonLayout {
-  /// A balloon is always at least [PuzzleConfig.balloonTouchTargetSize]
-  /// across (§2), and grows with the screen so it stays easy to hit on a
-  /// tablet.
+  /// Bir balon her zaman en az [PuzzleConfig.balloonTouchTargetSize]
+  /// genişliğindedir (§2) ve ekranla birlikte büyür; böylece tablette de
+  /// kolay vurulur.
   static double diameterFor(Size playArea) => math.max(
         PuzzleConfig.balloonTouchTargetSize,
         playArea.shortestSide * 0.18,
       );
 
-  /// The square a balloon occupies, including its size variation.
+  /// Bir balonun kapladığı kare, boyut çeşitliliği dahil.
   ///
-  /// [elapsed] is time since the game opened; the balloon drifts up from
-  /// below the bottom edge to its resting height, then bobs on the spot.
-  /// How big this particular balloon is.
+  /// [elapsed], oyunun açılmasından bu yana geçen süredir; balon kendi
+  /// yerinin biraz altından durma yüksekliğine süzülür, sonra yerinde
+  /// salınır.
+  /// Bu balonun tam olarak ne kadar büyük olduğu.
   ///
-  /// The floor is applied after the size variation, not before it: a
-  /// balloon 10% smaller than its neighbours is still a balloon a
-  /// three-year-old has to be able to hit (§2).
+  /// Alt sınır, boyut çeşitliliğinden önce değil sonra uygulanır:
+  /// komşularından %10 küçük bir balon da üç yaşındaki birinin vurabilmesi
+  /// gereken bir balondur (§2).
   ///
-  /// Widgets take their width and height from here rather than from
-  /// [rectOf], because a rectangle's width is its right edge minus its
-  /// left, and those two do not always subtract back to exactly 72.
+  /// Widget'lar en ve boyu [rectOf] yerine buradan alır, çünkü bir
+  /// dikdörtgenin genişliği sağ kenarından sol kenarının çıkarılmasıdır ve
+  /// bu ikisi her zaman tam 72 vermez.
   static double diameterOf(Balloon balloon, Size playArea) => math.max(
         PuzzleConfig.balloonTouchTargetSize,
         diameterFor(playArea) * balloon.sizeFactor,
@@ -42,7 +43,7 @@ abstract final class BalloonLayout {
     final rise =
         (age.inMilliseconds / PuzzleConfig.balloonRiseDuration.inMilliseconds)
             .clamp(0.0, 1.0);
-    // Slow down as it arrives, the way something buoyant does.
+    // Yaklaşırken yavaşlar; suda yüzen bir şeyin yaptığı gibi.
     final eased = 1 - math.pow(1 - rise, 3).toDouble();
 
     final restTop = balloon.restY * math.max(0, playArea.height - diameter);
@@ -64,8 +65,8 @@ abstract final class BalloonLayout {
     return Rect.fromLTWH(left, top + bob, diameter, diameter);
   }
 
-  /// How solid a balloon is: it fades in over its drift up, so it arrives
-  /// rather than appearing.
+  /// Bir balonun ne kadar belirgin olduğu: süzülürken yavaşça belirir,
+  /// böylece birden ortaya çıkmaz, gelir.
   static double opacityOf(Balloon balloon, Duration elapsed) {
     final age = elapsed - balloon.bornAt;
     return (age.inMilliseconds /
@@ -73,7 +74,7 @@ abstract final class BalloonLayout {
         .clamp(0.0, 1.0);
   }
 
-  /// Middle of a balloon: where its burst comes from.
+  /// Balonun ortası: patlaması buradan çıkar.
   static Offset centreOf(Balloon balloon, Size playArea, Duration elapsed) =>
       rectOf(balloon, playArea, elapsed).center;
 }

@@ -6,17 +6,17 @@ import 'package:flutter/foundation.dart';
 import '../../../core/constants/puzzle_config.dart';
 import '../models/balloon.dart';
 
-/// The rules of the balloon mini game (§24): how many balloons there are,
-/// when they arrive, and when the game is over.
+/// Balon mini oyununun kuralları (§24): kaç balon olduğu, ne zaman
+/// geldikleri ve oyunun ne zaman bittiği.
 ///
-/// It holds no pixels and no widgets, so "twelve balloons, eight at a
-/// time, fifteen seconds" can be checked second by second in a unit test.
-/// The clock is a plain timer that can be driven by hand through
-/// [advance] — the same shape as `HintController` (§21).
+/// Piksel de widget da tutmaz; böylece "on iki balon, aynı anda sekiz, on
+/// beş saniye" bir birim testinde saniye saniye denetlenebilir. Saat, sade
+/// bir zamanlayıcıdır ve [advance] ile elle sürülebilir — `HintController`
+/// ile aynı kalıp (§21).
 ///
-/// There is no failure path anywhere in here. Balloons left in the air
-/// when the clock runs out are not counted, not reported, and not
-/// mentioned: the game simply ends (§20, §24).
+/// Burada hiçbir yerde başarısızlık yolu yoktur. Süre dolduğunda havada
+/// kalan balonlar sayılmaz, bildirilmez ve anılmaz: oyun sadece biter
+/// (§20, §24).
 class BalloonGameController extends ChangeNotifier {
   BalloonGameController({
     this.total = PuzzleConfig.balloonTotal,
@@ -33,53 +33,53 @@ class BalloonGameController extends ChangeNotifier {
         assert(maxActive > 0, 'at least one balloon must fit'),
         assert(initialSpawn <= maxActive, 'the opening cannot break the cap');
 
-  /// How many balloons the whole game makes.
+  /// Oyunun toplamda kaç balon ürettiği.
   final int total;
 
-  /// The ceiling on balloons in the air at one time.
+  /// Aynı anda havada olabilecek balon sayısının tavanı.
   final int maxActive;
 
-  /// How many are already up when the game opens.
+  /// Oyun açıldığında kaç tanesinin çoktan havada olduğu.
   final int initialSpawn;
 
-  /// Gap between one balloon and the next, when there is room.
+  /// Yer olduğunda bir balon ile diğeri arasındaki aralık.
   final Duration spawnInterval;
 
-  /// The game is over at this point however it is going.
+  /// Oyun nasıl gidiyor olursa olsun bu noktada biter.
   final Duration timeLimit;
 
-  /// The pause between the last balloon popping and the game closing, so
-  /// the child sees the pop they earned.
+  /// Son balonun patlaması ile oyunun kapanması arasındaki duraklama;
+  /// çocuk hak ettiği patlamayı görsün diye.
   final Duration earlyFinishDelay;
 
-  /// How often the clock is looked at.
+  /// Saate ne sıklıkta bakıldığı.
   final Duration tickInterval;
 
-  /// Size of the balloon palette the widget paints from.
+  /// Widget'ın boyadığı balon paletinin boyutu.
   final int colourCount;
 
-  /// The play area is divided into cells and no two balloons share one, so
-  /// a balloon is never half hidden behind another. Overlapping balloons
-  /// would quietly eat into the 72 px a child has to hit (§2).
+  /// Oyun alanı hücrelere bölünür ve iki balon aynı hücreyi paylaşmaz;
+  /// böylece bir balon asla bir diğerinin arkasında yarı gizli kalmaz.
+  /// Üst üste binen balonlar, çocuğun vurması gereken 72 px'i sessizce
+  /// yer (§2).
   ///
-  /// Three columns and five rows is fifteen places for at most eight
-  /// balloons, which leaves the arrangement looking scattered rather than
-  /// like a grid.
+  /// Üç sütun ve beş satır, en fazla sekiz balon için on beş yer demektir;
+  /// bu da dizilimin ızgara gibi değil, dağınık görünmesini sağlar.
   static const int columns = 3;
   static const int rows = 4;
 
   final Random _random;
 
-  /// Cells with nobody in them, in the order they will be used.
+  /// İçinde kimse olmayan hücreler, kullanılacakları sırayla.
   final List<int> _freeCells = [];
 
-  /// Which cell each balloon took, so popping gives it back.
+  /// Her balonun hangi hücreyi aldığı; patlayınca geri versin diye.
   final Map<int, int> _cellOf = {};
 
-  /// Where the palette starts, so one game does not always open orange.
+  /// Paletin nereden başladığı; her oyun turuncuyla açılmasın diye.
   late final int _colourOffset = _random.nextInt(colourCount);
 
-  /// Called once when the game is over, either way it ends.
+  /// Oyun nasıl biterse bitsin, bittiğinde bir kez çağrılır.
   VoidCallback? onFinished;
 
   Timer? _timer;
@@ -92,13 +92,13 @@ class BalloonGameController extends ChangeNotifier {
   bool _finished = false;
   bool _paused = false;
 
-  /// The balloons in the air, in the order they arrived.
+  /// Havadaki balonlar, geliş sıralarıyla.
   List<Balloon> get balloons => List.unmodifiable(_balloons);
 
-  /// How many have been made so far, popped ones included.
+  /// Şimdiye kadar kaç tane üretildiği, patlatılanlar dahil.
   int get spawnedCount => _spawned;
 
-  /// How many the child has popped.
+  /// Çocuğun kaç tanesini patlattığı.
   int get poppedCount => _popped;
 
   Duration get elapsed => _elapsed;
@@ -106,8 +106,8 @@ class BalloonGameController extends ChangeNotifier {
   bool get isFinished => _finished;
   bool get isPaused => _paused;
 
-  /// §28 — the app went away. The clock stops where it stands: a reward is
-  /// not something a child can be away for and lose (§30).
+  /// §28 — uygulama arka plana gitti. Saat olduğu yerde durur: ödül,
+  /// çocuğun uzakta kalıp kaybedebileceği bir şey değildir (§30).
   void pause() {
     if (_paused || _finished) return;
     _paused = true;
@@ -115,19 +115,19 @@ class BalloonGameController extends ChangeNotifier {
     _timer = null;
   }
 
-  /// Back again, with exactly as long left as there was.
+  /// Geri dönüldü; kalan süre ne idiyse tam olarak o kadar.
   void resume() {
     if (!_paused || _finished) return;
     _paused = false;
     _timer = Timer.periodic(tickInterval, (_) => advance(tickInterval));
   }
 
-  /// Opens the game: the first balloons are already in the air.
+  /// Oyunu açar: ilk balonlar çoktan havadadır.
   void start() {
     if (_timer != null || _finished) return;
     _refillFreeCells();
-    // The balloons that open the game are the only ones ever in the air at
-    // the same time while rising, so they are given a column each.
+    // Oyunu açan balonlar, yükselirken aynı anda havada olan tek gruptur;
+    // bu yüzden her birine ayrı bir sütun verilir.
     final columnOrder = List<int>.generate(columns, (i) => i)..shuffle(_random);
     for (var i = 0; i < initialSpawn && _canSpawn; i++) {
       _spawn(preferredColumn: columnOrder[i % columns]);
@@ -136,15 +136,15 @@ class BalloonGameController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Moves the clock on. The timer calls this every tick; tests call it
-  /// directly so fifteen seconds take no time at all.
+  /// Saati ilerletir. Zamanlayıcı bunu her tıkta çağırır; testler doğrudan
+  /// çağırır, böylece on beş saniye hiç zaman almaz.
   @visibleForTesting
   void advance(Duration by) {
     if (_finished || _paused) return;
     _elapsed += by;
 
-    // An early finish is already booked: nothing new arrives, we are only
-    // waiting for the last pop to be seen.
+    // Erken bitiş çoktan ayarlandı: yeni bir şey gelmez, yalnızca son
+    // patlamanın görülmesi beklenir.
     final closeAt = _closeAt;
     if (closeAt != null) {
       if (_elapsed >= closeAt) _finish();
@@ -160,9 +160,9 @@ class BalloonGameController extends ChangeNotifier {
     _sinceSpawn += by;
     while (_sinceSpawn >= spawnInterval) {
       _sinceSpawn -= spawnInterval;
-      // The interval is spent before the room for it is checked, on
-      // purpose: a screen that stays full does not bank up credit and
-      // release a burst of balloons the moment one pops.
+      // Aralık, ona yer olup olmadığına bakılmadan önce harcanır ve bu
+      // bilinçlidir: dolu kalan bir ekran kredi biriktirip bir balon
+      // patladığı anda topluca balon salmaz.
       if (!_canSpawn) break;
       _spawn();
       spawned = true;
@@ -171,9 +171,9 @@ class BalloonGameController extends ChangeNotifier {
     if (spawned) notifyListeners();
   }
 
-  /// The child touched a balloon. Unknown ids are ignored: a second tap on
-  /// a balloon that has already gone is not an error, it is a child's
-  /// finger (§20).
+  /// Çocuk bir balona dokundu. Bilinmeyen kimlikler yok sayılır: çoktan
+  /// gitmiş bir balona ikinci kez dokunmak hata değil, çocuğun parmağıdır
+  /// (§20).
   void pop(int id) {
     if (_finished) return;
     final index = _balloons.indexWhere((b) => b.id == id);
@@ -182,12 +182,12 @@ class BalloonGameController extends ChangeNotifier {
     final balloon = _balloons.removeAt(index);
     _popped++;
 
-    // The place it was standing in is free again.
+    // Durduğu yer yeniden boşaldı.
     final cell = _cellOf.remove(balloon.id);
     if (cell != null) _freeCells.add(cell);
 
-    // Every balloon made and every one of them popped: the reward for
-    // finishing early is finishing early (§24).
+    // Üretilen bütün balonlar patlatıldı: erken bitirmenin ödülü, erken
+    // bitirmektir (§24).
     if (_popped >= total) _closeAt = _elapsed + earlyFinishDelay;
 
     notifyListeners();
@@ -196,7 +196,7 @@ class BalloonGameController extends ChangeNotifier {
   bool get _canSpawn =>
       _spawned < total && _balloons.length < maxActive && _freeCells.isNotEmpty;
 
-  /// A free cell, in the asked-for column when one is free there.
+  /// Boş bir hücre; istenen sütunda boş varsa oradan.
   int _takeCell(int? preferredColumn) {
     var index = _random.nextInt(_freeCells.length);
     if (preferredColumn != null) {
@@ -219,14 +219,14 @@ class BalloonGameController extends ChangeNotifier {
     final column = cell % columns;
     final row = cell ~/ columns;
 
-    // The middle of the cell, nudged by a little less than the gap the
-    // cells leave around a balloon, so the jitter can never close it.
+    // Hücrenin ortası; hücrelerin balon çevresinde bıraktığı boşluktan
+    // biraz az kaydırılır, böylece sapma o boşluğu asla kapatamaz.
     final balloon = Balloon(
       id: _spawned,
       x: (column + 0.5) / columns + (_random.nextDouble() - 0.5) * 0.014,
       restY: (row + 0.5) / rows + (_random.nextDouble() - 0.5) * 0.014,
-      // Walking the palette instead of drawing from it: five balloons in a
-      // row are five different colours, never three purples.
+      // Paletten çekmek yerine palet üzerinde yürünür: arka arkaya beş
+      // balon beş farklı renktir, üç tane mor değil.
       colourIndex: (_spawned + _colourOffset) % colourCount,
       sizeFactor: 0.92 + _random.nextDouble() * 0.14,
       bobPhase: _random.nextDouble(),

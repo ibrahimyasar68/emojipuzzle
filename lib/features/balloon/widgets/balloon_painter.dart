@@ -4,8 +4,8 @@ import 'package:flutter/widgets.dart';
 
 import '../../../core/constants/puzzle_config.dart';
 
-/// The balloon palette. Bright, friendly, and far away from the red the
-/// game never uses for anything (§2, §20).
+/// Balon paleti. Canlı, sıcak ve oyunun hiçbir şey için kullanmadığı
+/// kırmızıdan uzak (§2, §20).
 const List<Color> balloonColours = [
   Color(0xFFFF8A5B),
   Color(0xFFFFC43D),
@@ -14,13 +14,13 @@ const List<Color> balloonColours = [
   Color(0xFFAB47BC),
 ];
 
-/// One balloon: a body, a highlight and a short string.
+/// Tek bir balon: bir gövde, bir parlama ve kısa bir ip.
 class BalloonPainter extends CustomPainter {
   const BalloonPainter({required this.colour, this.scale = 1});
 
   final Color colour;
 
-  /// The swell just before it bursts.
+  /// Patlamadan hemen önceki şişme.
   final double scale;
 
   @override
@@ -37,7 +37,7 @@ class BalloonPainter extends CustomPainter {
       height: size.height * 0.92,
     );
 
-    // The string, drawn first so the balloon sits over it.
+    // İp, önce çizilir ki balon onun üstüne otursun.
     final string = Path()
       ..moveTo(centre.dx, body.bottom - size.height * 0.02)
       ..quadraticBezierTo(
@@ -56,14 +56,14 @@ class BalloonPainter extends CustomPainter {
 
     canvas.drawOval(body, Paint()..color = colour);
 
-    // The knot.
+    // Düğüm.
     canvas.drawCircle(
       Offset(centre.dx, body.bottom),
       size.width * 0.05,
       Paint()..color = colour,
     );
 
-    // A soft highlight, so it reads as round rather than as a flat disc.
+    // Yumuşak bir parlama; böylece düz bir daire değil, yuvarlak okunur.
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(
@@ -82,8 +82,8 @@ class BalloonPainter extends CustomPainter {
       oldDelegate.colour != colour || oldDelegate.scale != scale;
 }
 
-/// What is left of a balloon for a fraction of a second after it pops:
-/// a ring opening out, and a handful of pieces flying apart (§24, §42).
+/// Patladıktan sonra saniyenin bir kesri boyunca balondan geriye kalan:
+/// açılan bir halka ve dağılan bir avuç parça (§24, §42).
 class BalloonBurstPainter extends CustomPainter {
   const BalloonBurstPainter({
     required this.centre,
@@ -95,10 +95,10 @@ class BalloonBurstPainter extends CustomPainter {
   final Offset centre;
   final Color colour;
 
-  /// Radius of the balloon that burst, so the pieces start at its edge.
+  /// Patlayan balonun yarıçapı; parçalar onun kenarından başlar.
   final double radius;
 
-  /// 0 at the pop, 1 when nothing is left.
+  /// Patlama anında 0, geriye hiçbir şey kalmadığında 1.
   final double progress;
 
   @override

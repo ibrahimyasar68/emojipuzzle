@@ -5,14 +5,16 @@ import 'package:flutter/foundation.dart';
 import '../../../core/services/storage_service.dart';
 import '../models/game_progress.dart';
 
-/// Reads and writes the child's progress (§25).
+/// Çocuğun ilerlemesini okur ve yazar (§25).
 ///
-/// Everything is one JSON string under one key: nine puzzles do not need a
-/// database, and a single value can never be half-written.
+/// Her şey tek bir anahtarın altında tek bir JSON metnidir: dokuz puzzle'ın
+/// veritabanına ihtiyacı yoktur ve tek bir değer hiçbir zaman yarım
+/// yazılamaz.
 ///
-/// Nothing here ever throws at the caller. A child cannot act on a storage
-/// error, so the worst case is starting over with a clean slate — which
-/// looks like a new game, not like a failure (§2, §25.1).
+/// Burada hiçbir şey çağırana hata fırlatmaz. Çocuk bir depolama hatasıyla
+/// bir şey yapamaz; bu yüzden en kötü durum temiz bir sayfadan başlamaktır
+/// — ki bu, başarısızlık gibi değil, yeni bir oyun gibi görünür
+/// (§2, §25.1).
 class ProgressRepository {
   const ProgressRepository(this._storage);
 
@@ -20,8 +22,8 @@ class ProgressRepository {
 
   final StorageService _storage;
 
-  /// Loads progress, falling back to a fresh start whenever the stored
-  /// value cannot be trusted (§25.1).
+  /// İlerlemeyi yükler; saklanan değere güvenilemediği her durumda temiz
+  /// bir başlangıca döner (§25.1).
   Future<GameProgress> load() async {
     final raw = _storage.readString(storageKey);
     if (raw == null) return const GameProgress.initial();
@@ -39,8 +41,8 @@ class ProgressRepository {
     await _storage.writeString(storageKey, _encode(progress));
   }
 
-  /// §26 — wipes progress. Not wired to anything a child can reach; the
-  /// parent area will use it.
+  /// §26 — ilerlemeyi siler. Çocuğun ulaşabileceği hiçbir yere bağlı
+  /// değildir; ebeveyn alanı kullanır.
   Future<void> clear() async {
     await _storage.remove(storageKey);
   }
@@ -52,8 +54,8 @@ class ProgressRepository {
         'lastPlayedPuzzleId': progress.lastPlayedPuzzleId,
       });
 
-  /// Returns null when the stored value is readable but not usable, so the
-  /// caller starts fresh (§25.1).
+  /// Saklanan değer okunabilir ama kullanılabilir değilse null döner;
+  /// böylece çağıran temizden başlar (§25.1).
   GameProgress? _decode(String raw) {
     final decoded = jsonDecode(raw);
     if (decoded is! Map<String, Object?>) {
@@ -67,8 +69,8 @@ class ProgressRepository {
       return null;
     }
     if (version > GameProgress.currentSchemaVersion) {
-      // Written by a newer build of the app: this one cannot know what the
-      // fields mean, and guessing would corrupt them (§25.1).
+      // Uygulamanın daha yeni bir sürümü yazmış: bu sürüm alanların ne
+      // anlama geldiğini bilemez ve tahmin etmek onları bozar (§25.1).
       debugPrint('Progress is from a newer version ($version) — '
           'starting fresh.');
       return null;
@@ -84,8 +86,8 @@ class ProgressRepository {
     return _read(decoded);
   }
 
-  /// No older schema exists yet. When one does, this is where it is brought
-  /// forward; returning null keeps the honest fallback (§25.1).
+  /// Henüz daha eski bir şema yok. Olduğunda ileri taşıma işi burada
+  /// yapılır; null döndürmek dürüst geri çekilmeyi korur (§25.1).
   GameProgress? _migrate(Map<String, Object?> stored, {required int from}) =>
       null;
 

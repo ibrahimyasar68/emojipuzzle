@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'sound_player.dart';
 import 'storage_service.dart';
 
-/// Asset paths, relative to `assets/` the way `audioplayers` wants them.
+/// Asset yolları; `audioplayers`'ın istediği gibi `assets/`'e göreli.
 abstract final class Sfx {
   static const String pieceSnap = 'audio/sfx/piece_snap.wav';
   static const String puzzleComplete = 'audio/sfx/puzzle_complete.wav';
@@ -11,14 +11,14 @@ abstract final class Sfx {
   static const String hint = 'audio/sfx/hint.wav';
 }
 
-/// The one place that makes a sound (§27).
+/// Ses çıkaran tek yer (§27).
 ///
-/// Widgets never create a player of their own; they ask for an effect by
-/// name. That keeps the number of live players fixed, and makes muting a
-/// single switch (K-2).
+/// Widget'lar asla kendi çalıcılarını oluşturmaz; efekti adıyla isterler.
+/// Bu, canlı çalıcı sayısını sabit tutar ve sesi kapatmayı tek bir
+/// anahtara indirger (K-2).
 class AudioService extends ChangeNotifier {
-  /// Without a [player] the service is silent (see [SilentSoundPlayer]).
-  /// `main` gives it a real one; nothing else has to think about audio.
+  /// [player] verilmezse servis sessizdir (bkz. [SilentSoundPlayer]).
+  /// Gerçek olanı `main` verir; başka hiçbir yerin sesi düşünmesi gerekmez.
   AudioService({SoundPlayer? player, StorageService? storage})
       : _player = player ?? const SilentSoundPlayer(),
         _storage = storage;
@@ -30,12 +30,12 @@ class AudioService extends ChangeNotifier {
 
   bool _muted = false;
 
-  /// Silences sound effects. Haptics are not affected: they are a separate
-  /// channel, and a parent silencing a phone is not asking for the buzz to
-  /// stop as well (§27).
+  /// Ses efektlerini susturur. Haptik etkilenmez: o ayrı bir kanaldır ve
+  /// telefonu sessize alan bir ebeveyn titreşimin de kesilmesini istemiş
+  /// olmaz (§27).
   bool get muted => _muted;
 
-  /// Reads the saved setting. Call once at start-up.
+  /// Kayıtlı ayarı okur. Açılışta bir kez çağrılır.
   void loadSettings() {
     final stored = _storage?.readBool(mutedKey);
     if (stored == null || stored == _muted) return;
@@ -52,16 +52,16 @@ class AudioService extends ChangeNotifier {
 
   Future<void> toggleMuted() => setMuted(muted: !_muted);
 
-  /// §22 — the short pop when a piece lands.
+  /// §22 — parça yerine oturduğundaki kısa 'pop' sesi.
   Future<void> playPieceSnap() => _play(Sfx.pieceSnap);
 
-  /// §23 — the picture is finished.
+  /// §23 — resim tamamlandı.
   Future<void> playPuzzleComplete() => _play(Sfx.puzzleComplete);
 
-  /// §24 — a balloon gives up.
+  /// §24 — bir balon pes ediyor.
   Future<void> playBalloonPop() => _play(Sfx.balloonPop);
 
-  /// §21 — "look at this one". Never a buzzer.
+  /// §21 — "şuna bak". Asla uyarı sesi değil.
   Future<void> playHint() => _play(Sfx.hint);
 
   Future<void> _play(String asset) async {

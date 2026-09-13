@@ -8,11 +8,11 @@ import '../features/puzzle/data/progress_repository.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/puzzle/providers/game_provider.dart';
 
-/// App shell.
+/// Uygulama kabuğu.
 ///
-/// The game opens on Home and pushes from there (§29). Standard Flutter
-/// navigation, no router abstraction: four screens do not need one. Android
-/// Back and the lifecycle are Faz 14.
+/// Oyun Home'da açılır ve oradan ilerler (§29). Standart Flutter navigation,
+/// router soyutlaması yok: dört ekranın buna ihtiyacı yok. Android geri tuşu
+/// ve lifecycle Faz 14'te.
 class EmojiPuzzleApp extends StatefulWidget {
   const EmojiPuzzleApp({super.key, required this.storage});
 
@@ -29,15 +29,15 @@ class _EmojiPuzzleAppState extends State<EmojiPuzzleApp> {
   @override
   void initState() {
     super.initState();
-    // Built here, not inside a provider callback, so the services outlive
-    // any rebuild and are disposed exactly once.
-    // The one place that asks for real sound (§27).
+    // Provider geri çağrısının içinde değil burada kurulur; böylece
+    // servisler her yeniden kurulumu atlatır ve tam olarak bir kez serbest
+    // bırakılır. Gerçek sesi isteyen tek yer burası (§27).
     _audio = AudioService(
       player: AudioPlayersSoundPlayer(),
       storage: widget.storage,
     )..loadSettings();
-    // Resumed while the child is still looking at Home, so pressing play
-    // opens a puzzle that is already painted (§25, §14).
+    // Çocuk hâlâ Home'a bakarken devam ettirilir; böylece oyna'ya basınca
+    // çoktan çizilmiş bir puzzle açılır (§25, §14).
     _game = GameProvider(
       progressRepository: ProgressRepository(widget.storage),
       audio: _audio,
@@ -55,8 +55,8 @@ class _EmojiPuzzleAppState extends State<EmojiPuzzleApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Exposed on its own as well, for the mute toggle the Home screen
-        // gets in Faz 13 (K-2).
+        // Ayrıca tek başına da sunulur; Home ekranının Faz 13'te aldığı
+        // ses düğmesi için (K-2).
         ChangeNotifierProvider<AudioService>.value(value: _audio),
         ChangeNotifierProvider<GameProvider>.value(value: _game),
       ],

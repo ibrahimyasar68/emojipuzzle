@@ -8,16 +8,16 @@ import '../providers/balloon_game_controller.dart';
 import 'balloon_layout.dart';
 import 'balloon_painter.dart';
 
-/// The balloon mini game (§24): a short, pressure-free reward between one
-/// puzzle and the next.
+/// Balon mini oyunu (§24): bir puzzle ile diğeri arasında kısa ve baskısız
+/// bir ödül.
 ///
-/// The feature knows nothing about puzzles (§36). It is handed the two
-/// services it needs and a way to say it is done; everything else — how
-/// many balloons, how fast they come, when it ends — lives in
-/// [BalloonGameController], and this widget only draws it.
+/// Bu özellik puzzle hakkında hiçbir şey bilmez (§36). Kendisine ihtiyaç
+/// duyduğu iki servis ve bittiğini söyleyecek bir yol verilir; geri kalan
+/// her şey — kaç balon, ne hızda geldikleri, ne zaman bittiği —
+/// [BalloonGameController] içindedir ve bu widget yalnızca onu çizer.
 ///
-/// Nothing here can be lost. Balloons still in the air when the clock runs
-/// out are left alone: no message, no sound, no face (§20).
+/// Burada hiçbir şey kaybedilemez. Süre dolduğunda hâlâ havada olan
+/// balonlara dokunulmaz: mesaj yok, ses yok, surat yok (§20).
 class BalloonGameOverlay extends StatefulWidget {
   const BalloonGameOverlay({
     super.key,
@@ -27,16 +27,16 @@ class BalloonGameOverlay extends StatefulWidget {
     this.controller,
   });
 
-  /// Called once, when the game is over.
+  /// Oyun bittiğinde bir kez çağrılır.
   final VoidCallback onFinished;
 
-  /// The one place that makes a sound (§27). Silent when absent.
+  /// Ses çıkaran tek yer (§27). Verilmezse sessizdir.
   final AudioService? audio;
 
   final HapticService? haptics;
 
-  /// Injected by tests that want to pin the balloons; otherwise the widget
-  /// makes its own.
+  /// Balonları sabitlemek isteyen testler tarafından verilir; verilmezse
+  /// widget kendi kurar.
   final BalloonGameController? controller;
 
   @override
@@ -48,8 +48,8 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
   late final BalloonGameController _game;
   late final bool _ownsGame;
 
-  /// The drawing clock. The game keeps its own clock for the rules; this
-  /// one runs at frame rate so the balloons drift and bob smoothly.
+  /// Çizim saati. Oyun kurallar için kendi saatini tutar; bu saat kare
+  /// hızında işler ki balonlar akıcı süzülsün ve salınsın.
   late final AnimationController _clock;
 
   final List<_Burst> _bursts = [];
@@ -83,9 +83,9 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
     widget.onFinished();
   }
 
-  /// §28 — fifteen seconds of a reward do not tick away while the app is
-  /// in somebody's pocket. The game's own clock and the drawing clock stop
-  /// together, so the balloons are exactly where they were on return.
+  /// §28 — bir ödülün on beş saniyesi, uygulama birinin cebindeyken akıp
+  /// gitmez. Oyunun kendi saati ile çizim saati birlikte durur; böylece
+  /// dönüldüğünde balonlar tam bırakıldıkları yerdedir.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
@@ -125,8 +125,8 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
       );
     });
 
-    // Animation, then sound, then the particles — and the haptic last,
-    // because it is the one voice the game can do without (§27).
+    // Önce animasyon, sonra ses, sonra parçacıklar — haptik en sonda,
+    // çünkü oyunun vazgeçebileceği tek ses odur (§27).
     widget.audio?.playBalloonPop();
     widget.haptics?.light();
     _game.pop(balloon.id);
@@ -151,8 +151,8 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
               return Stack(
                 key: const ValueKey('balloon-game'),
                 children: [
-                  // A tap that misses a balloon does nothing at all, but it
-                  // must not reach the puzzle underneath.
+                  // Balonu ıskalayan bir dokunuş hiçbir şey yapmaz, ama
+                  // alttaki puzzle'a da ulaşmamalıdır.
                   Positioned.fill(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
@@ -185,8 +185,8 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
         behavior: HitTestBehavior.opaque,
         onTap: () => _pop(balloon, playArea),
         child: Opacity(
-          // Fading in, but tappable from the first frame: a balloon a
-          // child can see is a balloon a child may reach for (§2).
+          // Yavaşça beliriyor ama ilk kareden itibaren dokunulabilir:
+          // çocuğun görebildiği balon, uzanabileceği balondur (§2).
           opacity: BalloonLayout.opacityOf(balloon, elapsed),
           child: CustomPaint(
             painter: BalloonPainter(
@@ -200,7 +200,7 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
     );
   }
 
-  /// The balloon swells and fades while its pieces fly apart (§24).
+  /// Balon şişip solarken parçaları dağılır (§24).
   List<Widget> _burstWidgets(_Burst burst, Size playArea, Duration elapsed) {
     final progress = ((elapsed - burst.startedAt).inMilliseconds /
             PuzzleConfig.balloonPopDuration.inMilliseconds)
@@ -240,7 +240,7 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
   }
 }
 
-/// A balloon in the moment after it was touched.
+/// Dokunulduktan hemen sonraki anında bir balon.
 class _Burst {
   const _Burst({
     required this.balloon,
@@ -251,7 +251,7 @@ class _Burst {
 
   final Balloon balloon;
 
-  /// Frozen where it was popped: the pieces do not drift on with the bob.
+  /// Patladığı yerde dondurulur: parçalar salınımla birlikte kaymaz.
   final Offset centre;
   final double radius;
   final Duration startedAt;
