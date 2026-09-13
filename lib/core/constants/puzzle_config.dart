@@ -99,6 +99,13 @@ abstract final class PuzzleConfig {
   static const Duration hintStageInterval = Duration(seconds: 8);
   static const Duration hintTickInterval = Duration(milliseconds: 500);
 
+  /// §21 — how many pieces the game places by itself, one after another,
+  /// before it stops offering and waits to be touched.
+  ///
+  /// The ladder is there for a child who is stuck. Left running in an empty
+  /// room it finished puzzle after puzzle on its own, which is not help.
+  static const int hintMaxAutoPlacesInARow = 2;
+
   /// §21 — one beat of a hint pulse, and how far it swells.
   static const Duration hintPulseDuration = Duration(milliseconds: 600);
   static const double hintPulseScale = 1.12;

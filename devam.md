@@ -29,7 +29,7 @@ Son güncelleme: 13 Eylül 2026, Faz 16 sırasında.
 | 15 | Responsive, tablet, accessibility | ✅ onaylandı |
 | **16** | **Asset/lisans denetimi, privacy, final cila** | **⏳ sürüyor** |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **871 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **875 test**.
 Altı commit var; GitHub remote hâlâ yok.
 
 ---
@@ -164,6 +164,9 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   4 satır), balon kendi yerinin hemen altından belirerek yükselir. Ekranın
   altından yükselmek, üstteki sıralarda duran balonların önünden geçmek
   demekti — dokunma hedefini örtüyordu.
+- **Hint merdiveni boş odada oynamaz** (§21). İki ardışık auto-place'ten
+  sonra uykuya geçer; `start()` ve `resume()` uyandırmaz, yalnızca
+  `registerInteraction()` uyandırır.
 - **Platform emoji glyph'i kullanılmaz** (§33). `Text('🍎')` yasak; ikonlar
   Flutter'ın kendi font'undan, görseller assets'ten gelir.
   `test/architecture/asset_policy_test.dart` bunu dosyaları tarayarak
@@ -297,11 +300,13 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 
 **Kalanlar:**
 
-1. **Idle hint gözetimsiz oyunu bitiriyor** — kullanıcıya soruldu, cevap
-   bekliyor. Öneri: üst üste 2 auto-place'ten sonra merdiven dursun, çocuk
-   ekrana dokununca yeniden başlasın (§21 değişikliği olduğu için onay şart).
-2. **GitHub remote yok** — CI bir kez bile çalışmadı. Depo açma kararı
-   kullanıcınındır (public/private).
+1. ~~Idle hint gözetimsiz oyunu bitiriyor.~~ **Düzeltildi** (kullanıcı
+   13 Eylül'de onayladı): `hintMaxAutoPlacesInARow = 2`. Üst üste iki
+   auto-place'ten sonra merdiven uykuya geçer; **yalnızca ekrana dokunmak**
+   uyandırır. Arka plandan dönmek ve sonraki puzzle'a geçmek uyandırmaz —
+   uyandırsaydı gözlemlenen sonsuz döngü aynen sürerdi.
+2. ~~GitHub remote yok.~~ Kullanıcı 13 Eylül'de public depo açılmasını
+   istedi.
 3. **Gerçek cihazda profiling** — emülatör yeterli değil.
 4. Küçük cila: Home tablette seyrek duruyor; parça sınırlarında 1 piksellik
    ton farkı kalıyor (delik yok, ölçüldü).

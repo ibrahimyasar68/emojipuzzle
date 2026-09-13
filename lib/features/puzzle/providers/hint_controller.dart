@@ -17,6 +17,7 @@ class HintController extends ChangeNotifier {
     this.firstDelay = PuzzleConfig.hintFirstDelay,
     this.stageInterval = PuzzleConfig.hintStageInterval,
     this.tickInterval = PuzzleConfig.hintTickInterval,
+    this.maxAutoPlacesInARow = PuzzleConfig.hintMaxAutoPlacesInARow,
   });
 
   /// Silence before the first offer of help.
@@ -29,6 +30,15 @@ class HintController extends ChangeNotifier {
   /// enough to cost nothing.
   final Duration tickInterval;
 
+  /// How many pieces the game will place by itself, one after another,
+  /// before it stops offering.
+  ///
+  /// The ladder exists for a child who is stuck, not for an empty room. Left
+  /// alone, it used to finish the puzzle, then the next one, and the one
+  /// after that — a game playing itself on a table nobody is sitting at.
+  /// After this many in a row it goes quiet and waits to be touched.
+  final int maxAutoPlacesInARow;
+
   /// Called when the last stage is reached: the game places the piece
   /// itself (§21).
   VoidCallback? onAutoPlace;
@@ -37,15 +47,25 @@ class HintController extends ChangeNotifier {
   Duration _idleFor = Duration.zero;
   HintStage _stage = HintStage.none;
   bool _paused = false;
+  bool _dormant = false;
+  int _autoPlacesInARow = 0;
 
   HintStage get stage => _stage;
   Duration get idleFor => _idleFor;
   bool get isRunning => _timer != null;
   bool get isPaused => _paused;
 
+  /// True once the game has placed [maxAutoPlacesInARow] pieces with no
+  /// sign of anybody there. Only a touch brings it back.
+  bool get isDormant => _dormant;
+
   /// Starts watching. Safe to call twice.
+  ///
+  /// Does nothing while dormant: coming back from the background, or moving
+  /// on to the next puzzle, is not evidence that a child is there. Only
+  /// [registerInteraction] is.
   void start() {
-    if (_timer != null) return;
+    if (_timer != null || _dormant) return;
     _paused = false;
     _timer = Timer.periodic(tickInterval, (_) => advance(tickInterval));
   }
@@ -53,6 +73,8 @@ class HintController extends ChangeNotifier {
   void stop() {
     _timer?.cancel();
     _timer = null;
+    _dormant = false;
+    _autoPlacesInARow = 0;
     _reset(notify: false);
   }
 
@@ -72,8 +94,16 @@ class HintController extends ChangeNotifier {
     start();
   }
 
-  /// Any touch at all means the child is busy (§21.2).
+  /// Any touch at all means the child is busy (§21.2) — and, if the game
+  /// had given up on the room being occupied, that it is occupied.
   void registerInteraction() {
+    _autoPlacesInARow = 0;
+    if (_dormant) {
+      _dormant = false;
+      _reset(notify: true);
+      start();
+      return;
+    }
     if (_idleFor == Duration.zero && _stage == HintStage.none) return;
     _reset(notify: true);
   }
@@ -82,7 +112,7 @@ class HintController extends ChangeNotifier {
   /// the ladder can be checked without waiting 32 real seconds.
   @visibleForTesting
   void advance(Duration by) {
-    if (_paused) return;
+    if (_paused || _dormant) return;
     _idleFor += by;
 
     final next = stageFor(_idleFor);
@@ -91,6 +121,14 @@ class HintController extends ChangeNotifier {
 
     if (next == HintStage.autoPlace) {
       onAutoPlace?.call();
+      _autoPlacesInARow++;
+      if (_autoPlacesInARow >= maxAutoPlacesInARow) {
+        // Nobody has touched the screen through two whole ladders. The game
+        // stops playing itself and waits (§21).
+        _dormant = true;
+        _timer?.cancel();
+        _timer = null;
+      }
       // Placing it is itself the end of this hint: the next piece gets the
       // full eight seconds of quiet (§21.2).
       _reset(notify: true);

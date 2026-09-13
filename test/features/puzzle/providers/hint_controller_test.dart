@@ -7,6 +7,89 @@ const _second = Duration(seconds: 1);
 HintController _controller() => HintController();
 
 void main() {
+  group('an empty room (§21)', () {
+    test('it stops playing by itself after two pieces in a row', () {
+      final hint = _controller();
+      addTearDown(hint.dispose);
+      var placed = 0;
+      hint.onAutoPlace = () => placed++;
+
+      // Nobody touches anything, ever.
+      for (var i = 0; i < 200; i++) {
+        hint.advance(_second);
+      }
+
+      expect(placed, 2, reason: 'two, and then it waits');
+      expect(hint.isDormant, isTrue);
+    });
+
+    test('a touch brings it back, and it helps again', () {
+      final hint = _controller();
+      addTearDown(hint.dispose);
+      var placed = 0;
+      hint.onAutoPlace = () => placed++;
+
+      for (var i = 0; i < 200; i++) {
+        hint.advance(_second);
+      }
+      expect(placed, 2);
+
+      // A child sits down.
+      hint.registerInteraction();
+      expect(hint.isDormant, isFalse);
+      expect(hint.stage, HintStage.none, reason: 'a fresh eight seconds');
+
+      for (var i = 0; i < 40; i++) {
+        hint.advance(_second);
+      }
+      expect(placed, 3, reason: 'still there for a child who is stuck');
+    });
+
+    test('the count is consecutive, not a total', () {
+      final hint = _controller();
+      addTearDown(hint.dispose);
+      var placed = 0;
+      hint.onAutoPlace = () => placed++;
+
+      // Two in a row with nobody there, then quiet.
+      for (var i = 0; i < 200; i++) {
+        hint.advance(_second);
+      }
+      expect(placed, 2);
+      expect(hint.isDormant, isTrue);
+
+      // A child touches the screen and then goes quiet again. They get the
+      // whole allowance over again, not the one place that was left.
+      hint.registerInteraction();
+      for (var i = 0; i < 200; i++) {
+        hint.advance(_second);
+      }
+
+      expect(placed, 4, reason: 'two more, not one');
+      expect(hint.isDormant, isTrue);
+    });
+
+    test('coming back from the background does not wake it', () {
+      final hint = _controller();
+      addTearDown(hint.dispose);
+      hint.onAutoPlace = () {};
+
+      for (var i = 0; i < 200; i++) {
+        hint.advance(_second);
+      }
+      expect(hint.isDormant, isTrue);
+
+      // §28's pause and resume, and the resume the game does between one
+      // puzzle and the next. Neither is a child.
+      hint
+        ..pause()
+        ..resume();
+
+      expect(hint.isDormant, isTrue, reason: 'still nobody there');
+      expect(hint.isRunning, isFalse);
+    });
+  });
+
   group('the ladder (§21)', () {
     test('8, 16, 24 and 32 seconds, and nothing in between', () {
       final hint = _controller();
