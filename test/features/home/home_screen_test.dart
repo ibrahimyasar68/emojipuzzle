@@ -1,6 +1,9 @@
 import 'dart:math' show Random;
 
+import 'package:emoji_puzzle_kids/app/themed_app.dart';
 import 'package:emoji_puzzle_kids/core/services/audio_service.dart';
+import 'package:emoji_puzzle_kids/core/theme/app_theme.dart';
+import 'package:emoji_puzzle_kids/core/theme/theme_settings.dart';
 import 'package:emoji_puzzle_kids/features/album/screens/album_screen.dart';
 import 'package:emoji_puzzle_kids/features/home/screens/about_screen.dart';
 import 'package:emoji_puzzle_kids/features/home/screens/home_screen.dart';
@@ -18,10 +21,11 @@ import '../../support/recording_sound_player.dart';
 const _referencePhone = Size(360, 640);
 
 class _Harness {
-  _Harness(this.game, this.audio);
+  _Harness(this.game, this.audio, this.theme);
 
   final GameProvider game;
   final AudioService audio;
+  final ThemeSettings theme;
 }
 
 Future<_Harness> _pumpHome(WidgetTester tester) async {
@@ -37,18 +41,21 @@ Future<_Harness> _pumpHome(WidgetTester tester) async {
     audio: audio,
   );
   addTearDown(game.dispose);
+  final theme = ThemeSettings();
+  addTearDown(theme.dispose);
 
   await tester.pumpWidget(
     MultiProvider(
       providers: [
         ChangeNotifierProvider<AudioService>.value(value: audio),
         ChangeNotifierProvider<GameProvider>.value(value: game),
+        ChangeNotifierProvider<ThemeSettings>.value(value: theme),
       ],
-      child: const MaterialApp(home: HomeScreen()),
+      child: const ThemedApp(home: HomeScreen()),
     ),
   );
   await tester.pump();
-  return _Harness(game, audio);
+  return _Harness(game, audio, theme);
 }
 
 void main() {
@@ -119,6 +126,50 @@ void main() {
     expect(find.textContaining('CC BY-SA 4.0'), findsOneWidget);
   });
 
+  testWidgets('the grown-ups pick the phone\'s look, light or dark', (
+    tester,
+  ) async {
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+    final harness = await _pumpHome(tester);
+
+    Color background() =>
+        tester.widget<Scaffold>(find.byType(Scaffold).last).backgroundColor!;
+
+    await tester.tap(find.byKey(const ValueKey('home-about')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('about-theme-dark')),
+      120,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('about-theme-dark')));
+    await tester.pumpAndSettle();
+
+    expect(harness.theme.mode, ThemeMode.system);
+    expect(background(), AppPalette.light.background, reason: 'phone is light');
+
+    await tester.tap(find.byKey(const ValueKey('about-theme-dark')));
+    await tester.pumpAndSettle();
+    expect(harness.theme.mode, ThemeMode.dark);
+    expect(background(), AppPalette.dark.background);
+
+    await tester.tap(find.byKey(const ValueKey('about-theme-light')));
+    await tester.pumpAndSettle();
+    expect(harness.theme.mode, ThemeMode.light);
+    expect(background(), AppPalette.light.background);
+
+    await tester.tap(find.byKey(const ValueKey('about-theme-system')));
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    await tester.pumpAndSettle();
+    expect(harness.theme.mode, ThemeMode.system);
+    expect(
+      background(),
+      AppPalette.dark.background,
+      reason: 'the phone went dark, and the game follows it',
+    );
+  });
+
   testWidgets('resetting needs a long press, not a tap (§26)', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final harness = await _pumpHome(tester);
@@ -138,6 +189,10 @@ void main() {
       120,
       scrollable: find.byType(Scrollable).first,
     );
+    // The appearance picker made the page longer: a button that is only half
+    // on screen can have its centre off the bottom.
+    await tester.ensureVisible(find.byKey(const ValueKey('about-reset')));
+    await tester.pumpAndSettle();
 
     // A child who finds this screen and prods the button loses nothing.
     await tester.tap(find.byKey(const ValueKey('about-reset')));

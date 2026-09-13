@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/puzzle_config.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../album/widgets/sticker_reward_overlay.dart';
 import '../../balloon/widgets/balloon_game_overlay.dart';
 import '../../celebration/widgets/celebration_overlay.dart';
@@ -434,7 +435,7 @@ class _PuzzleScreenState extends State<PuzzleScreen>
 
   Widget _buildScreen(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF7EF),
+      backgroundColor: context.palette.background,
       body: SafeArea(
         child: Consumer<GameProvider>(
           builder: (context, game, _) {

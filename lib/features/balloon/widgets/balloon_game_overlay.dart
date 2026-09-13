@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../../../core/constants/puzzle_config.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/theme/app_theme.dart';
 import '../models/balloon.dart';
 import '../providers/balloon_game_controller.dart';
 import 'balloon_layout.dart';
@@ -192,6 +193,7 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
             painter: BalloonPainter(
               colour:
                   balloonColours[balloon.colourIndex % balloonColours.length],
+              stringColour: context.palette.balloonString,
             ),
             size: Size.square(diameter),
           ),
@@ -217,7 +219,11 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
           child: Opacity(
             opacity: (1 - progress).clamp(0.0, 1.0),
             child: CustomPaint(
-              painter: BalloonPainter(colour: colour, scale: swell),
+              painter: BalloonPainter(
+                colour: colour,
+                stringColour: context.palette.balloonString,
+                scale: swell,
+              ),
               size: Size.square(burst.radius * 2),
             ),
           ),

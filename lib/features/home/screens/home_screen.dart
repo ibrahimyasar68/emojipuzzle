@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/audio_service.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../album/screens/album_screen.dart';
 import '../../puzzle/models/puzzle_definition.dart';
 import '../../puzzle/providers/game_provider.dart';
@@ -20,9 +21,10 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final audio = context.watch<AudioService>();
+    final palette = context.palette;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF7EF),
+      backgroundColor: palette.background,
       body: SafeArea(
         child: Stack(
           children: [
@@ -34,7 +36,8 @@ class HomeScreen extends StatelessWidget {
                   key: const ValueKey('home-about'),
                   icon: Icons.info_outline_rounded,
                   size: 64,
-                  background: const Color(0x14000000),
+                  background: palette.subtleSurface,
+                  foreground: palette.onSubtleSurface,
                   semanticLabel: 'Ebeveynler için bilgi',
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(

@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:emoji_puzzle_kids/features/puzzle/data/puzzle_catalog.dart';
 import 'package:emoji_puzzle_kids/core/constants/puzzle_config.dart';
+import 'package:emoji_puzzle_kids/core/theme/app_theme.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/puzzle_generator.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/path/piece_paths.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/tray_shuffler.dart';
@@ -26,6 +27,7 @@ Future<int> _outlinePixels(
   BoardGhostPainter(
     image: image,
     grid: const PuzzleGrid(rows: 2, columns: 2),
+    outlineColour: AppPalette.light.slotOutline,
     slotOutlines: paths.dashedSlots,
     filledPieceIds: filledPieceIds,
   ).paint(canvas, _boardSize);
@@ -51,6 +53,7 @@ Future<ByteData> _render(
   BoardGhostPainter(
     image: image,
     grid: const PuzzleGrid(rows: 2, columns: 2),
+    outlineColour: AppPalette.light.slotOutline,
     slotOutlines: slotOutlines,
   ).paint(canvas, _boardSize);
 

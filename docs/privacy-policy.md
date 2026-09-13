@@ -1,4 +1,4 @@
-# Gizlilik Politikası — Emoji Puzzle Kids
+# Gizlilik Politikası — EmojiPuzzle
 
 **Son güncelleme:** 13 Eylül 2026
 
@@ -17,8 +17,9 @@ saklamaz.
 
 ### Cihazda saklananlar
 
-Yalnızca oyunun ilerlemesi: hangi yapbozların tamamlandığı, hangi kademenin
-açıldığı, en son oynanan yapboz ve sesin açık mı kapalı mı olduğu. Bunlar
+Yalnızca oyunun ilerlemesi ve iki ayar: hangi yapbozların tamamlandığı,
+hangi kademenin açıldığı, en son oynanan yapboz, sesin açık mı kapalı mı
+olduğu ve görünüm seçimi (telefonun ayarı, açık ya da koyu). Bunlar
 cihazın kendi uygulama deposunda (`SharedPreferences`) tutulur, cihazdan
 çıkmaz ve hiçbir sunucuya gönderilmez. Uygulama silindiğinde bu veri de
 silinir. Uygulamanın içindeki ebeveyn bölümünden istendiği zaman sıfırlanır.

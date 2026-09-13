@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 
 import '../../../core/constants/puzzle_config.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../puzzle/models/puzzle_definition.dart';
 import 'sticker_tile.dart';
 
@@ -67,7 +68,7 @@ class _StickerRewardOverlayState extends State<StickerRewardOverlay>
         behavior: HitTestBehavior.opaque,
         onTap: _finish,
         child: ColoredBox(
-          color: const Color(0xE6FDF7EF),
+          color: context.palette.rewardScrim,
           child: Center(
             child: ScaleTransition(
               scale: CurvedAnimation(parent: _pop, curve: Curves.elasticOut),

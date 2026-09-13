@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_theme.dart';
+
 /// Üzerinde resim olan, yazısı olmayan yuvarlak bir düğme (§2).
 ///
 /// Bunların hepsi 64 px'lik alt sınırın çok üstündedir: çocuğun dikkatle
@@ -11,8 +13,8 @@ class HomeButton extends StatelessWidget {
     required this.onTap,
     required this.semanticLabel,
     this.size = 96,
-    this.background = const Color(0xFFF3E4D0),
-    this.foreground = const Color(0xFF4A4039),
+    this.background,
+    this.foreground,
   });
 
   final IconData icon;
@@ -23,11 +25,14 @@ class HomeButton extends StatelessWidget {
   final String semanticLabel;
 
   final double size;
-  final Color background;
-  final Color foreground;
+
+  /// Verilmezse temanın düğme renkleri.
+  final Color? background;
+  final Color? foreground;
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Semantics(
       button: true,
       label: semanticLabel,
@@ -37,9 +42,16 @@ class HomeButton extends StatelessWidget {
         child: Container(
           width: size,
           height: size,
-          decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: background ?? palette.button,
+            shape: BoxShape.circle,
+          ),
           alignment: Alignment.center,
-          child: Icon(icon, size: size * 0.46, color: foreground),
+          child: Icon(
+            icon,
+            size: size * 0.46,
+            color: foreground ?? palette.onButton,
+          ),
         ),
       ),
     );

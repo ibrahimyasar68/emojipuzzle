@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../data/puzzle_palette.dart';
 import '../engine/geometry/coordinate_mapper.dart';
 import '../engine/geometry/piece_image_mapper.dart';
@@ -57,6 +58,7 @@ class PuzzleBoard extends StatelessWidget {
             painter: BoardGhostPainter(
               image: image,
               grid: grid,
+              outlineColour: context.palette.slotOutline,
               background: _backgroundAt(Offset.zero),
               slotOutlines: paths.dashedSlots,
               filledPieceIds: {

@@ -2,6 +2,7 @@ import 'dart:math' show Random;
 
 import 'package:emoji_puzzle_kids/core/constants/puzzle_config.dart';
 import 'package:emoji_puzzle_kids/core/services/audio_service.dart';
+import 'package:emoji_puzzle_kids/core/theme/theme_settings.dart';
 import 'package:emoji_puzzle_kids/features/album/screens/album_screen.dart';
 import 'package:emoji_puzzle_kids/features/home/screens/about_screen.dart';
 import 'package:emoji_puzzle_kids/features/home/screens/home_screen.dart';
@@ -252,6 +253,9 @@ void main() {
               providers: [
                 ChangeNotifierProvider<AudioService>.value(value: audio),
                 ChangeNotifierProvider<GameProvider>.value(value: game),
+                ChangeNotifierProvider<ThemeSettings>(
+                  create: (_) => ThemeSettings(),
+                ),
               ],
               child: MaterialApp(
                 home: MediaQuery(
@@ -301,6 +305,9 @@ void main() {
             providers: [
               ChangeNotifierProvider<AudioService>.value(value: audio),
               ChangeNotifierProvider<GameProvider>.value(value: game),
+              ChangeNotifierProvider<ThemeSettings>(
+                create: (_) => ThemeSettings(),
+              ),
             ],
             child: MaterialApp(home: screen),
           ),

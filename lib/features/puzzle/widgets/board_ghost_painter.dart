@@ -16,6 +16,7 @@ class BoardGhostPainter extends CustomPainter {
   const BoardGhostPainter({
     required this.image,
     required this.grid,
+    required this.outlineColour,
     this.background,
     this.slotOutlines = const <int, Path>{},
     this.filledPieceIds = const <int>{},
@@ -23,6 +24,10 @@ class BoardGhostPainter extends CustomPainter {
 
   final ui.Image image;
   final PuzzleGrid grid;
+
+  /// Kesikli konturun rengi; temaya bağlıdır (koyu zeminde açık, açık
+  /// zeminde koyu), bu yüzden ekran verir.
+  final Color outlineColour;
 
   /// Her yuvanın kesikli konturu, parça kimliğine göre, board
   /// koordinatlarında (§15). [PiecePaths] bir kez kurar; bu boyayıcı
@@ -43,9 +48,8 @@ class BoardGhostPainter extends CustomPainter {
 
   // Açık kanal değerleriyle yazılır ki boyayıcı, yalnızca Flutter 3.27'den
   // itibaren var olan Color.withValues'a bağlı olmasın (§0 3.24'e izin
-  // veriyor).
+  // veriyor). Katmanın yalnızca saydamlığı kullanılır, rengi değil.
   static const _ghostVeil = Color.fromRGBO(0, 0, 0, PuzzleConfig.ghostOpacity);
-  static const _outlineColour = Color.fromRGBO(141, 110, 99, 0.45);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -77,7 +81,7 @@ class BoardGhostPainter extends CustomPainter {
     final outline = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = PuzzleConfig.slotOutlineStrokeWidth
-      ..color = _outlineColour
+      ..color = outlineColour
       ..isAntiAlias = true;
 
     for (final entry in slotOutlines.entries) {
@@ -92,5 +96,6 @@ class BoardGhostPainter extends CustomPainter {
       !identical(oldDelegate.slotOutlines, slotOutlines) ||
       !identical(oldDelegate.image, image) ||
       oldDelegate.grid != grid ||
+      oldDelegate.outlineColour != outlineColour ||
       oldDelegate.background != background;
 }

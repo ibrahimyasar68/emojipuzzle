@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_settings.dart';
 import '../../puzzle/providers/game_provider.dart';
 import '../widgets/home_button.dart';
 
-/// Yetişkinlerin köşesi: attribution ve sıfırlama anahtarı (§26, §33).
+/// Yetişkinlerin köşesi: görünüm seçimi, attribution ve sıfırlama anahtarı
+/// (§26, §33).
 ///
 /// Bilerek sıkıcıdır — yazı var, resim yok, çocuğu burayı bulduğu için
 /// ödüllendiren hiçbir şey yok. Sıfırlama basılı tutmayı gerektirir;
@@ -21,8 +24,10 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF7EF),
+      backgroundColor: palette.background,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -35,14 +40,15 @@ class AboutScreen extends StatelessWidget {
                 key: const ValueKey('about-back'),
                 icon: Icons.arrow_back_rounded,
                 size: 64,
-                background: const Color(0x14000000),
+                background: palette.subtleSurface,
+                foreground: palette.onSubtleSurface,
                 semanticLabel: 'Geri',
                 onTap: () => Navigator.of(context).pop(),
               ),
             ),
             const SizedBox(height: 24),
             const Text(
-              'Emoji Puzzle Kids',
+              'EmojiPuzzle',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 20),
@@ -57,9 +63,12 @@ class AboutScreen extends StatelessWidget {
               style: TextStyle(fontSize: 14, height: 1.4),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'openmoji.org',
-              style: TextStyle(fontSize: 13, color: Color(0xFF7A6F65)),
+              style: TextStyle(
+                fontSize: 13,
+                color: palette.onBackgroundMuted,
+              ),
             ),
             const SizedBox(height: 20),
             const Text(
@@ -83,11 +92,94 @@ class AboutScreen extends StatelessWidget {
               'saklanır.',
               style: TextStyle(fontSize: 14, height: 1.4),
             ),
+            const SizedBox(height: 20),
+            const Text(
+              'Görünüm',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 10),
+            const _AppearancePicker(),
             const SizedBox(height: 32),
             const _ResetTile(),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Görünüm: telefonun ayarı, açık ya da koyu.
+///
+/// Burada, yetişkin köşesinde durur: Home'da §2'nin beş dokunulabilir öğe
+/// sınırına bir öğe daha eklerdi ve çocuğun bununla bir işi yok. Seçimin
+/// hepsi ikon ve yazıyla birlikte (§2).
+class _AppearancePicker extends StatelessWidget {
+  const _AppearancePicker();
+
+  static const _choices = [
+    (ThemeMode.system, Icons.brightness_auto_rounded, 'Sistem'),
+    (ThemeMode.light, Icons.light_mode_rounded, 'Açık'),
+    (ThemeMode.dark, Icons.dark_mode_rounded, 'Koyu'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = context.watch<ThemeSettings>();
+    final palette = context.palette;
+
+    return Row(
+      children: [
+        for (final (mode, icon, label) in _choices) ...[
+          if (mode != _choices.first.$1) const SizedBox(width: 8),
+          Expanded(
+            child: Builder(
+              builder: (context) {
+                final selected = settings.mode == mode;
+                final foreground =
+                    selected ? palette.onButton : palette.onSubtleSurface;
+                return Semantics(
+                  button: true,
+                  selected: selected,
+                  child: GestureDetector(
+                    key: ValueKey('about-theme-${mode.name}'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => settings.setMode(mode),
+                    child: Container(
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color:
+                            selected ? palette.button : palette.subtleSurface,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.all(6),
+                      // İkon yazının üstünde: yan yana 360 dp'lik telefonda
+                      // bile 18 px taşıyordu (ölçüldü). Büyük yazı boyutunda
+                      // da taşmak yerine küçülür.
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(icon, size: 22, color: foreground),
+                            const SizedBox(height: 2),
+                            Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: foreground,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -137,7 +229,7 @@ class _ResetTileState extends State<_ResetTile> {
               height: 64,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: const Color(0x14000000),
+                color: context.palette.subtleSurface,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(

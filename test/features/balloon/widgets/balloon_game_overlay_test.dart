@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:emoji_puzzle_kids/core/constants/puzzle_config.dart';
 import 'package:emoji_puzzle_kids/core/services/audio_service.dart';
+import 'package:emoji_puzzle_kids/core/theme/app_theme.dart';
 import 'package:emoji_puzzle_kids/features/balloon/providers/balloon_game_controller.dart';
 import 'package:emoji_puzzle_kids/features/balloon/widgets/balloon_game_overlay.dart';
 import 'package:flutter/material.dart';
@@ -186,8 +187,8 @@ void main() {
           key: captureKey,
           child: Stack(
             children: [
-              const Positioned.fill(
-                child: ColoredBox(color: Color(0xFFFDF7EF)),
+              Positioned.fill(
+                child: ColoredBox(color: AppPalette.dark.background),
               ),
               BalloonGameOverlay(
                 controller: game,

@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../../core/constants/debug_flags.dart';
 import '../../../core/constants/puzzle_config.dart';
+import '../../../core/theme/app_theme.dart';
 import '../data/puzzle_palette.dart';
 import '../engine/geometry/coordinate_mapper.dart';
 import '../engine/geometry/piece_image_mapper.dart';
@@ -320,6 +321,7 @@ class _DragLayerState extends State<DragLayer> with TickerProviderStateMixin {
             imageSize: imageSize,
           ),
           elevation: PuzzleConfig.dragElevation,
+          shadowColour: context.palette.pieceShadow,
         ),
       ),
     );

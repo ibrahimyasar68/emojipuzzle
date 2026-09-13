@@ -20,7 +20,11 @@ class PuzzlePiecePainter extends CustomPainter {
     this.background,
     this.elevation = 0,
     this.bleed = PuzzleConfig.renderBleedPixels,
-  });
+    this.shadowColour,
+  }) : assert(
+          elevation == 0 || shadowColour != null,
+          'a lifted piece takes its shadow colour from the theme',
+        );
 
   /// Puzzle başına bir kez çözülür ve bütün parçalarca paylaşılır (§14).
   final ui.Image image;
@@ -53,12 +57,15 @@ class PuzzlePiecePainter extends CustomPainter {
   /// çalışmıyor — bkz. `PiecePaths`.
   final double bleed;
 
-  static const _shadowColour = Color(0xFF6D4C41);
+  /// §17 — kalkan parçanın gölgesi; zemine göre temadan gelir. Yalnızca
+  /// [elevation] sıfırdan büyükse gerekir.
+  final Color? shadowColour;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (elevation > 0) {
-      canvas.drawShadow(renderPath, _shadowColour, elevation, false);
+    final shadow = shadowColour;
+    if (elevation > 0 && shadow != null) {
+      canvas.drawShadow(renderPath, shadow, elevation, false);
     }
 
     final surface = background;

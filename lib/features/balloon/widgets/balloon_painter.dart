@@ -16,9 +16,16 @@ const List<Color> balloonColours = [
 
 /// Tek bir balon: bir gövde, bir parlama ve kısa bir ip.
 class BalloonPainter extends CustomPainter {
-  const BalloonPainter({required this.colour, this.scale = 1});
+  const BalloonPainter({
+    required this.colour,
+    required this.stringColour,
+    this.scale = 1,
+  });
 
   final Color colour;
+
+  /// İpin rengi; temaya bağlıdır, çünkü ip zeminin üstünde durur (§24).
+  final Color stringColour;
 
   /// Patlamadan hemen önceki şişme.
   final double scale;
@@ -51,7 +58,7 @@ class BalloonPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = math.max(1.2, size.width * 0.02)
-        ..color = const Color(0x66000000),
+        ..color = stringColour,
     );
 
     canvas.drawOval(body, Paint()..color = colour);
@@ -79,7 +86,9 @@ class BalloonPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(BalloonPainter oldDelegate) =>
-      oldDelegate.colour != colour || oldDelegate.scale != scale;
+      oldDelegate.colour != colour ||
+      oldDelegate.stringColour != stringColour ||
+      oldDelegate.scale != scale;
 }
 
 /// Patladıktan sonra saniyenin bir kesri boyunca balondan geriye kalan:

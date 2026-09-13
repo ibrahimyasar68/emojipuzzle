@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../../puzzle/models/puzzle_category.dart';
 import '../../puzzle/models/puzzle_definition.dart';
 import '../../puzzle/providers/game_provider.dart';
@@ -47,7 +48,7 @@ class AlbumScreen extends StatelessWidget {
     final grouped = game.catalog.byCategory;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF7EF),
+      backgroundColor: context.palette.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,7 +110,11 @@ class _CategorySection extends StatelessWidget {
             child: Semantics(
               header: true,
               label: name,
-              child: Icon(icon, size: 28, color: const Color(0xFF7A6F65)),
+              child: Icon(
+                icon,
+                size: 28,
+                color: context.palette.onBackgroundMuted,
+              ),
             ),
           ),
           Wrap(
@@ -146,6 +151,7 @@ class _BackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return GestureDetector(
       key: const ValueKey('album-back'),
       behavior: HitTestBehavior.opaque,
@@ -153,12 +159,18 @@ class _BackButton extends StatelessWidget {
       child: Container(
         width: 64,
         height: 64,
-        decoration: const BoxDecoration(
-          color: Color(0xFFF3E4D0),
+        decoration: BoxDecoration(
+          color: palette.button,
           shape: BoxShape.circle,
         ),
         alignment: Alignment.center,
-        child: const Icon(Icons.arrow_back_rounded, size: 32),
+        // Koyu temada varsayılan ikon rengi açık; krem düğmenin üstünde
+        // kaybolurdu. Düğme iki temada da krem.
+        child: Icon(
+          Icons.arrow_back_rounded,
+          size: 32,
+          color: palette.onButton,
+        ),
       ),
     );
   }

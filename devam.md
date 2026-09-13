@@ -326,6 +326,55 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   değişken isimleri, `§` atıfları ve commit mesajları İngilizce kaldı;
   `debugPrint` çıktıları da öyle.
 
+- **Uygulama ikonu ve görünen ad** (kullanıcı 13 Eylül'de istedi): ikon
+  kullanıcının ChatGPT'de ürettiği görsel, "IY Labs" rozeti **dahil**.
+  Kaynak `docs/branding/app-icon-source.png`; köşeleri yuvarlatılmış ve zemini
+  beyazdı, `python3 tool/generate_app_icon.py` köşeleri komşu renkle doldurup
+  bütün boyutları tek bir kare ana görselden üretir (Android legacy +
+  adaptive, iOS, Play 512). Yeni paket eklenmedi (§37). Görünen ad
+  **EmojiPuzzle**: `android:label`, `CFBundleDisplayName`/`CFBundleName`,
+  `MaterialApp.title`, Hakkında ekranı, README ve mağaza/gizlilik metinleri.
+  Paket adı ve bundle id **değişmedi** (değişirse kurulu ilerleme kaybolur).
+  Adaptive icon'da çizim görünen 72 dp'yi doldurur. **Rozet küçültüldü**
+  (kullanıcı istedi): köşedeki büyük rozet Pixel'in daire maskesinde
+  kırpılıp yalnızca "IY" bırakıyordu. Betik onu kaldırır, altında kalan
+  kırmızı parçanın köşesini görünen kenarlarından yeniden çizer (köşe
+  yarıçapı 200 px, ölçüldü) ve orijinal yazıyı %74 ölçekle kırmızı parçanın
+  üstünde küçük bir etikete koyar. Etiketin köşeleri 66 dp güvenli bölgenin
+  içinde; betik taşarsa hata verir. Koordinatlar bu kaynağa özgüdür, görsel
+  değişirse yeniden ölçülmeli. Pixel 6 emülatöründe görüldü.
+
+- **Görünüm seçimi: Sistem / Açık / Koyu** (kullanıcı 13 Eylül'de istedi).
+  Hakkında ekranında, sıfırlamanın üstünde; Home'a konmadı (§2'nin beş öğe
+  sınırı). Seçim `lib/core/theme/theme_settings.dart`'ta
+  (`emoji_puzzle.theme_mode`), mute gibi saklanır, ilerleme sıfırlaması
+  silmez; varsayılan telefonun ayarı. MaterialApp `lib/app/themed_app.dart`'ta
+  — testler gerçek ses çalıcısını kurmadan tema bağlantısını sınayabilsin
+  diye. Renkler `lib/core/theme/app_theme.dart`'ta: `AppPalette`
+  (ThemeExtension, `context.palette`) ve `AppTheme.light/dark`; ekranlar renk
+  yazmaz, boyayıcılar rengi parametre alır (`outlineColour`, `shadowColour`,
+  `stringColour`).
+  - **Açık** = `#EEE8E1`, ilk krem `#FDF7EF`'nin bir ton koyusu (kullanıcı
+    istedi). İkincil yazı 4,5:1 kontrast için `#6E645B`'ye koyulaştırıldı;
+    diğer renkler ilk halleri.
+  - **Koyu** = önceki koyu lacivert `#14213D`'nin %25 beyaza açılmışı,
+    `#4F596E` (kullanıcı istedi). Açık zemine göre seçilmiş renkler (yarı
+    saydam siyah, kahverengi yazı/kontur, siyah ip, kahverengi gölge) yeniden
+    seçildi; küçük yazı kontrastı ≥ 4,5:1, testle korunuyor.
+  - Android açılış penceresi `values/` + `values-night/app_colors.xml`, iOS
+    `LaunchBackground` renk seti (açık/koyu varyant). Oyunda telefonun tersi
+    seçildiyse açılışta bir an telefonun rengi görünür: seçim Flutter
+    başlamadan okunamaz. **iOS tarafı derlenip görülmedi** (simülatör yok).
+  - Pixel 6'da iki tema ve yeniden başlatmada kalıcılık görüldü. 887 test;
+    üç mutasyonla yeni testlerin boş olmadığı kanıtlandı. Seçici ilk halinde
+    360 dp'de 18 px taşıyordu (ölçüldü): ikon yazının üstüne alındı,
+    `FittedBox` ile küçülür.
+  - **Olay:** aynı istek aynı anda ikinci bir Claude oturumunda
+    (emojipuzzle-25) da uygulandı ve dosyalar karıştı (analyze 10 hata).
+    Kullanıcı bu oturumun bitirmesini seçti; diğerinin `theme_controller.dart`'ı
+    ve ikinci seçicisi silindi, onun açık tema rengi `#BEB9B3` (kremin %25
+    koyultulmuşu) yerine ilk krem kullanıldı.
+
 **Kalanlar:**
 
 1. ~~Idle hint gözetimsiz oyunu bitiriyor.~~ **Düzeltildi** (kullanıcı

@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../../puzzle/data/puzzle_palette.dart';
 import '../../puzzle/models/puzzle_definition.dart';
 
@@ -32,6 +33,7 @@ class StickerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final artwork = Image.asset(
       puzzle.imagePath,
       width: size * 0.78,
@@ -73,7 +75,7 @@ class StickerTile extends StatelessWidget {
                       ],
                     )
                   : null,
-              color: earned ? null : const Color(0x0F000000),
+              color: earned ? null : palette.stickerPlaceholder,
               borderRadius: BorderRadius.circular(size * 0.18),
             ),
             child: Center(
@@ -81,8 +83,8 @@ class StickerTile extends StatelessWidget {
                   ? artwork
                   : ColorFiltered(
                       // Resimden geriye kalan her şey onun şeklidir.
-                      colorFilter: const ColorFilter.mode(
-                        Color(0xFFBDB5AC),
+                      colorFilter: ColorFilter.mode(
+                        palette.silhouette,
                         BlendMode.srcATop,
                       ),
                       child: Opacity(opacity: 0.55, child: artwork),
