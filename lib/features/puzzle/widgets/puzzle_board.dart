@@ -58,9 +58,9 @@ class PuzzleBoard extends StatelessWidget {
               image: image,
               grid: grid,
               background: _backgroundAt(Offset.zero),
-              filledCells: {
-                for (final piece in placedPieces)
-                  piece.row * grid.columns + piece.column,
+              slotOutlines: paths.dashedSlots,
+              filledPieceIds: {
+                for (final piece in placedPieces) piece.id,
               },
             ),
           ),

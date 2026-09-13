@@ -39,6 +39,9 @@ const _knobCurves = <_KnobCubic>[
   _KnobCubic(Offset(0.73, 0.45), Offset(0.55, 0.00), Offset(0.65, 0.00)),
 ];
 
+/// Which side of the cell an edge is on.
+enum PieceSide { top, right, bottom, left }
+
 /// Builds the outline of a single piece (§5, §7).
 ///
 /// The path is in **piece-local coordinates**: `(0,0)` is the top-left of
@@ -48,26 +51,119 @@ abstract final class JigsawPathGenerator {
   /// Traverses the cell clockwise: top, right, bottom, left.
   static Path build({required PuzzlePiece piece, required Size cellSize}) {
     assert(!cellSize.isEmpty, 'cellSize must be non-empty');
+    final corners = _cornersOf(cellSize);
     final tabSize = CoordinateMapper.tabSizeOf(cellSize);
 
-    final topLeft = Offset(tabSize, tabSize);
-    final topRight = topLeft + Offset(cellSize.width, 0);
-    final bottomRight = topLeft + Offset(cellSize.width, cellSize.height);
-    final bottomLeft = topLeft + Offset(0, cellSize.height);
-
-    final path = Path()..moveTo(topLeft.dx, topLeft.dy);
-    _addEdge(path, topLeft, topRight, piece.top, tabSize);
-    _addEdge(path, topRight, bottomRight, piece.right, tabSize);
-    _addEdge(path, bottomRight, bottomLeft, piece.bottom, tabSize);
-    _addEdge(path, bottomLeft, topLeft, piece.left, tabSize);
+    final path = Path()..moveTo(corners.topLeft.dx, corners.topLeft.dy);
+    _addEdge(
+      path,
+      corners.topLeft,
+      corners.topRight,
+      const Offset(0, -1),
+      piece.top,
+      tabSize,
+    );
+    _addEdge(
+      path,
+      corners.topRight,
+      corners.bottomRight,
+      const Offset(1, 0),
+      piece.right,
+      tabSize,
+    );
+    _addEdge(
+      path,
+      corners.bottomRight,
+      corners.bottomLeft,
+      const Offset(0, 1),
+      piece.bottom,
+      tabSize,
+    );
+    _addEdge(
+      path,
+      corners.bottomLeft,
+      corners.topLeft,
+      const Offset(-1, 0),
+      piece.left,
+      tabSize,
+    );
 
     return path..close();
   }
 
+  /// One edge on its own, always drawn left to right or top to bottom.
+  ///
+  /// The direction is fixed on purpose. Two neighbours share an edge — one
+  /// side's tab is the other's blank, and they trace the same curve — so
+  /// walking it the same way from both sides produces the *same path*, down
+  /// to the point. Anything derived from it, dashes especially, then lines
+  /// up instead of interleaving into a solid line (§15).
+  static Path edgePath({
+    required PuzzlePiece piece,
+    required PieceSide side,
+    required Size cellSize,
+  }) {
+    assert(!cellSize.isEmpty, 'cellSize must be non-empty');
+    final corners = _cornersOf(cellSize);
+    final tabSize = CoordinateMapper.tabSizeOf(cellSize);
+
+    final (start, end, outward, type) = switch (side) {
+      PieceSide.top => (
+          corners.topLeft,
+          corners.topRight,
+          const Offset(0, -1),
+          piece.top,
+        ),
+      PieceSide.bottom => (
+          corners.bottomLeft,
+          corners.bottomRight,
+          const Offset(0, 1),
+          piece.bottom,
+        ),
+      PieceSide.left => (
+          corners.topLeft,
+          corners.bottomLeft,
+          const Offset(-1, 0),
+          piece.left,
+        ),
+      PieceSide.right => (
+          corners.topRight,
+          corners.bottomRight,
+          const Offset(1, 0),
+          piece.right,
+        ),
+    };
+
+    final path = Path()..moveTo(start.dx, start.dy);
+    _addEdge(path, start, end, outward, type, tabSize);
+    return path;
+  }
+
+  static ({
+    Offset topLeft,
+    Offset topRight,
+    Offset bottomRight,
+    Offset bottomLeft,
+  }) _cornersOf(Size cellSize) {
+    final tabSize = CoordinateMapper.tabSizeOf(cellSize);
+    final topLeft = Offset(tabSize, tabSize);
+    return (
+      topLeft: topLeft,
+      topRight: topLeft + Offset(cellSize.width, 0),
+      bottomRight: topLeft + Offset(cellSize.width, cellSize.height),
+      bottomLeft: topLeft + Offset(0, cellSize.height),
+    );
+  }
+
+  /// [outward] points away from the cell, whichever way the edge is being
+  /// walked. It cannot be derived from the direction of travel any more:
+  /// [edgePath] walks the bottom and left edges the opposite way round from
+  /// [build].
   static void _addEdge(
     Path path,
     Offset start,
     Offset end,
+    Offset outward,
     EdgeType type,
     double tabSize,
   ) {
@@ -79,8 +175,6 @@ abstract final class JigsawPathGenerator {
     final along = end - start;
     final length = along.distance;
     final unit = along / length;
-    // Clockwise traversal, so this points away from the cell.
-    final outward = Offset(unit.dy, -unit.dx);
     final direction = type == EdgeType.tab ? 1.0 : -1.0;
 
     Offset at(Offset uv) =>

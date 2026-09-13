@@ -29,7 +29,7 @@ Son güncelleme: 13 Eylül 2026, Faz 16 sırasında.
 | 15 | Responsive, tablet, accessibility | ✅ onaylandı |
 | **16** | **Asset/lisans denetimi, privacy, final cila** | **⏳ sürüyor** |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **875 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **878 test**.
 Dokuz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
 
@@ -168,6 +168,14 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   4 satır), balon kendi yerinin hemen altından belirerek yükselir. Ekranın
   altından yükselmek, üstteki sıralarda duran balonların önünden geçmek
   demekti — dokunma hedefini örtüyordu.
+- **Slot çerçevesi parçanın şeklini izler** (§15). Kenarlar **sabit yönde**
+  üretilir (yatay: soldan sağa, dikey: yukarıdan aşağı) — bir parçanın sağ
+  kenarı ile komşusunun sol kenarı aynı eğri olduğu için, aynı yönde
+  yürünmezse kesikler birbirinin boşluğunu doldurur ve dikiş **düz çizgiye**
+  döner. `JigsawPathGenerator.edgePath` bunun için var.
+- **Kesikli konturlar `PiecePaths` içinde önbelleklenir** ve **board
+  koordinatındadır** (`dashedSlots`) — `of()` ise parça-yerel. Tek sınıfta
+  iki koordinat uzayı var, dokunurken dikkat.
 - **Hint merdiveni boş odada oynamaz** (§21). İki ardışık auto-place'ten
   sonra uykuya geçer; `start()` ve `resume()` uyandırmaz, yalnızca
   `registerInteraction()` uyandırır.
@@ -232,6 +240,10 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   kaldı çünkü tek testi "render path her yönde bleed kadar büyüdü mü"ydü;
   bu doğruydu, ama şekil bozuktu. Artık kontur, kenar boyunca noktasal
   ölçülüyor (`piece_outline_test.dart`).
+- **Hayalet katmanın üstünde piksel ölçümü yapma.** Board'un tamamı %25
+  alfayla boyalı olduğu için "boyalı piksel" testi her yerde doğru çıkar;
+  çerçeveyi izole etmek için render **iki kez** alınıp farkı bakılır
+  (`board_outline_test.dart`). Bu bir kez yanlış ölçüme sebep oldu.
 - **Yerleşim testi doğru ekranı seçmeli.** Dış kenar boşluğunu yalnızca
   *genişlik sınırlı* ekranlar (414×896, 1024×1366) kanıtlar; yükseklik
   sınırlı bir ekranda içerik zaten ortalanır ve test mutasyonda kırmızıya
@@ -314,3 +326,7 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 3. **Gerçek cihazda profiling** — emülatör yeterli değil.
 4. Küçük cila: Home tablette seyrek duruyor; parça sınırlarında 1 piksellik
    ton farkı kalıyor (delik yok, ölçüldü).
+5. `docs/assets-inbox/frame6.png` — kullanıcının eklediği, kaynağı ve
+   lisansı bilinmeyen 122×90 logo benzeri görsel. Pakete girmiyor, git'e de
+   eklenmedi (depo public). Kaynağı belli olunca `assets/LICENSES.md`'ye
+   işlenip yeri belirlenmeli.

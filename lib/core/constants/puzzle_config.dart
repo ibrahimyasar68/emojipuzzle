@@ -51,6 +51,12 @@ abstract final class PuzzleConfig {
   static const double ghostOpacity = 0.25;
 
   /// §15 — The dashed outline drawn around every empty slot.
+  ///
+  /// It follows the shape of the piece that belongs there, tabs and all,
+  /// rather than the straight edge of the cell: it tells a child what is
+  /// missing, not just where. §15 names the qualities an outline must have
+  /// — thin, dashed, clear, easy for a child to see — and leaves the
+  /// geometry open.
   static const double slotOutlineStrokeWidth = 1.5;
   static const double slotOutlineDashLength = 7;
   static const double slotOutlineDashGap = 5;

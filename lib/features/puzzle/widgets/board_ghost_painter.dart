@@ -5,7 +5,6 @@ import 'package:flutter/widgets.dart';
 
 import '../../../core/constants/puzzle_config.dart';
 import '../data/puzzle_palette.dart';
-import '../engine/geometry/coordinate_mapper.dart';
 import '../models/puzzle_grid.dart';
 
 /// The empty board: the picture showing faintly through, plus a dashed
@@ -18,19 +17,24 @@ class BoardGhostPainter extends CustomPainter {
     required this.image,
     required this.grid,
     this.background,
-    this.filledCells = const <int>{},
+    this.slotOutlines = const <int, Path>{},
+    this.filledPieceIds = const <int>{},
   });
 
   final ui.Image image;
   final PuzzleGrid grid;
 
-  /// Cells that already hold a piece, as `row * columns + column`.
+  /// The dashed outline of each slot, by piece id, in board coordinates
+  /// (§15). Built once by [PiecePaths]; this painter only draws it.
+  final Map<int, Path> slotOutlines;
+
+  /// Pieces that are already on the board.
   ///
   /// A filled slot stops asking to be filled: its dashed outline is not
-  /// drawn any more. The piece covers most of it, but a jigsaw edge and a
-  /// straight cell edge are not the same line, so without this the finished
-  /// picture keeps a faint grid of dashes across it (§15).
-  final Set<int> filledCells;
+  /// drawn any more. The piece is opaque and covers its own outline, but
+  /// its tabs reach into the slots next door, so an outline left behind
+  /// would show through the finished picture (§15).
+  final Set<int> filledPieceIds;
 
   /// The surface the pieces themselves are painted on, so the empty board
   /// promises the picture that is coming (§15, §34).
@@ -74,58 +78,16 @@ class BoardGhostPainter extends CustomPainter {
       ..color = _outlineColour
       ..isAntiAlias = true;
 
-    final cell = CoordinateMapper.cellSizeOf(grid, size);
-    for (var row = 0; row < grid.rows; row++) {
-      for (var column = 0; column < grid.columns; column++) {
-        if (filledCells.contains(row * grid.columns + column)) continue;
-        canvas.drawPath(
-          _dashed(
-            Rect.fromLTWH(
-              column * cell.width,
-              row * cell.height,
-              cell.width,
-              cell.height,
-            ),
-          ),
-          outline,
-        );
-      }
+    for (final entry in slotOutlines.entries) {
+      if (filledPieceIds.contains(entry.key)) continue;
+      canvas.drawPath(entry.value, outline);
     }
-  }
-
-  /// A dashed rectangle. The edges are straight, so the dashes can be laid
-  /// out directly instead of walking path metrics every frame.
-  Path _dashed(Rect rect) {
-    final path = Path();
-    const dash = PuzzleConfig.slotOutlineDashLength;
-    const gap = PuzzleConfig.slotOutlineDashGap;
-
-    void run(Offset from, Offset to) {
-      final delta = to - from;
-      final length = delta.distance;
-      if (length == 0) return;
-      final step = delta / length;
-      for (var travelled = 0.0; travelled < length; travelled += dash + gap) {
-        final end = travelled + dash < length ? travelled + dash : length;
-        path
-          ..moveTo(
-            from.dx + step.dx * travelled,
-            from.dy + step.dy * travelled,
-          )
-          ..lineTo(from.dx + step.dx * end, from.dy + step.dy * end);
-      }
-    }
-
-    run(rect.topLeft, rect.topRight);
-    run(rect.topRight, rect.bottomRight);
-    run(rect.bottomRight, rect.bottomLeft);
-    run(rect.bottomLeft, rect.topLeft);
-    return path;
   }
 
   @override
   bool shouldRepaint(BoardGhostPainter oldDelegate) =>
-      !setEquals(oldDelegate.filledCells, filledCells) ||
+      !setEquals(oldDelegate.filledPieceIds, filledPieceIds) ||
+      !identical(oldDelegate.slotOutlines, slotOutlines) ||
       !identical(oldDelegate.image, image) ||
       oldDelegate.grid != grid ||
       oldDelegate.background != background;
