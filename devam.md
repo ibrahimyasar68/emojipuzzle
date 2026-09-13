@@ -31,7 +31,7 @@ Son güncelleme: 13 Eylül 2026, Faz 16 sırasında.
 
 **Durum:** `flutter analyze` temiz, `flutter test` yeşil — **878 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
-Dokuz commit, **GitHub'da yayında**:
+On beş commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
 
 ---
@@ -317,6 +317,14 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   emülatörün yazılım GPU'su. **Gerçek cihazda ölçülmedi.** Bleed stroke'unun
   maliyeti ölçüldü: yok (15,94 → 15,71 ms).
 - **Tamamlanınca kesikli çerçeve** — dolu hücrelerde artık çizilmiyor.
+- **Slot çerçevesi parçanın şeklini izliyor** (§15) — kullanıcı istedi.
+  Kenarlar sabit yönde üretilir, yoksa komşuların kesikleri iç içe geçip
+  dikişi düz çizgiye çevirir. Kesikler puzzle başına bir kez hesaplanır
+  (9 parça için 4,1 ms ölçüldü), `paint` path yürütmez (§42).
+- **`lib/` altındaki bütün kod yorumları Türkçeye çevrildi** ve **spec §0
+  buna göre güncellendi** (§45 gereği önce soruldu, onaylandı). Sınıf ve
+  değişken isimleri, `§` atıfları ve commit mesajları İngilizce kaldı;
+  `debugPrint` çıktıları da öyle.
 
 **Kalanlar:**
 
@@ -329,7 +337,7 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 3. **Gerçek cihazda profiling** — emülatör yeterli değil.
 4. Küçük cila: Home tablette seyrek duruyor; parça sınırlarında 1 piksellik
    ton farkı kalıyor (delik yok, ölçüldü).
-5. `docs/assets-inbox/frame6.png` — kullanıcının eklediği, kaynağı ve
-   lisansı bilinmeyen 122×90 logo benzeri görsel. Pakete girmiyor, git'e de
-   eklenmedi (depo public). Kaynağı belli olunca `assets/LICENSES.md`'ye
-   işlenip yeri belirlenmeli.
+5. ~~`docs/assets-inbox/frame6.png`~~ — **kapandı**: kullanıcı 13 Eylül'de
+   "taşınan yerde kalsın, bu ikona bir şey yapmayalım" dedi. Dosya pakete
+   girmiyor, git'e eklenmedi (depo public), lisans testi yeşil. Bir gün
+   kullanılacaksa kaynağı ve lisansı `assets/LICENSES.md`'ye işlenmeli.

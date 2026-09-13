@@ -27,7 +27,7 @@ Gereken: Flutter 3.35.6.
 
 ```bash
 flutter analyze
-flutter test                      # 875 test
+flutter test                      # 878 test
 dart format lib test tool
 dart run tool/generate_sfx.dart   # ses efektlerini yeniden üretir
 ```
