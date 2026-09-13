@@ -136,6 +136,18 @@ void main() {
     Color background() =>
         tester.widget<Scaffold>(find.byType(Scaffold).last).backgroundColor!;
 
+    bool framed(String mode) {
+      final box = tester.widget<Container>(
+        find
+            .descendant(
+              of: find.byKey(ValueKey('about-theme-$mode')),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      return (box.decoration! as BoxDecoration).border != null;
+    }
+
     await tester.tap(find.byKey(const ValueKey('home-about')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
@@ -153,6 +165,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(harness.theme.mode, ThemeMode.dark);
     expect(background(), AppPalette.dark.background);
+    expect(framed('dark'), isTrue, reason: 'the chosen option is framed');
+    expect(framed('light'), isFalse);
+    expect(framed('system'), isFalse);
 
     await tester.tap(find.byKey(const ValueKey('about-theme-light')));
     await tester.pumpAndSettle();

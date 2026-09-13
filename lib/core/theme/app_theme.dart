@@ -18,6 +18,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.silhouette,
     required this.button,
     required this.onButton,
+    required this.selectionBorder,
     required this.slotOutline,
     required this.pieceShadow,
     required this.balloonString,
@@ -34,8 +35,11 @@ class AppPalette extends ThemeExtension<AppPalette> {
     onSubtleSurface: Color(0xFF4A4039),
     stickerPlaceholder: Color(0x0F000000),
     silhouette: Color(0xFFBDB5AC),
-    button: Color(0xFFF3E4D0),
+    // Krem #F3E4D0 bu zemine çok yakın kalıyordu; bir ton koyusu (kullanıcı
+    // istedi).
+    button: Color(0xFFE4D6C4),
     onButton: Color(0xFF4A4039),
+    selectionBorder: Color(0xFF4A4039),
     slotOutline: Color(0x738D6E63),
     pieceShadow: Color(0xFF6D4C41),
     balloonString: Color(0x66000000),
@@ -56,6 +60,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     silhouette: Color(0xFFBDB5AC),
     button: Color(0xFFF3E4D0),
     onButton: Color(0xFF4A4039),
+    selectionBorder: Color(0xFFF2F4F8),
     slotOutline: Color(0x73FFFFFF),
     pieceShadow: Color(0xFF000000),
     balloonString: Color(0x80FFFFFF),
@@ -80,9 +85,13 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color stickerPlaceholder;
   final Color silhouette;
 
-  /// Home'daki yuvarlak düğmeler. Krem, iki zeminde de güçlü durur.
+  /// Home'daki yuvarlak düğmeler.
   final Color button;
   final Color onButton;
+
+  /// Seçili seçeneğin çerçevesi (Hakkında → Görünüm). Seçim yalnızca renk
+  /// farkına bırakılmaz: açık temada düğme rengi zemine yakındır.
+  final Color selectionBorder;
 
   /// Boş yuvanın kesikli konturu (§15).
   final Color slotOutline;
@@ -107,6 +116,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? silhouette,
     Color? button,
     Color? onButton,
+    Color? selectionBorder,
     Color? slotOutline,
     Color? pieceShadow,
     Color? balloonString,
@@ -121,6 +131,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       silhouette: silhouette ?? this.silhouette,
       button: button ?? this.button,
       onButton: onButton ?? this.onButton,
+      selectionBorder: selectionBorder ?? this.selectionBorder,
       slotOutline: slotOutline ?? this.slotOutline,
       pieceShadow: pieceShadow ?? this.pieceShadow,
       balloonString: balloonString ?? this.balloonString,
@@ -146,6 +157,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       silhouette: mix(silhouette, other.silhouette),
       button: mix(button, other.button),
       onButton: mix(onButton, other.onButton),
+      selectionBorder: mix(selectionBorder, other.selectionBorder),
       slotOutline: mix(slotOutline, other.slotOutline),
       pieceShadow: mix(pieceShadow, other.pieceShadow),
       balloonString: mix(balloonString, other.balloonString),

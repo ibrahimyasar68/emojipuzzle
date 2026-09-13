@@ -60,6 +60,12 @@ void main() {
         greaterThanOrEqualTo(4.5),
         reason: '$name: round buttons',
       );
+      // WCAG 1.4.11: a frame that marks state needs 3:1 against its ground.
+      expect(
+        _contrast(palette.selectionBorder, palette.background),
+        greaterThanOrEqualTo(3),
+        reason: '$name: selection frame',
+      );
     }
   });
 

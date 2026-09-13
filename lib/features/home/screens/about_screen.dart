@@ -149,6 +149,12 @@ class _AppearancePicker extends StatelessWidget {
                       decoration: BoxDecoration(
                         color:
                             selected ? palette.button : palette.subtleSurface,
+                        // Seçim yalnızca renkle anlatılmaz; açık temada
+                        // düğme rengi zemine yakın.
+                        border: selected
+                            ? Border.all(
+                                color: palette.selectionBorder, width: 2)
+                            : null,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       padding: const EdgeInsets.all(6),

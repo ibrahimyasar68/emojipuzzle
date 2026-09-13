@@ -1,4 +1,4 @@
-# Devam Notu — Emoji Puzzle Kids
+# Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
 Son güncelleme: 13 Eylül 2026, Faz 16 sırasında.
@@ -29,9 +29,9 @@ Son güncelleme: 13 Eylül 2026, Faz 16 sırasında.
 | 15 | Responsive, tablet, accessibility | ✅ onaylandı |
 | **16** | **Asset/lisans denetimi, privacy, final cila** | **⏳ sürüyor** |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **878 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **887 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
-On beş commit, **GitHub'da yayında**:
+On dokuz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
 
 ---
@@ -76,6 +76,7 @@ flutter analyze
 flutter test
 dart format lib test tool
 dart run tool/generate_sfx.dart     # ses dosyalarını yeniden üretir
+python3 tool/generate_app_icon.py   # uygulama ikonunu yeniden üretir (Pillow)
 git push                            # CI'yi tetikler
 ```
 
@@ -93,12 +94,17 @@ Testler `build/` altına kanıt görselleri bırakır: `preview_2x2.png`,
 docs/spec-v2.2.md                   # EMOJI PUZZLE KIDS v2.2 — tek kaynak (§0–§51)
 docs/privacy-policy.md              # §35 — yayımlanacak metin
 docs/store-listing.md               # §33 attribution + mağaza açıklaması
+docs/branding/                      # ikon kaynağı, 1024 ana görsel, Play 512
+tool/generate_app_icon.py           # kaynaktan bütün ikon boyutları
 lib/
 ├── app/app.dart                    # servisleri kurar, MultiProvider
+├── app/themed_app.dart             # MaterialApp, seçilen görünüme bağlı
 ├── main.dart                       # StorageService açılır, sonra runApp
 ├── core/
 │   ├── constants/puzzle_config.dart   # TÜM eşikler ve süreler, §atıflarıyla
 │   ├── constants/debug_flags.dart     # debugShowPuzzleOverlay (K-4)
+│   ├── theme/app_theme.dart           # AppPalette (açık/koyu), AppTheme
+│   ├── theme/theme_settings.dart      # Sistem/Açık/Koyu seçimi, kalıcı
 │   └── services/
 │       ├── storage_service.dart       # SharedPreferences sarmalayıcı
 │       ├── puzzle_image_loader.dart   # decode + cache + evict (§14)
@@ -131,7 +137,7 @@ lib/
     │   └── widgets/  # sticker_tile, sticker_reward_overlay
     └── home/
         ├── screens/home_screen.dart    # §29 giriş ekranı
-        ├── screens/about_screen.dart   # §26 sıfırlama + §33 attribution
+        ├── screens/about_screen.dart   # §26 sıfırlama, §33 attribution, görünüm
         └── widgets/home_button.dart
 ```
 
@@ -214,6 +220,12 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 - **Widget kendi kimlik key'ini kendi koymaz.** `sticker-<id>` key'i
   `StickerTile`'ın kendisine, album tarafından verilir; iç GestureDetector'a
   konunca `tester.widget<StickerTile>` tipi tutmaz.
+- **Renkler temadan gelir.** Ekranlar renk yazmaz, `context.palette`'ten
+  alır; boyayıcıların context'i yoktur, rengi onları kuran widget verir
+  (`outlineColour`, `shadowColour`, `stringColour`). Temaya göre değişmeyen
+  renkler (sarı oyna düğmesi, balon, konfeti, parça gradyanları) palette
+  değildir. Açık ve koyu zemin Android `values*/app_colors.xml` ve iOS
+  `LaunchBackground` renk setinde de tekrarlanır; biri değişirse diğeri de.
 - **Widget genişliğini `rect.width`'ten alma.** `sağ − sol` kayan noktada
   tam 72 vermiyor (71.99999999999999); boyut `BalloonLayout.diameterOf`
   üzerinden verilir.
@@ -265,11 +277,11 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 ## 8. Açık borçlar
 
 1. ~~CI hiç çalışmadı.~~ **Çözüldü** (13 Eylül): depo
-   <https://github.com/ibrahimyasar68/emojipuzzle> (public), dokuz commit
-   push edildi, `.github/workflows/ci.yml` her push'ta çalışıyor.
+   <https://github.com/ibrahimyasar68/emojipuzzle> (public), ilk dokuz
+   commit push edildi, `.github/workflows/ci.yml` her push'ta çalışıyor.
 2. ~~OpenMoji attribution uygulamada görünmüyor.~~ **Faz 13'te yapıldı**:
-   Home → ⓘ → Hakkında ekranı. **Mağaza açıklamasına eklenmesi hâlâ
-   yapılmadı** (Faz 16).
+   Home → ⓘ → Hakkında ekranı. Mağaza açıklamasına da Faz 16'da eklendi
+   (`docs/store-listing.md`).
 3. **§42 gerçek cihaz profiling'i yapılmadı.** Faz 12 sonunda Pixel 6
    emülatöründe uygulama baştan sona elle oynandı (puzzle → kutlama →
    balon → sonraki puzzle, hepsi çalışıyor) ama bu bir profiling değildi.
@@ -279,14 +291,12 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 4. ~~Faz 14 için hazır ama bağlanmamış.~~ **Faz 14'te bağlandı**:
    `WidgetsBindingObserver`, `PopScope`, drag iptali, progress kaydı.
    §28'in "müzik durur/devam eder" maddesi **boş geçildi — müzik yok**.
-5. **Idle hint gözetimsiz oyunu kendi bitiriyor.** Emülatörde uygulama açık
-   bırakıldı, §21'in 32 sn'lik auto-place merdiveni arka arkaya beş puzzle'ı
-   kendi tamamladı. Spec'e uygun davranış ama Faz 16'da gözden geçirmeye
-   değer: kimse oynamıyorken de ilerliyor.
-5. **Cila (Faz 16):** konfetinin cihazdaki dağılımı, parıltıların açık
-   görseller üzerinde sönük kalması, tamamlanınca kesikli slot çerçevesinin
-   hâlâ görünmesi, Home'un tablette seyrek durması. (Tepsi parçalarındaki
-   şekil bozukluğu Faz 15 sonunda düzeltildi.)
+5. ~~Idle hint gözetimsiz oyunu kendi bitiriyor.~~ **Faz 16'da düzeltildi**
+   (bkz. §9 Kalanlar 1): iki ardışık auto-place'ten sonra merdiven uyur.
+6. **Cila (Faz 16):** konfetinin cihazdaki dağılımı, parıltıların açık
+   görseller üzerinde sönük kalması, Home'un tablette seyrek durması.
+   (Tamamlanınca kesikli çerçevenin görünmesi Faz 16'da, tepsi
+   parçalarındaki şekil bozukluğu Faz 15 sonunda düzeltildi.)
 
 ---
 
@@ -296,9 +306,10 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   Emülatörde yaşandı: dokuz puzzle da tamamlanınca `resume()` →
   `startNextPuzzle()` → `nextPuzzle == null` → sessiz çıkış → `appState`
   sonsuza dek `loading` → boş ekran. Spec'in cevabı §4'ün Serbest Mod'u.
-- **Tepsi parçalarındaki hizalama kusuru Faz 16'ya bırakıldı.** Tepsideki
-  her parçanın arkasındaki `PuzzlePalette` karesi ile jigsaw şekli hizasız;
-  tırnaklar karenin dışında boyasız kalıyor. Board'da sorun yok.
+- ~~Tepsi parçalarındaki hizalama kusuru Faz 16'ya bırakıldı.~~ **Çözüldü**
+  (13 Eylül): hizalama değil, `PiecePaths`'in konturu boolean path
+  işlemleriyle büyütmesiydi; tırnaklı her parçanın köşesini çapraz
+  kesiyordu. Bleed artık `PuzzlePiecePainter`'da bir stroke (bkz. §6).
 
 ---
 
@@ -355,8 +366,13 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   yazmaz, boyayıcılar rengi parametre alır (`outlineColour`, `shadowColour`,
   `stringColour`).
   - **Açık** = `#EEE8E1`, ilk krem `#FDF7EF`'nin bir ton koyusu (kullanıcı
-    istedi). İkincil yazı 4,5:1 kontrast için `#6E645B`'ye koyulaştırıldı;
+    istedi). İkincil yazı 4,5:1 kontrast için `#6E645B`'ye, krem düğmeler
+    zemine yaklaştığı için `#E4D6C4`'e koyulaştırıldı (kullanıcı istedi);
     diğer renkler ilk halleri.
+  - **Seçili görünüm seçeneği 2 px çerçeveli** (kullanıcı istedi): açık
+    temada koyu kahve, koyu temada beyaz. Seçim yalnızca renk farkına
+    bırakılmaz; çerçevenin zemine kontrastı ≥ 3:1 ve yalnızca seçili
+    seçeneğin çerçeveli olduğu testle korunuyor (mutasyonla kanıtlandı).
   - **Koyu** = önceki koyu lacivert `#14213D`'nin %25 beyaza açılmışı,
     `#4F596E` (kullanıcı istedi). Açık zemine göre seçilmiş renkler (yarı
     saydam siyah, kahverengi yazı/kontur, siyah ip, kahverengi gölge) yeniden
