@@ -28,8 +28,11 @@ class _Harness {
   final ThemeSettings theme;
 }
 
-Future<_Harness> _pumpHome(WidgetTester tester) async {
-  tester.view.physicalSize = _referencePhone;
+Future<_Harness> _pumpHome(
+  WidgetTester tester, {
+  Size screen = _referencePhone,
+}) async {
+  tester.view.physicalSize = screen;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
 
@@ -76,6 +79,53 @@ void main() {
     // §2 allows five; a fifth would be one too many to add without thought.
     expect(find.byType(HomeButton), findsNWidgets(keys.length));
     expect(keys.length, lessThanOrEqualTo(5));
+  });
+
+  group('home fills a tablet the way it fills a phone (§40)', () {
+    const screens = <String, Size>{
+      'small phone': Size(320, 568),
+      'reference phone': Size(360, 640),
+      'phone, turned sideways': Size(640, 360),
+      'tablet': Size(768, 1024),
+      'big tablet': Size(1024, 1366),
+      'tablet, turned sideways': Size(1024, 768),
+    };
+
+    for (final screen in screens.entries) {
+      testWidgets(screen.key, (tester) async {
+        await _pumpHome(tester, screen: screen.value);
+
+        Rect rectOf(String key) => tester.getRect(find.byKey(ValueKey(key)));
+        final play = rectOf('home-play');
+        final album = rectOf('home-album');
+        final mute = rectOf('home-mute');
+        final about = rectOf('home-about');
+        final group = play.expandToInclude(album).expandToInclude(mute);
+        final shortSide = screen.value.shortestSide;
+
+        // Fixed sizes left the three buttons covering a fifth of a 1024 dp
+        // tablet, measured; on the reference phone they cover three fifths.
+        expect(
+          group.width / shortSide,
+          greaterThanOrEqualTo(0.4),
+          reason: 'the buttons sit lost in the middle of ${screen.key}',
+        );
+
+        // And growing never costs the phone anything.
+        expect(play.width, greaterThanOrEqualTo(160), reason: 'play');
+        expect(album.width, greaterThanOrEqualTo(96), reason: 'album');
+        expect(play.width, greaterThan(album.width), reason: 'play leads');
+
+        final bounds = Offset.zero & screen.value;
+        for (final rect in [play, album, mute, about]) {
+          expect(bounds.intersect(rect), rect, reason: 'on screen: $rect');
+        }
+        expect(play.overlaps(album) || play.overlaps(mute), isFalse);
+        expect(album.overlaps(mute), isFalse);
+        expect(group.overlaps(about), isFalse, reason: 'the grown-ups door');
+        expect(tester.takeException(), isNull);
+      });
+    }
   });
 
   testWidgets('the album opens and closes again (§25)', (tester) async {

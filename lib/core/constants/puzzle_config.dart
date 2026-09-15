@@ -39,6 +39,20 @@ abstract final class PuzzleConfig {
   /// bir ekranı §16.1'in 344'lük referans board'una çeviren şey budur.
   static const double boardMargin = 8;
 
+  /// §29, §40 — Home'un düğmeleri, referans telefonda (§2'nin 360 dp'si).
+  ///
+  /// Büyük ekranda düğmeler kısa kenarla birlikte büyür, en çok
+  /// [homeMaxScale] katına kadar. Sabit boyutta bırakıldığında 1024 dp'lik
+  /// bir tablette oynat düğmesi ile altındaki ikisi ekran genişliğinin
+  /// beşte birini kaplıyor, geri kalanı boş duruyordu (ölçüldü). Referanstan
+  /// küçük ekranda küçülmezler: 320 dp'ye bugünkü halleriyle sığıyorlar.
+  static const double homeReferenceShortSide = 360;
+  static const double homeMaxScale = 2;
+  static const double homePlayButtonSize = 160;
+  static const double homeButtonSize = 96;
+  static const double homePlayButtonGap = 40;
+  static const double homeButtonGap = 28;
+
   /// §2 — Çocuğun dokunmak zorunda olduğu hiçbir şey bundan küçük olamaz.
   /// Buna uyamayan yerleşim değişir, bu sayı değil.
   static const double minTouchTargetSize = 64;

@@ -1,7 +1,7 @@
 # Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 13 Eylül 2026, Faz 16 sırasında.
+Son güncelleme: 15 Eylül 2026, Faz 16 kapandı, Faz 17 başladı.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -27,9 +27,11 @@ Son güncelleme: 13 Eylül 2026, Faz 16 sırasında.
 | 13 | Album, Home, Serbest Mod, progress reset | ✅ onaylandı |
 | 14 | Navigation, Android Back, lifecycle | ✅ onaylandı |
 | 15 | Responsive, tablet, accessibility | ✅ onaylandı |
-| **16** | **Asset/lisans denetimi, privacy, final cila** | **⏳ sürüyor** |
+| 16 | Asset/lisans denetimi, privacy, final cila | ✅ onaylandı |
+| **17** | **Balon renk eşleştirme** | **⏳ sürüyor** |
+| 18 | Boyama safhası (araba) | bekliyor |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **887 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **895 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
 On dokuz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
@@ -226,6 +228,16 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   renkler (sarı oyna düğmesi, balon, konfeti, parça gradyanları) palette
   değildir. Açık ve koyu zemin Android `values*/app_colors.xml` ve iOS
   `LaunchBackground` renk setinde de tekrarlanır; biri değişirse diğeri de.
+- **Parça tek katmanda bestelenir.** `PuzzlePiecePainter` önce örtüyü
+  (kontur dolgusu + bleed çizgisi) opak basar, sonra gradyanı `srcIn`,
+  resmi `srcATop` ile üstüne koyar ve katmanı tek seferde tuvale verir.
+  Gradyan ve resim ayrı ayrı yumuşatılmış kenarla boyanırsa komşunun bleed
+  çizgisinin kenarında gradyan resmin altından `c·(1−c)` kadar (en çok %25)
+  görünür: delik yok ama her parça sınırında açık bir çizgi (aslanın siyah
+  konturunda 64–75 birim, ölçüldü). `piece_seam_tone_test.dart` korur.
+- **Home ekranla büyür.** Düğmeler kısa kenar / 360 oranında, en çok 2 kat
+  (`PuzzleConfig.home*`); 360'tan küçükte küçülmez. Tavan olmadan 1024 dp
+  tablette oyna düğmesi 450 px'i geçerdi.
 - **Widget genişliğini `rect.width`'ten alma.** `sağ − sol` kayan noktada
   tam 72 vermiyor (71.99999999999999); boyut `BalloonLayout.diameterOf`
   üzerinden verilir.
@@ -293,8 +305,10 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
    §28'in "müzik durur/devam eder" maddesi **boş geçildi — müzik yok**.
 5. ~~Idle hint gözetimsiz oyunu kendi bitiriyor.~~ **Faz 16'da düzeltildi**
    (bkz. §9 Kalanlar 1): iki ardışık auto-place'ten sonra merdiven uyur.
-6. **Cila (Faz 16):** konfetinin cihazdaki dağılımı, parıltıların açık
-   görseller üzerinde sönük kalması, Home'un tablette seyrek durması.
+6. ~~**Cila (Faz 16):** konfetinin cihazdaki dağılımı, parıltıların açık
+   görseller üzerinde sönük kalması, Home'un tablette seyrek durması.~~
+   **Kapandı** (15 Eylül): Home ve parça sınırı tonu düzeltildi; konfeti ve
+   parıltıları kullanıcı olduğu gibi uygun buldu.
    (Tamamlanınca kesikli çerçevenin görünmesi Faz 16'da, tepsi
    parçalarındaki şekil bozukluğu Faz 15 sonunda düzeltildi.)
 
@@ -400,9 +414,23 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
    uyandırsaydı gözlemlenen sonsuz döngü aynen sürerdi.
 2. ~~GitHub remote yok.~~ **Çözüldü**, depo public ve push edildi.
 3. **Gerçek cihazda profiling** — emülatör yeterli değil.
-4. Küçük cila: Home tablette seyrek duruyor; parça sınırlarında 1 piksellik
-   ton farkı kalıyor (delik yok, ölçüldü).
-5. ~~`docs/assets-inbox/frame6.png`~~ — **kapandı**: kullanıcı 13 Eylül'de
+4. ~~Küçük cila: Home tablette seyrek duruyor; parça sınırlarında 1 piksellik
+   ton farkı kalıyor.~~ **Düzeltildi** (kullanıcı 15 Eylül'de istedi):
+   - **Ton farkı:** sebep ölçüldü — gradyan ve resim ayrı ayrı yumuşatılmış
+     kenarla boyanıyordu, komşunun bleed çizgisinin kenarında gradyan opak
+     resmin altından görünüyordu. Parça artık tek katmanda bestelenir (bkz.
+     §6). Sınır bandında (±2 px) en büyük fark 75 → 2, ortalama 4,94 → 0,14;
+     iç bölgeyle aynı. Mutasyonla kanıtlandı (eski boyayıcıyla 75 ve 62).
+     **Maliyet ölçülmedi:** parça başına bir `saveLayer` eklendi (§42);
+     board sürükleme sırasında yeniden boyanmadığı için etkisi sınırlı
+     olmalı, ama emülatörde/cihazda bakılmadı.
+   - **Home tablette:** sabit boyutlu düğmeler 1024 dp'de genişliğin %21'ini
+     kaplıyordu (telefonda %61). Artık kısa kenarla büyüyor, en çok 2 kat
+     (tablette %43–%57). Telefonda hiçbir şey değişmedi. Altı ekranda test
+     edilir; mutasyonla kanıtlandı (ölçeksiz halde üç tablet testi kırmızı).
+5. **Konfeti dağılımı ve parıltılar** — kullanıcı 15 Eylül'de uygun buldu,
+   dokunulmayacak.
+6. ~~`docs/assets-inbox/frame6.png`~~ — **kapandı**: kullanıcı 13 Eylül'de
    "taşınan yerde kalsın, bu ikona bir şey yapmayalım" dedi. Dosya pakete
    girmiyor, git'e eklenmedi (depo public), lisans testi yeşil. Bir gün
    kullanılacaksa kaynağı ve lisansı `assets/LICENSES.md`'ye işlenmeli.

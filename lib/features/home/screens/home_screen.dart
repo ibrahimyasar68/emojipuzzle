@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/constants/puzzle_config.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../album/screens/album_screen.dart';
@@ -47,41 +48,54 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HomeButton(
-                    key: const ValueKey('home-play'),
-                    icon: Icons.play_arrow_rounded,
-                    size: 160,
-                    background: const Color(0xFFFFC43D),
-                    semanticLabel: 'Oyna',
-                    onTap: () => _openPuzzle(context),
-                  ),
-                  const SizedBox(height: 40),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            // Board gibi Home da ekranla büyür, ama bir tavana kadar (§40).
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final scale = (constraints.biggest.shortestSide /
+                        PuzzleConfig.homeReferenceShortSide)
+                    .clamp(1.0, PuzzleConfig.homeMaxScale);
+                final buttonSize = PuzzleConfig.homeButtonSize * scale;
+
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       HomeButton(
-                        key: const ValueKey('home-album'),
-                        icon: Icons.photo_library_rounded,
-                        semanticLabel: 'Çıkartma albümü',
-                        onTap: () => _openAlbum(context),
+                        key: const ValueKey('home-play'),
+                        icon: Icons.play_arrow_rounded,
+                        size: PuzzleConfig.homePlayButtonSize * scale,
+                        background: const Color(0xFFFFC43D),
+                        semanticLabel: 'Oyna',
+                        onTap: () => _openPuzzle(context),
                       ),
-                      const SizedBox(width: 28),
-                      HomeButton(
-                        key: const ValueKey('home-mute'),
-                        icon: audio.muted
-                            ? Icons.volume_off_rounded
-                            : Icons.volume_up_rounded,
-                        semanticLabel: audio.muted ? 'Sesi aç' : 'Sesi kapat',
-                        onTap: audio.toggleMuted,
+                      SizedBox(height: PuzzleConfig.homePlayButtonGap * scale),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          HomeButton(
+                            key: const ValueKey('home-album'),
+                            icon: Icons.photo_library_rounded,
+                            size: buttonSize,
+                            semanticLabel: 'Çıkartma albümü',
+                            onTap: () => _openAlbum(context),
+                          ),
+                          SizedBox(width: PuzzleConfig.homeButtonGap * scale),
+                          HomeButton(
+                            key: const ValueKey('home-mute'),
+                            icon: audio.muted
+                                ? Icons.volume_off_rounded
+                                : Icons.volume_up_rounded,
+                            size: buttonSize,
+                            semanticLabel:
+                                audio.muted ? 'Sesi aç' : 'Sesi kapat',
+                            onTap: audio.toggleMuted,
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ],
         ),

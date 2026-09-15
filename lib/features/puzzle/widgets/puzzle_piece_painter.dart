@@ -68,43 +68,71 @@ class PuzzlePiecePainter extends CustomPainter {
       canvas.drawShadow(renderPath, shadow, elevation, false);
     }
 
+    // Parça önce kendi katmanında bütünüyle bestelenir, sonra tuvale tek
+    // seferde basılır: şeklin yumuşatılmış kenar örtüsü yalnızca bir kez
+    // uygulanır.
+    //
+    // Eskiden gradyan ve resim ayrı ayrı, her biri kendi yumuşatılmış
+    // kenarıyla boyanıyordu. Komşunun taşma çizgisinin dış kenarında (örtü
+    // c) önce gradyan c kadar, sonra resim c kadar biniyordu; gradyan opak
+    // resmin altından c·(1−c) kadar — en çok %25 — görünüyordu. Parça
+    // sınırları boyunca bir piksellik açık bir çizgi: aslanın siyah
+    // konturunda 64 birim (ölçüldü, bkz. `piece_seam_tone_test.dart`).
+    final bounds = renderPath.getBounds().inflate(bleed + 1);
+    canvas.saveLayer(bounds, Paint());
+    _drawCoverage(canvas);
+
+    final image = _imageShader();
     final surface = background;
     if (surface != null) {
       // Gradyan board'un tamamı boyunca uzanır; böylece komşu parçalar
       // yamalı bohça oluşturmak yerine birbirini sürdürür.
-      _draw(
-        canvas,
-        ui.Gradient.linear(
-          surface.boardRect.topLeft,
-          surface.boardRect.bottomRight,
-          [surface.from, surface.to],
-        ),
+      canvas
+        ..drawRect(
+          bounds,
+          Paint()
+            ..shader = ui.Gradient.linear(
+              surface.boardRect.topLeft,
+              surface.boardRect.bottomRight,
+              [surface.from, surface.to],
+            )
+            ..blendMode = BlendMode.srcIn,
+        )
+        ..drawRect(
+          bounds,
+          Paint()
+            ..shader = image
+            ..blendMode = BlendMode.srcATop,
+        );
+    } else {
+      canvas.drawRect(
+        bounds,
+        Paint()
+          ..shader = image
+          ..blendMode = BlendMode.srcIn,
       );
     }
-    _draw(canvas, _imageShader());
+    canvas.restore();
   }
 
-  /// Konturu [shader] ile doldurur, sonra aynı shader'ı kontur boyunca
-  /// çizgi olarak geçirir.
+  /// Parçanın örtüsünü katmana opak olarak basar: kontur dolgusu, üstüne
+  /// kontur boyunca çizgi. Renk önemsizdir; ardından gelen boyamalar
+  /// yalnızca buranın saydamlığını kullanır.
   ///
-  /// Bu çizgi taşmadır (§14): `bleed * 2` kalınlığındaki çizginin yarısı
+  /// Çizgi taşmadır (§14): `bleed * 2` kalınlığındaki çizginin yarısı
   /// path'in dışında kalır ve boyalı kenarı her yerde tam [bleed] kadar
   /// dışarı iter — sınırın kendi üstüne katlandığı tırnak boynu dahil.
   /// Bunun yerine *path*'i büyütmek bu eğrilerde ayakta kalmıyor — bkz.
   /// `PiecePaths`.
-  void _draw(Canvas canvas, ui.Shader shader) {
-    canvas.drawPath(
-      renderPath,
-      Paint()
-        ..shader = shader
-        ..isAntiAlias = true,
-    );
+  void _drawCoverage(Canvas canvas) {
+    final paint = Paint()
+      ..color = const Color(0xFFFFFFFF)
+      ..isAntiAlias = true;
+    canvas.drawPath(renderPath, paint);
     if (bleed <= 0) return;
     canvas.drawPath(
       renderPath,
-      Paint()
-        ..shader = shader
-        ..isAntiAlias = true
+      paint
         ..style = PaintingStyle.stroke
         ..strokeWidth = bleed * 2
         ..strokeJoin = StrokeJoin.round
@@ -115,7 +143,7 @@ class PuzzlePiecePainter extends CustomPainter {
   /// Paylaşılan puzzle görseli; [PieceDrawRects.src], parça-yerel
   /// koordinatlarda [PieceDrawRects.dst] üzerine düşecek şekilde
   /// yerleştirilir — `drawImageRect`'in yapacağı eşlemenin aynısı, ama
-  /// shader olarak, böylece doldurmanın yanında çizgi de çekebilir.
+  /// shader olarak, böylece katmanın örtüsüne göre kırpılabilir.
   ui.ImageShader _imageShader() {
     final src = rects.src;
     final dst = rects.dst;
