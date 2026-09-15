@@ -6,15 +6,19 @@ import '../../../core/services/storage_service.dart';
 import '../data/car_catalog.dart';
 import '../models/car_model.dart';
 
-/// Boyama defteri: hangi arabanın açık olduğu ve hangi parçasının hangi
-/// renge boyandığı (§24.2).
+/// Boyaması biten bir araba: modeli ve renkleri (K-15).
+typedef FinishedCar = ({CarModel model, Map<String, int> fills});
+
+/// Boyama defteri: hangi arabanın açık olduğu, hangi parçasının hangi
+/// renge boyandığı ve en son hangi arabaların bittiği (§24.2, K-15).
 ///
-/// Her puzzle bitişinde bir parça boyanır; bütün parçalar boyanınca defter
-/// sıradaki arabaya geçer, sonuncudan sonra başa döner.
+/// Her safhanın sonunda bir parça boyanır. Arabayı ne zaman bitirip
+/// sıradakine geçileceğine defter değil oyun karar verir: beşinci safhadan
+/// sonra, parçaları beyaz kalmış olsa bile. Sonuncudan sonra başa dönülür.
 ///
 /// `GameProgress`'te değil kendi anahtarında saklanır: bu özellik puzzle'a
-/// bağımlı değildir (§36) ve oyunun ilerleme şeması değişmediği için
-/// kayıtlı ilerleme bu yüzden asla silinmez (§25.1).
+/// bağımlı değildir (§36) ve oyunun ilerleme şeması değiştiğinde defter
+/// silinmez (§25.1).
 class ColouringBook extends ChangeNotifier {
   ColouringBook({StorageService? storage, List<CarModel>? models})
       : _storage = storage,
@@ -24,14 +28,20 @@ class ColouringBook extends ChangeNotifier {
   static const String storageKey = 'emoji_puzzle.colouring';
 
   /// Saklanan yapının sürümü. Tanınmayan bir sürüm hata değildir: defter
-  /// ilk arabadan, boş açılır (§25.1'in ruhu).
+  /// ilk arabadan, boş açılır (§25.1'in ruhu). `recent` alanı sonradan
+  /// eklendi; olmaması bir sürüm farkı değildir.
   static const int schemaVersion = 1;
+
+  /// Hatırlanan biten araba sayısı: oyun sonu kutlaması üçünü yan yana
+  /// gösterir (K-15).
+  static const int recentLimit = 3;
 
   final StorageService? _storage;
   final List<CarModel> _models;
 
   int _carIndex = 0;
   Map<String, int> _fills = const {};
+  List<FinishedCar> _recent = const [];
 
   /// Açık olan araba.
   CarModel get car => _models[_carIndex];
@@ -44,6 +54,9 @@ class ColouringBook extends ChangeNotifier {
   Map<String, int> get fills => _fills;
 
   int? colourOf(String partId) => _fills[partId];
+
+  /// En son biten arabalar, en eskisi önce, en çok [recentLimit] tane.
+  List<FinishedCar> get recentCars => _recent;
 
   /// Arabanın her parçası boyandı mı.
   bool get isCarComplete => car.parts.every((p) => _fills.containsKey(p.id));
@@ -58,19 +71,17 @@ class ColouringBook extends ChangeNotifier {
         debugPrint('Colouring book version ${decoded['version']} — fresh.');
         return;
       }
-      final index = _models.indexWhere((m) => m.id == decoded['car']);
-      if (index < 0) return;
-      final model = _models[index];
-      final stored = decoded['fills'] as Map<String, Object?>? ?? const {};
+      final model = _modelById(decoded['car']);
+      if (model == null) return;
 
-      _carIndex = index;
-      _fills = Map.unmodifiable({
-        for (final entry in stored.entries)
-          if (model.partById(entry.key) != null &&
-              entry.value is int &&
-              isPaint(entry.value! as int))
-            entry.key: entry.value! as int,
-      });
+      _carIndex = _models.indexOf(model);
+      _fills = _readFills(model, decoded['fills']);
+      _recent = List.unmodifiable([
+        for (final entry in decoded['recent'] as List<Object?>? ?? const [])
+          if (entry is Map<String, Object?>)
+            if (_modelById(entry['car']) case final finished?)
+              (model: finished, fills: _readFills(finished, entry['fills'])),
+      ].take(recentLimit));
       notifyListeners();
     } on Object catch (error) {
       // Çocuğa hiçbir durumda hata gösterilmez (§25.1).
@@ -78,12 +89,31 @@ class ColouringBook extends ChangeNotifier {
     }
   }
 
+  CarModel? _modelById(Object? id) {
+    for (final model in _models) {
+      if (model.id == id) return model;
+    }
+    return null;
+  }
+
+  static Map<String, int> _readFills(CarModel model, Object? stored) {
+    final map = stored as Map<String, Object?>? ?? const {};
+    return Map.unmodifiable({
+      for (final entry in map.entries)
+        if (model.partById(entry.key) != null &&
+            entry.value is int &&
+            isPaint(entry.value! as int))
+          entry.key: entry.value! as int,
+    });
+  }
+
   /// Boya olabilecek bir değer mi: tam opak bir ARGB rengi. Saydam boya
   /// kâğıdı gösterirdi, yani hiçbir şey boyamazdı.
   static bool isPaint(int argb) => argb >= 0xFF000000 && argb <= 0xFFFFFFFF;
 
-  /// Bir parçayı [argb] rengine boyar. Boyanmış parça yeniden boyanabilir.
-  /// Bilinmeyen bir parça ya da boya olamayacak bir değer yok sayılır.
+  /// Bir parçayı [argb] rengine boyar. Bilinmeyen bir parça ya da boya
+  /// olamayacak bir değer yok sayılır. Boyanmış parçayı yeniden boyamamak
+  /// ekranın kararıdır (K-15); defter izin verir.
   Future<void> paint(String partId, int argb) async {
     if (car.partById(partId) == null) return;
     if (!isPaint(argb)) return;
@@ -92,8 +122,15 @@ class ColouringBook extends ChangeNotifier {
     await _save();
   }
 
-  /// Sıradaki arabayı boş olarak açar; sonuncudan sonra ilkine döner.
+  /// Açık arabayı bitenlere ekler ve sıradaki arabayı boş olarak açar;
+  /// sonuncudan sonra ilkine döner.
   Future<void> startNextCar() async {
+    final finished = [..._recent, (model: car, fills: _fills)];
+    _recent = List.unmodifiable(
+      finished.skip(finished.length - recentLimit < 0
+          ? 0
+          : finished.length - recentLimit),
+    );
     _carIndex = (_carIndex + 1) % _models.length;
     _fills = const {};
     notifyListeners();
@@ -104,6 +141,7 @@ class ColouringBook extends ChangeNotifier {
   Future<void> clear() async {
     _carIndex = 0;
     _fills = const {};
+    _recent = const [];
     notifyListeners();
     await _storage?.remove(storageKey);
   }
@@ -111,7 +149,15 @@ class ColouringBook extends ChangeNotifier {
   Future<void> _save() async {
     await _storage?.writeString(
       storageKey,
-      jsonEncode({'version': schemaVersion, 'car': car.id, 'fills': _fills}),
+      jsonEncode({
+        'version': schemaVersion,
+        'car': car.id,
+        'fills': _fills,
+        'recent': [
+          for (final finished in _recent)
+            {'car': finished.model.id, 'fills': finished.fills},
+        ],
+      }),
     );
   }
 }

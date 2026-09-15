@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:emoji_puzzle_kids/core/constants/puzzle_config.dart';
 import 'package:emoji_puzzle_kids/features/colouring/data/paint_colours.dart';
 import 'package:emoji_puzzle_kids/features/colouring/models/car_model.dart';
+import 'package:emoji_puzzle_kids/features/puzzle/data/game_rules.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/data/puzzle_catalog.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/coordinate_mapper.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/puzzle_generator.dart';
@@ -33,7 +34,10 @@ Future<GameProvider> _pumpGame(WidgetTester tester) async {
     shuffler: TrayShuffler(random: Random(1)),
   );
   addTearDown(game.dispose);
-  await tester.runAsync(() => game.startNextPuzzle());
+  // A known first picture; which one follows is the dice's business (K-15).
+  await tester.runAsync(
+    () => game.startPuzzle(PuzzleCatalog.v1.byId('apple_01')),
+  );
 
   await tester.pumpWidget(
     ChangeNotifierProvider<GameProvider>.value(
@@ -132,7 +136,8 @@ void main() {
     await _skipColouring(tester);
     await _settleAsync(tester);
 
-    expect(game.puzzle.id, 'cat_01');
+    expect(game.puzzle.id, isNot('apple_01'), reason: 'a new picture');
+    expect(game.stage, 1, reason: 'one stage on (K-15)');
     expect(game.placedCount, 0);
     expect(game.isPuzzleCompleted('apple_01'), isTrue);
     for (final piece in game.pieces) {
@@ -172,7 +177,8 @@ void main() {
     await _skipColouring(tester);
     await _settleAsync(tester);
 
-    expect(game.puzzle.id, 'cat_01');
+    expect(game.puzzle.id, isNot('apple_01'), reason: 'a new picture');
+    expect(game.stage, 1, reason: 'one stage on (K-15)');
     expect(tester.takeException(), isNull);
   });
 
@@ -198,7 +204,8 @@ void main() {
     await _watchSticker(tester);
     await _skipColouring(tester);
     await _settleAsync(tester);
-    expect(game.puzzle.id, 'cat_01');
+    expect(game.puzzle.id, isNot('apple_01'), reason: 'a new picture');
+    expect(game.stage, 1, reason: 'one stage on (K-15)');
     expect(tester.takeException(), isNull);
   });
 
@@ -216,7 +223,8 @@ void main() {
     await _skipColouring(tester);
     await _settleAsync(tester);
 
-    // Now play that same picture again, the way Free Mode does.
+    // Now play that same picture again, chosen from the album: it comes at
+    // this stage's size (K-15).
     await tester.runAsync(
       () => game.startPuzzle(PuzzleCatalog.v1.byId('apple_01')),
     );
@@ -267,7 +275,8 @@ void main() {
     expect(find.byKey(const ValueKey('colouring-overlay')), findsNothing);
 
     await _settleAsync(tester);
-    expect(game.puzzle.id, 'cat_01');
+    expect(game.puzzle.id, isNot('apple_01'), reason: 'a new picture');
+    expect(game.stage, 1, reason: 'one stage on (K-15)');
     expect(game.colouring.colourOf('body'), _initialPaint,
         reason: 'the paint stays');
     expect(tester.takeException(), isNull);
@@ -286,7 +295,10 @@ void main() {
     );
     addTearDown(game.dispose);
     await tester.runAsync(
-      () => game.startPuzzle(PuzzleCatalog.v1.byId('banana_01')),
+      () => game.startPuzzle(
+        PuzzleCatalog.v1.byId('banana_01'),
+        grid: GameRules.stageGrids[1],
+      ),
     );
 
     await tester.pumpWidget(
@@ -313,7 +325,7 @@ void main() {
     }
     expect(tester.takeException(), isNull);
 
-    // Leave a picture of a level 2 puzzle: six pieces, its own palette.
+    // Leave a picture of a second-stage puzzle: six pieces, its own palette.
     await tester.runAsync(() async {
       final boundary = _captureKey.currentContext!.findRenderObject()!
           as RenderRepaintBoundary;
@@ -339,7 +351,8 @@ void main() {
 
     // A stale path cache would show the previous puzzle's pieces here; a
     // wrong-sized one would throw the board's assert.
-    expect(game.puzzle.id, 'cat_01');
+    expect(game.puzzle.id, isNot('apple_01'), reason: 'a new picture');
+    expect(game.stage, 1, reason: 'one stage on (K-15)');
     expect(find.byKey(const ValueKey('puzzle-board')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

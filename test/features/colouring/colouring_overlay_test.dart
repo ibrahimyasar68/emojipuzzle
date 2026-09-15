@@ -47,6 +47,7 @@ Future<_Harness> _pump(
   WidgetTester tester, {
   Size screen = _phone,
   Future<void> Function(ColouringBook book)? prepare,
+  bool finishesCar = false,
 }) async {
   tester.view.physicalSize = screen;
   tester.view.devicePixelRatio = 1.0;
@@ -74,6 +75,7 @@ Future<_Harness> _pump(
               book: book,
               audio: audio,
               haptics: null,
+              finishesCar: finishesCar,
               onFinished: () => finished++,
             ),
           ],
@@ -443,20 +445,16 @@ void main() {
   });
 
   testWidgets(
-      'the last part finishes the car: it drives off, and the next '
-      'car is a new model', (tester) async {
+      'on a car\'s last stage it drives off after its paint, white parts '
+      'and all (K-15)', (tester) async {
     final harness = await _pump(
       tester,
-      prepare: (book) async {
-        for (final part in book.car.parts) {
-          if (part.id != 'front-wheel') await book.paint(part.id, 0xFF43A047);
-        }
-      },
+      finishesCar: true,
+      prepare: (book) => book.paint('body', 0xFF43A047),
     );
-    final firstCar = harness.book.car.id;
+    final car = harness.book.car.id;
 
     await _tapDesign(tester, _sedanFrontWheel);
-    expect(harness.book.isCarComplete, isTrue);
     await _settle(tester);
 
     expect(harness.player.played, [Sfx.pieceSnap, Sfx.puzzleComplete]);
@@ -476,25 +474,35 @@ void main() {
     await tester.pump(_frame);
 
     expect(harness.finished(), 1);
-    expect(harness.book.car.id, isNot(firstCar));
-    expect(harness.book.fills, isEmpty);
+    expect(harness.book.fills, hasLength(2), reason: 'three parts stay white');
+    expect(
+      harness.book.car.id,
+      car,
+      reason: 'moving on to the next car is the game\'s business',
+    );
   });
 
-  testWidgets('a book left on a finished car opens on the next one', (
+  testWidgets('a painted part is locked: tapping it paints nothing (K-15)', (
     tester,
   ) async {
     final harness = await _pump(
       tester,
-      prepare: (book) async {
-        for (final part in book.car.parts) {
-          await book.paint(part.id, 0xFF1E88E5);
-        }
-      },
+      prepare: (book) => book.paint('body', 0xFF1E88E5),
     );
+    await tester.tapAt(harness.layout.greys.center);
+    await tester.pump();
 
-    expect(harness.book.car.id, 'pickup');
-    expect(harness.book.fills, isEmpty);
-    expect(_painter(tester).model.id, 'pickup');
+    await _tapDesign(tester, _sedanBody);
+    await tester.pump(const Duration(seconds: 2));
+
+    expect(harness.book.colourOf('body'), 0xFF1E88E5, reason: 'unchanged');
+    expect(harness.player.played, isEmpty);
+    expect(harness.finished(), 0, reason: 'it waits for a white part');
+
+    await _tapDesign(tester, _sedanRearWheel);
+    expect(harness.book.fills.keys, containsAll(['body', 'rear-wheel']));
+    await _settle(tester);
+    expect(harness.finished(), 1);
   });
 
   testWidgets('sideways, it still fits and still paints (§40)', (

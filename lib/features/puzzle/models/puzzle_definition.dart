@@ -1,13 +1,14 @@
 import 'puzzle_category.dart';
-import 'puzzle_grid.dart';
 
-/// Katalogdaki tek bir puzzle (§13).
+/// Katalogdaki tek bir resim (§13).
+///
+/// Ebadı yoktur: puzzle'ın kaç parça olduğunu resim değil, oyunun safhası
+/// belirler (K-15).
 class PuzzleDefinition {
   const PuzzleDefinition({
     required this.id,
     required this.imagePath,
     required this.category,
-    required this.grid,
     required this.displayName,
   });
 
@@ -18,7 +19,6 @@ class PuzzleDefinition {
   final String imagePath;
 
   final PuzzleCategory category;
-  final PuzzleGrid grid;
 
   /// Türkçe, olduğu gibi gösterilir. v1 tek dillidir; çözülecek bir anahtar
   /// da, onu çözecek bir l10n katmanı da yoktur (§13).
@@ -31,5 +31,5 @@ class PuzzleDefinition {
   int get hashCode => id.hashCode;
 
   @override
-  String toString() => 'PuzzleDefinition($id, $grid)';
+  String toString() => 'PuzzleDefinition($id)';
 }

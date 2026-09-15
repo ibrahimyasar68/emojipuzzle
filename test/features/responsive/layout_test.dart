@@ -6,7 +6,9 @@ import 'package:emoji_puzzle_kids/core/theme/theme_settings.dart';
 import 'package:emoji_puzzle_kids/features/album/screens/album_screen.dart';
 import 'package:emoji_puzzle_kids/features/home/screens/about_screen.dart';
 import 'package:emoji_puzzle_kids/features/home/screens/home_screen.dart';
+import 'package:emoji_puzzle_kids/features/puzzle/data/game_rules.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/data/puzzle_catalog.dart';
+import 'package:emoji_puzzle_kids/features/puzzle/models/puzzle_grid.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/puzzle_generator.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/tray_shuffler.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/providers/game_provider.dart';
@@ -14,6 +16,8 @@ import 'package:emoji_puzzle_kids/features/puzzle/screens/puzzle_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+
+import '../../support/tray_shelf.dart';
 
 /// The screens §40 asks for, plus the landscape ones it does not mention.
 const _screens = <String, Size>{
@@ -26,8 +30,11 @@ const _screens = <String, Size>{
   'tablet, turned sideways': Size(1024, 768),
 };
 
-/// One puzzle per level: four, six and nine pieces (§4).
-const _puzzles = ['apple_01', 'banana_01', 'lion_01'];
+/// Every stage of a game, 4 to 16 pieces (K-15).
+const _puzzles = ['2x2', '2x3', '3x3', '4x3', '4x4'];
+
+PuzzleGrid _gridOf(String stage) =>
+    GameRules.stageGrids.firstWhere((g) => '${g.rows}x${g.columns}' == stage);
 
 Future<GameProvider> _pumpPuzzle(
   WidgetTester tester,
@@ -45,7 +52,10 @@ Future<GameProvider> _pumpPuzzle(
   );
   addTearDown(game.dispose);
   await tester.runAsync(
-    () => game.startPuzzle(PuzzleCatalog.v1.byId(puzzleId)),
+    () => game.startPuzzle(
+      PuzzleCatalog.v1.byId('apple_01'),
+      grid: _gridOf(puzzleId),
+    ),
   );
 
   await tester.pumpWidget(
@@ -140,12 +150,17 @@ void main() {
           // How many distinct rows and columns the pieces actually occupy.
           final rows = rects.map((r) => r.top.round()).toSet().length;
           final columns = rects.map((r) => r.left.round()).toSet().length;
-          expect(
-            columns,
-            greaterThanOrEqualTo(rows),
-            reason: 'a tray is looked along, not down — '
-                '${screen.key} / $puzzleId came out ${rows}x$columns',
-          );
+          // A shelf wherever one can fit at all. On a 320 dp phone a 4×3
+          // puzzle's pieces are too wide for four columns at any board size
+          // (measured): there the touch target wins (§2, §16.1).
+          if (shelfPossible(screen.value, _gridOf(puzzleId))) {
+            expect(
+              columns,
+              greaterThanOrEqualTo(rows),
+              reason: 'a tray is looked along, not down — '
+                  '${screen.key} / $puzzleId came out ${rows}x$columns',
+            );
+          }
 
           // And it stays on the screen.
           for (final rect in rects) {
@@ -173,7 +188,7 @@ void main() {
       // really does reach both edges. On a screen limited by height the
       // content is centred with slack to spare and proves nothing.
       for (final screen in [const Size(414, 896), const Size(1024, 1366)]) {
-        final game = await _pumpPuzzle(tester, screen, 'lion_01');
+        final game = await _pumpPuzzle(tester, screen, '3x3');
         final rects = [
           for (final piece in game.pieces)
             tester.getRect(find.byKey(ValueKey('tray-piece-${piece.id}'))),
@@ -205,7 +220,7 @@ void main() {
       final game = await _pumpPuzzle(
         tester,
         const Size(360, 640),
-        'lion_01',
+        '3x3',
       );
       final rects = [
         for (final piece in game.pieces)
@@ -223,7 +238,7 @@ void main() {
         await _pumpPuzzle(
           tester,
           const Size(320, 568),
-          'lion_01',
+          '3x3',
           textScale: scale,
         );
         expect(tester.takeException(), isNull);

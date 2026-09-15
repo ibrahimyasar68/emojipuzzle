@@ -161,4 +161,82 @@ void main() {
       expect(book.fills, {'cab': _blue});
     });
   });
+
+  test('finished cars are remembered: the last three, oldest first (K-15)',
+      () async {
+    final storage = await _storage();
+    final book = ColouringBook(storage: storage);
+    addTearDown(book.dispose);
+
+    for (var i = 0; i < 4; i++) {
+      await book.paint(book.car.parts.first.id, _red);
+      await book.startNextCar();
+    }
+
+    expect(
+      book.recentCars.map((c) => c.model.id),
+      [
+        CarCatalog.models[1].id,
+        CarCatalog.models[2].id,
+        CarCatalog.models[3].id,
+      ],
+    );
+    expect(
+      book.recentCars.first.fills,
+      {CarCatalog.models[1].parts.first.id: _red},
+      reason: 'with the paint it had when it left',
+    );
+
+    final reopened = ColouringBook(storage: storage)..load();
+    addTearDown(reopened.dispose);
+    expect(
+      reopened.recentCars.map((c) => c.model.id),
+      book.recentCars.map((c) => c.model.id),
+    );
+    expect(reopened.recentCars.last.fills, book.recentCars.last.fills);
+
+    await book.clear();
+    expect(book.recentCars, isEmpty, reason: 'a reset forgets them too (§26)');
+  });
+
+  test('a remembered car this build no longer has is left out', () async {
+    final book = ColouringBook(
+      storage: await _storage({
+        ColouringBook.storageKey: jsonEncode({
+          'version': 1,
+          'car': 'pickup',
+          'fills': <String, int>{},
+          'recent': [
+            {'car': 'rocket', 'fills': <String, int>{}},
+            {
+              'car': 'sedan',
+              'fills': {'body': _blue},
+            },
+            'not a car',
+          ],
+        }),
+      }),
+    )..load();
+    addTearDown(book.dispose);
+
+    expect(book.recentCars.map((c) => c.model.id), ['sedan']);
+    expect(book.recentCars.single.fills, {'body': _blue});
+  });
+
+  test('a book saved before cars were remembered still opens', () async {
+    final book = ColouringBook(
+      storage: await _storage({
+        ColouringBook.storageKey: jsonEncode({
+          'version': 1,
+          'car': 'racer',
+          'fills': {'body': _red},
+        }),
+      }),
+    )..load();
+    addTearDown(book.dispose);
+
+    expect(book.car.id, 'racer');
+    expect(book.fills, {'body': _red});
+    expect(book.recentCars, isEmpty);
+  });
 }

@@ -3,6 +3,7 @@ import 'dart:math' show Random;
 import 'package:emoji_puzzle_kids/core/constants/puzzle_config.dart';
 import 'package:emoji_puzzle_kids/features/colouring/data/paint_colours.dart';
 import 'package:emoji_puzzle_kids/features/home/screens/home_screen.dart';
+import 'package:emoji_puzzle_kids/features/puzzle/data/puzzle_catalog.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/coordinate_mapper.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/puzzle_generator.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/tray_shuffler.dart';
@@ -43,7 +44,9 @@ Future<_Harness> _pumpPuzzle(WidgetTester tester) async {
     audio: audio,
   );
   addTearDown(game.dispose);
-  await tester.runAsync(() => game.startNextPuzzle());
+  await tester.runAsync(
+    () => game.startPuzzle(PuzzleCatalog.v1.byId('apple_01')),
+  );
 
   await tester.pumpWidget(
     MultiProvider(
@@ -307,7 +310,9 @@ void main() {
         () => Future<void>.delayed(const Duration(milliseconds: 50)),
       );
       await tester.pumpAndSettle();
-      expect(game.puzzle.id, 'cat_01', reason: 'not left on a solved board');
+      expect(game.puzzle.id, isNot('apple_01'),
+          reason: 'not left on a solved board');
+      expect(game.stage, 1, reason: 'the stage moved on (K-15)');
       expect(tester.takeException(), isNull);
     });
 
@@ -350,7 +355,9 @@ void main() {
         () => Future<void>.delayed(const Duration(milliseconds: 50)),
       );
       await tester.pumpAndSettle();
-      expect(game.puzzle.id, 'cat_01');
+      expect(game.puzzle.id, isNot('apple_01'),
+          reason: 'not left on a solved board');
+      expect(game.stage, 1, reason: 'the stage moved on (K-15)');
       expect(tester.takeException(), isNull);
     });
 

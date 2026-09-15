@@ -3,6 +3,7 @@ import 'dart:math' show Random;
 import 'dart:ui' as ui;
 
 import 'package:emoji_puzzle_kids/core/constants/debug_flags.dart';
+import 'package:emoji_puzzle_kids/features/puzzle/data/game_rules.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/data/puzzle_catalog.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/coordinate_mapper.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/puzzle_generator.dart';
@@ -21,7 +22,9 @@ final _captureKey = GlobalKey();
 
 const _referencePhone = Size(360, 640);
 final _puzzle = PuzzleCatalog.v1.byId('apple_01');
-final _grid = _puzzle.grid;
+
+/// A picture at the first stage of a game: 2×2 (K-15).
+final _grid = GameRules.stageGrids.first;
 
 Future<GameProvider> _pumpGame(WidgetTester tester) async {
   tester.view.physicalSize = _referencePhone;

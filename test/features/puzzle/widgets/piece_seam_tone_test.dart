@@ -9,6 +9,7 @@ import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/coordinate_map
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/puzzle_generator.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/path/piece_paths.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/models/puzzle_category.dart';
+import 'package:emoji_puzzle_kids/features/puzzle/models/puzzle_grid.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/widgets/puzzle_board.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
@@ -30,6 +31,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// drawn straight onto the same gradient.
 
 const _board = Size(344, 344);
+
+/// The finest grid these pictures were checked at before K-15.
+const _grid = PuzzleGrid(rows: 3, columns: 3);
 
 /// A pixel within this many pixels of another piece counts as "border".
 const _band = 2;
@@ -55,10 +59,10 @@ void main() {
         image = await loader.load(puzzle.imagePath);
       });
 
-      final pieces = PuzzleGenerator(random: Random(3)).generate(puzzle.grid);
+      final pieces = PuzzleGenerator(random: Random(3)).generate(_grid);
       final paths = PiecePaths.build(
         pieces: pieces,
-        grid: puzzle.grid,
+        grid: _grid,
         boardSize: _board,
       );
       final boundaryKey = GlobalKey();
@@ -71,7 +75,7 @@ void main() {
               key: boundaryKey,
               child: PuzzleBoard(
                 image: image,
-                grid: puzzle.grid,
+                grid: _grid,
                 paths: paths,
                 placedPieces: pieces,
                 boardSize: _board,
@@ -102,7 +106,7 @@ void main() {
           piece.id: paths.of(piece.id).shift(
                 CoordinateMapper.pieceOriginOf(
                   normalizedPosition: piece.normalizedPosition,
-                  grid: puzzle.grid,
+                  grid: _grid,
                   boardSize: _board,
                 ),
               ),

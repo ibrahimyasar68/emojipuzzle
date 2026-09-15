@@ -3,25 +3,32 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('GameProgress', () {
-    test('a new child starts at level 1 with nothing done', () {
+    test('a new child starts a new game with nothing done (K-15)', () {
       const progress = GameProgress.initial();
 
-      expect(progress.unlockedLevel, 1);
       expect(progress.completedPuzzleIds, isEmpty);
       expect(progress.lastPlayedPuzzleId, isNull);
+      expect(progress.stage, 0);
+      expect(progress.carsFinished, 0);
+      expect(progress.playedThisGame, isEmpty);
+      expect(progress.currentSolved, isFalse);
       expect(progress.schemaVersion, GameProgress.currentSchemaVersion);
+      expect(GameProgress.currentSchemaVersion, 2);
     });
 
-    test('finishing a puzzle records it and where we were', () {
+    test('finishing a puzzle records it, and that its stage is not over yet',
+        () {
       final progress = const GameProgress.initial().withCompleted('apple_01');
 
       expect(progress.completedPuzzleIds, {'apple_01'});
       expect(progress.isCompleted('apple_01'), isTrue);
       expect(progress.isCompleted('cat_01'), isFalse);
       expect(progress.lastPlayedPuzzleId, 'apple_01');
+      expect(progress.currentSolved, isTrue);
+      expect(progress.stage, 0, reason: 'the stage moves on after its reward');
     });
 
-    test('finishing the same puzzle again changes nothing (§4)', () {
+    test('finishing the same picture again changes nothing (§4)', () {
       final once = const GameProgress.initial().withCompleted('apple_01');
       final twice = once.withCompleted('apple_01');
 
@@ -29,7 +36,7 @@ void main() {
       expect(twice, once);
     });
 
-    test('stickers are the completed puzzles, not a second list (§25)', () {
+    test('stickers are the completed pictures, not a second list (§25)', () {
       final progress = const GameProgress.initial()
           .withCompleted('apple_01')
           .withCompleted('cat_01');
@@ -41,33 +48,49 @@ void main() {
     test('copyWith leaves the rest alone', () {
       final progress = const GameProgress.initial()
           .withCompleted('apple_01')
-          .copyWith(unlockedLevel: 2);
+          .copyWith(stage: 3, carsFinished: 1, playedThisGame: {'apple_01'});
 
-      expect(progress.unlockedLevel, 2);
+      expect(progress.stage, 3);
+      expect(progress.carsFinished, 1);
+      expect(progress.playedThisGame, {'apple_01'});
       expect(progress.completedPuzzleIds, {'apple_01'});
       expect(progress.lastPlayedPuzzleId, 'apple_01');
+      expect(progress.currentSolved, isTrue);
       expect(
-          progress.copyWith(clearLastPlayed: true).lastPlayedPuzzleId, isNull);
+        progress.copyWith(clearLastPlayed: true).lastPlayedPuzzleId,
+        isNull,
+      );
     });
 
-    test('value equality ignores the order things were finished in', () {
+    test('value equality ignores the order things happened in', () {
       final a = const GameProgress.initial()
           .withCompleted('apple_01')
           .withCompleted('cat_01')
-          .copyWith(lastPlayedPuzzleId: 'cat_01');
+          .copyWith(playedThisGame: {'apple_01', 'cat_01'});
       final b = const GameProgress.initial()
           .withCompleted('cat_01')
           .withCompleted('apple_01')
-          .copyWith(lastPlayedPuzzleId: 'cat_01');
+          .copyWith(
+        lastPlayedPuzzleId: 'cat_01',
+        playedThisGame: {'cat_01', 'apple_01'},
+      );
 
       expect(a, b);
       expect(a.hashCode, b.hashCode);
+      expect(a.copyWith(stage: 1), isNot(b), reason: 'the stage matters');
     });
 
-    test('level 0 is not a thing', () {
-      int zero() => 0;
+    test('negative stages and cars are not a thing', () {
+      int minusOne() => -1;
       expect(
-        () => GameProgress(unlockedLevel: zero(), completedPuzzleIds: const {}),
+        () => GameProgress(completedPuzzleIds: const {}, stage: minusOne()),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => GameProgress(
+          completedPuzzleIds: const {},
+          carsFinished: minusOne(),
+        ),
         throwsA(isA<AssertionError>()),
       );
     });

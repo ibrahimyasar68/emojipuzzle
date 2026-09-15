@@ -7,9 +7,9 @@ import '../models/game_progress.dart';
 
 /// Çocuğun ilerlemesini okur ve yazar (§25).
 ///
-/// Her şey tek bir anahtarın altında tek bir JSON metnidir: on sekiz puzzle'ın
-/// veritabanına ihtiyacı yoktur ve tek bir değer hiçbir zaman yarım
-/// yazılamaz.
+/// Her şey tek bir anahtarın altında tek bir JSON metnidir: bir oyunun
+/// durumu bir veritabanına ihtiyaç duymaz ve tek bir değer hiçbir zaman
+/// yarım yazılamaz.
 ///
 /// Burada hiçbir şey çağırana hata fırlatmaz. Çocuk bir depolama hatasıyla
 /// bir şey yapamaz; bu yüzden en kötü durum temiz bir sayfadan başlamaktır
@@ -49,9 +49,12 @@ class ProgressRepository {
 
   String _encode(GameProgress progress) => jsonEncode(<String, Object?>{
         'schemaVersion': progress.schemaVersion,
-        'unlockedLevel': progress.unlockedLevel,
         'completedPuzzleIds': progress.completedPuzzleIds.toList(),
         'lastPlayedPuzzleId': progress.lastPlayedPuzzleId,
+        'stage': progress.stage,
+        'carsFinished': progress.carsFinished,
+        'playedThisGame': progress.playedThisGame.toList(),
+        'currentSolved': progress.currentSolved,
       });
 
   /// Saklanan değer okunabilir ama kullanılabilir değilse null döner;
@@ -86,30 +89,48 @@ class ProgressRepository {
     return _read(decoded);
   }
 
-  /// Henüz daha eski bir şema yok. Olduğunda ileri taşıma işi burada
-  /// yapılır; null döndürmek dürüst geri çekilmeyi korur (§25.1).
-  GameProgress? _migrate(Map<String, Object?> stored, {required int from}) =>
-      null;
+  /// 1 → 2 (K-15): kademeler gitti. Kazanılan çıkartmalar taşınır — çocuğun
+  /// albümü bir güncellemeyle boşalmaz — ve oyun yeni kurallarla ilk
+  /// safhadan başlar. Kademe ve son oynanan resim bırakılır:
+  /// ikisi de artık var olmayan bir merdivendeki yeri anlatır.
+  GameProgress? _migrate(Map<String, Object?> stored, {required int from}) {
+    if (from != 1) return null;
+    final ids = _stringSet(stored['completedPuzzleIds']);
+    if (ids == null) return null;
+    return GameProgress(completedPuzzleIds: ids);
+  }
 
   GameProgress? _read(Map<String, Object?> stored) {
-    final unlockedLevel = stored['unlockedLevel'];
-    final completed = stored['completedPuzzleIds'];
+    final completed = _stringSet(stored['completedPuzzleIds']);
+    final played = _stringSet(stored['playedThisGame']);
     final lastPlayed = stored['lastPlayedPuzzleId'];
+    final stage = stored['stage'];
+    final cars = stored['carsFinished'];
+    final solved = stored['currentSolved'];
 
-    if (unlockedLevel is! int || unlockedLevel < 1) return null;
-    if (completed is! List) return null;
+    if (completed == null || played == null) return null;
     if (lastPlayed != null && lastPlayed is! String) return null;
+    if (stage is! int || stage < 0) return null;
+    if (cars is! int || cars < 0) return null;
+    if (solved is! bool) return null;
 
+    return GameProgress(
+      completedPuzzleIds: completed,
+      lastPlayedPuzzleId: lastPlayed as String?,
+      stage: stage,
+      carsFinished: cars,
+      playedThisGame: played,
+      currentSolved: solved,
+    );
+  }
+
+  static Set<String>? _stringSet(Object? value) {
+    if (value is! List) return null;
     final ids = <String>{};
-    for (final id in completed) {
+    for (final id in value) {
       if (id is! String) return null;
       ids.add(id);
     }
-
-    return GameProgress(
-      unlockedLevel: unlockedLevel,
-      completedPuzzleIds: ids,
-      lastPlayedPuzzleId: lastPlayed as String?,
-    );
+    return ids;
   }
 }

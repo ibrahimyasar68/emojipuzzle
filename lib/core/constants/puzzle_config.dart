@@ -35,6 +35,11 @@ abstract final class PuzzleConfig {
   /// sığması gereken yerdir (§16.1).
   static const double boardHeightFactor = 0.6;
 
+  /// §40, K-15 — board tepsiye yer açmak için küçülürken her denemede bu
+  /// kadar küçülür. İki piksel, dokunma hedefini kılpayı tutturan en büyük
+  /// board'u kaçırmayacak kadar incedir.
+  static const double boardFitStep = 2;
+
   /// Board'un etrafındaki nefes payı. Spec tarafından dayatılmaz; 360 dp'lik
   /// bir ekranı §16.1'in 344'lük referans board'una çeviren şey budur.
   static const double boardMargin = 8;
@@ -268,6 +273,11 @@ abstract final class PuzzleConfig {
   /// §24.2 — son parça boyanınca araba ekrandan sürülerek çıkar.
   static const Duration colouringDriveOffDuration =
       Duration(milliseconds: 1400);
+
+  /// K-15 — oyun sonu: biten üç araba yan yana gelir, bir süre kalır; bir
+  /// dokunuş bunu daha erken bitirir (§23).
+  static const Duration carParadeEnterDuration = Duration(milliseconds: 900);
+  static const Duration carParadeDuration = Duration(milliseconds: 4000);
 
   /// §23, §25 — çıkartmanın teslimi. Dizinin en kısa adımı: çıkartmalara
   /// bakılan yer albümdür, burası yalnızca birinin verildiği andır. Bir

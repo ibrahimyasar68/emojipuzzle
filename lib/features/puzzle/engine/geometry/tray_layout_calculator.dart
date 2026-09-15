@@ -63,6 +63,38 @@ abstract final class TrayLayoutCalculator {
     double spacing = PuzzleConfig.trayItemSpacing,
     double minTouchTarget = PuzzleConfig.minTouchTargetSize,
     double preferredScale = PuzzleConfig.trayPreferredPieceScale,
+  }) =>
+      tryCalculate(
+        traySize: traySize,
+        pieceCount: pieceCount,
+        boardPieceSize: boardPieceSize,
+        spacing: spacing,
+        minTouchTarget: minTouchTarget,
+        preferredScale: preferredScale,
+      ) ??
+      _fallback(
+        traySize: traySize,
+        pieceCount: pieceCount,
+        aspectRatio: boardPieceSize.width / boardPieceSize.height,
+        spacing: spacing,
+        minTouchTarget: minTouchTarget,
+      );
+
+  /// [calculate] gibi, ama hiçbir dizilim her parçayı dokunma hedefinin
+  /// üstünde tutamıyorsa null döner — assert etmeden. Board'u tepsiye yer
+  /// açacak kadar küçülten `BoardFitter` bununla sorar (K-15).
+  ///
+  /// [requireShelf] yalnızca eninden yüksek olmayan dizilimleri dener: board
+  /// biraz küçülebiliyorsa bu, tepsiyi tek bir uzun sütuna çevirmekten
+  /// iyidir.
+  static TrayLayout? tryCalculate({
+    required Size traySize,
+    required int pieceCount,
+    required Size boardPieceSize,
+    double spacing = PuzzleConfig.trayItemSpacing,
+    double minTouchTarget = PuzzleConfig.minTouchTargetSize,
+    double preferredScale = PuzzleConfig.trayPreferredPieceScale,
+    bool requireShelf = false,
   }) {
     assert(pieceCount > 0, 'pieceCount must be positive');
     assert(!boardPieceSize.isEmpty, 'boardPieceSize must be non-empty');
@@ -88,6 +120,7 @@ abstract final class TrayLayoutCalculator {
       (false, true),
       (false, false),
     ]) {
+      if (requireShelf && !shelvesOnly) continue;
       final layout = _bestFit(
         traySize: traySize,
         pieceCount: pieceCount,
@@ -101,14 +134,7 @@ abstract final class TrayLayoutCalculator {
       );
       if (layout != null) return layout;
     }
-
-    return _fallback(
-      traySize: traySize,
-      pieceCount: pieceCount,
-      aspectRatio: aspectRatio,
-      spacing: spacing,
-      minTouchTarget: minTouchTarget,
-    );
+    return null;
   }
 
   /// Parçaları [preferredScale]'e en yakın düşen dizilim; hiçbiri her parçayı

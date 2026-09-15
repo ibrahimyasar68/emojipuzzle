@@ -1,7 +1,7 @@
 # Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 15 Eylül 2026, Faz 20'nin hazır kısmı commit edildi, Faz 21 başladı.
+Son güncelleme: 15 Eylül 2026, Faz 21 onaylandı.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -32,9 +32,9 @@ Son güncelleme: 15 Eylül 2026, Faz 20'nin hazır kısmı commit edildi, Faz 21
 | 18 | Boyama safhası (araba) | ✅ onaylandı |
 | 19 | 9 yeni puzzle (18'e çıkış) | ✅ onaylandı |
 | 20 | Kamyon, traktör; Eşyalar kategorisi | ✅ commit (kitap/mikroskop/dürbün görselleri bekleniyor) |
-| **21** | **Yeni oyun kuralları: 5 safha, 3 araba** | **⏳ sürüyor** |
+| 21 | Yeni oyun kuralları: 5 safha, 3 araba | ✅ onaylandı |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **972 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1137 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
 On dokuz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
@@ -64,6 +64,14 @@ On dokuz commit, **GitHub'da yayında**:
   - **K-11** — balon oyunu **10 balon** (5 çift), hepsi **3 sn'de** sahnede,
     çift renkleri **rastgele** (kullanıcı istedi: giriş uzun, balon çoktu).
     §24'ün [ZORUNLU] "en fazla 8 aktif balon"u 10'a çıktı.
+  - **K-15** — **yeni oyun kuralları** (kullanıcı istedi; kademeler bitti):
+    bir oyun 3 araba, bir araba 5 safha. Her safhada havuzdan rastgele resim
+    (bir oyunda tekrar yok), ebat safhadan: 2×2 → 2×3 → 3×3 → 4×3 → 4×4.
+    Safha sonunda bir parça boyanır; boyanan parça kilitli, geç oku kalır.
+    5. safhadan sonra araba nasıl olursa olsun gider. 3 arabada oyun sonu:
+    biten arabaların geçidi + konfeti → Home → yeni oyun; arabalar sırayla
+    devam. Board gerektiğinde küçülür (64 px ve kaymayan tepsi korunur).
+    Albümden seçilen resim o safhanın ebadıyla oynanır.
   - **K-14** — yeni kategori **Eşyalar** (`objects`): kitap, mikroskop,
     dürbün. §4'ün 5 kategori kuralı 6'ya çıktı. Her kademeye bir tane
     (kitap 2×2, dürbün 2×3, mikroskop 3×3). **Görselleri kullanıcı koyacak**
@@ -152,12 +160,14 @@ lib/
     │   │                # HintStage, GameProgress, PuzzleDefinition, ...
     │   ├── engine/
     │   │   ├── geometry/  # generator, edge_resolver, coordinate_mapper,
+    │   │                  # board_fitter (K-15: board gerektiğinde küçülür)
     │   │   │              # snap_calculator, tray_layout_calculator,
     │   │   │              # piece_image_mapper
     │   │   ├── path/      # jigsaw_path_generator, piece_paths
     │   │   ├── tray_shuffler.dart
     │   │   └── hint_target.dart
     │   ├── data/        # puzzle_catalog, puzzle_palette, progress_repository
+    │                    # game_rules (K-15), katalog artık 18 resimlik havuz, ilerleme şema 2
     │   ├── providers/   # game_provider, hint_controller
     │   ├── widgets/     # board, tray, drag_layer, feedback_layer, hint_layer,
     │   │                # piece_painter, ghost_painter, debug_overlay_painter
@@ -175,6 +185,7 @@ lib/
     │   ├── data/      # car_catalog (3 araba, kodla), paint_colours (palet)
     │   ├── providers/colouring_book.dart  # hangi araba, hangi parça, kalıcı
     │   └── widgets/   # colouring_overlay, car_painter, colouring_layout
+    │                  # car_parade_overlay (oyun sonu, K-15)
     └── home/
         ├── screens/home_screen.dart    # §29 giriş ekranı
         ├── screens/about_screen.dart   # §26 sıfırlama, §33 attribution, görünüm
@@ -304,6 +315,26 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 - **Boyama beklemeleri `AnimationController`'dır, `Timer` değil** — arka
   planda durur (§28). Bitmiş ama sürülüp gitmeden çıkılmış araba, overlay
   bir sonraki açılışta `startNextCar()` ile yenilenir.
+- **Ebat resmin değil safhanındır** (K-15). `PuzzleDefinition`'da grid yok;
+  `GameProvider.startPuzzle(def, {grid})` ebat verilmezse `stageGrid`'i
+  kullanır. Kademe/kilit/Serbest Mod kodu tamamen silindi.
+- **Safha, ödül bitince ilerler.** `markPlaced` yalnızca çıkartmayı ve
+  `currentSolved`'u yazar; `finishStage()` dizi bittiğinde (ekran `_moveOn`)
+  ya da dizinin ortasında çıkılınca (`_afterInterruptedSequence`) çağrılır,
+  çözülmemiş puzzle'da hiçbir şey yapmaz, iki kez çağrılması bir kez sayar.
+  Açılışta `currentSolved` doğruysa önce safha ilerletilir.
+- **Arabayı değiştiren oyundur, boyama sayfası değil.** `finishStage` 5.
+  safhadan sonra `colouring.startNextCar()` çağırır. Overlay yalnızca
+  `finishesCar` ile arabayı sürer; eski "tamamlanmış arabayla açılınca
+  yenisine geç" davranışı kaldırıldı. Defter son 3 biten arabayı
+  (`recentCars`) saklar; oyun sonu geçidi onları gösterir.
+- **Board sığdırma** (`BoardFitter`): önce §40 boyu, sığmazsa 2 px adımla
+  küçülür, hücre 64 px altına inene kadar değil. Raf biçimi burada
+  aranmaz: 320 dp'de 4×3'ün parçaları (en/boy 1,238) dört sütuna **hiçbir
+  board boyunda** 64 px'te sığmaz (ölçüldü); orada tepsi 4 satır × 3 sütun.
+  Testler rafı yalnızca `test/support/tray_shelf.dart`'ın "mümkün" dediği
+  yerde ister. İlk denemede eklenen "önce raf ara" döngüsü hiçbir ekranda
+  sonucu değiştirmediği için geri alındı.
 - **Widget genişliğini `rect.width`'ten alma.** `sağ − sol` kayan noktada
   tam 72 vermiyor (71.99999999999999); boyut `BalloonLayout.diameterOf`
   üzerinden verilir.
@@ -353,6 +384,9 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   `pump()` 900 ms'lik bir `AnimationController`'ı bitirmez (simülasyon
   `t > süre` ister); son pump'a 20 ms eklenir. Faz 18'de üç test bu yüzden
   kırmızıydı, geçen tek test tesadüfen fazladan 250 ms bekliyordu.
+- **Mutasyon koşuları `build/` altındaki kanıt görsellerini bozuk kodla
+  yeniden yazar.** Görsele mutasyonlar geri alınıp testler yeniden
+  koşturulduktan sonra bakılır (Faz 18'de doğru renk karesi mavi göründü).
 - **Album ve About kaydırılabilir**; `ListView` ekran dışındaki çocukları hiç
   kurmaz. Testler `scrollUntilVisible` kullanır ve **yalnızca tek yöne**
   kaydırır — sticker'lar katalog sırasında değil, album (kategori) sırasında
@@ -632,4 +666,38 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   Eşyalar kategorisi dolu, albümde başlık).
 
 **Sonra:** kullanıcı oyun kurallarını yeniden belirleyecek.
+
+---
+
+## 14. Faz 21 durumu — yeni oyun kuralları (K-15)
+
+**Yapılanlar** (15 Eylül'de onaylandı):
+
+- `data/game_rules.dart` (safha ebatları, 3 araba), katalog düz havuz,
+  `LevelDefinition` silindi, `PuzzleDefinition.grid` kalktı.
+- `GameProgress` şema 2 (`stage`, `carsFinished`, `playedThisGame`,
+  `currentSolved`); şema 1'den geçiş çıkartmaları korur, oyunu baştan açar.
+- `GameProvider`: rastgele resim (`Random` enjekte), `stageGrid`,
+  `finishStage`, `startNewGame`, `isGameOver`, `isLastStageOfCar`, yeni
+  `resume`.
+- Boyama: kilitli parça, `finishesCar`, `recentCars`, `CarParadeOverlay`.
+- Ekran: dizi sonu safha ilerletir; oyun sonunda konfeti + araba geçidi →
+  Home + yeni oyun; geri tuşu da aynı.
+- `BoardFitter` + `TrayLayoutCalculator.tryCalculate(requireShelf)`.
+- Spec: K-15, §2/§16.1 notu, §4 başı, §24.2, §25, §40, §44.
+- Testler: eski kademe/Serbest Mod testleri silindi, yerine safha testleri;
+  kayıt/devam, görsel hatası, şema 2 ve geçiş, oyun kuralları (her arabanın
+  5 parçası), board sığdırma (8 ekran × 5 ebat), 4×3/4×4 yerleşim ve tepsi,
+  oyun sonu widget testleri (5. safha 4×4 gerçek parmakla, geçit, geri
+  tuşu). 1137 test.
+- **Mutasyonla kanıtlanan:** board hiç küçülmez; resim oyunda tekrar gelir;
+  5. safhadan sonra safha dönmez; geçiş çıkartmaları atar; boyanmış parça
+  kilitsiz; ekran son safhayı bildirmez; açılışta yarım ödül yok sayılır —
+  hepsi kırmızı.
+- **Ölçümle düzeltilen test iddiası:** "tepsi her zaman raf" 320 dp'de 4×3
+  için geometrik olarak imkânsız; kod doğruydu.
+- **Gözle görülen:** 12 ve 16 parçada emoji resimlerinin şeffaf kenarları
+  yüzünden birçok parça neredeyse boş; onları yalnızca gradyan ayırıyor.
+- **Emülatörde elle oynanmadı.** Kitap/mikroskop/dürbün görselleri hâlâ
+  bekleniyor; gelince havuza eklenir (kademe gerekmez).
 

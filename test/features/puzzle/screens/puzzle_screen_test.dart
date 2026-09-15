@@ -3,10 +3,12 @@ import 'dart:math' show Random;
 import 'dart:ui' as ui;
 
 import 'package:emoji_puzzle_kids/core/constants/puzzle_config.dart';
+import 'package:emoji_puzzle_kids/features/puzzle/data/game_rules.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/data/puzzle_catalog.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/puzzle_generator.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/tray_shuffler.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/models/puzzle_definition.dart';
+import 'package:emoji_puzzle_kids/features/puzzle/models/puzzle_grid.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/providers/game_provider.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/screens/puzzle_screen.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/widgets/board_ghost_painter.dart';
@@ -23,13 +25,14 @@ const _referencePhone = Size(360, 640);
 
 Future<GameProvider> _started(
   WidgetTester tester,
-  PuzzleDefinition puzzle,
-) async {
+  PuzzleDefinition puzzle, {
+  PuzzleGrid? grid,
+}) async {
   final game = GameProvider(
     generator: PuzzleGenerator(random: Random(1)),
     shuffler: TrayShuffler(random: Random(1)),
   );
-  await tester.runAsync(() => game.startPuzzle(puzzle));
+  await tester.runAsync(() => game.startPuzzle(puzzle, grid: grid));
   return game;
 }
 
@@ -48,21 +51,19 @@ Future<void> _pumpScreen(WidgetTester tester, GameProvider game) async {
 
 void main() {
   group('on a 360×640 phone', () {
-    // One real puzzle per level: 2×2, 2×3 and 3×3 (§4).
-    final puzzles = [
-      PuzzleCatalog.v1.byId('apple_01'),
-      PuzzleCatalog.v1.byId('banana_01'),
-      PuzzleCatalog.v1.byId('car_01'),
-    ];
-
-    for (final puzzle in puzzles) {
-      testWidgets('${puzzle.id} ${puzzle.grid}: every tray piece clears 64 px',
+    // Every stage of a game, from 4 pieces to 16 (K-15).
+    for (final grid in GameRules.stageGrids) {
+      testWidgets('${grid.rows}x${grid.columns}: every tray piece clears 64 px',
           (tester) async {
         tester.view.physicalSize = _referencePhone;
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.reset);
 
-        final game = await _started(tester, puzzle);
+        final game = await _started(
+          tester,
+          PuzzleCatalog.v1.byId('apple_01'),
+          grid: grid,
+        );
         addTearDown(game.dispose);
         await _pumpScreen(tester, game);
 

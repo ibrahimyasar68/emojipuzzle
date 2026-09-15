@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' show Random;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -7,13 +8,13 @@ import '../../../core/services/audio_service.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/services/puzzle_image_loader.dart';
 import '../../colouring/providers/colouring_book.dart';
+import '../data/game_rules.dart';
 import '../data/progress_repository.dart';
 import '../data/puzzle_catalog.dart';
 import '../engine/geometry/puzzle_generator.dart';
 import '../engine/tray_shuffler.dart';
 import '../models/app_state.dart';
 import '../models/game_progress.dart';
-import '../models/level_definition.dart';
 import '../models/piece_runtime_state.dart';
 import '../models/piece_status.dart';
 import '../models/puzzle_definition.dart';
@@ -21,8 +22,8 @@ import '../models/puzzle_grid.dart';
 import '../models/puzzle_piece.dart';
 import '../models/puzzle_session_state.dart';
 
-/// Tek bir puzzle oturumunun durumuna ve katalog içindeki yürüyüşe sahiptir
-/// (§38, §39).
+/// Tek bir puzzle oturumunun durumuna ve oyunun safha ile araba yürüyüşüne
+/// sahiptir (§38, §39, K-15).
 ///
 /// Bilerek burada olmayanlar: geometri, path kurma, tepsi yerleşimi, görsel
 /// çözme, ses, kalıcılık ve çizim. Bu sınıf durumu tutar, engine ile
@@ -40,6 +41,7 @@ class GameProvider extends ChangeNotifier {
     ColouringBook? colouring,
     HapticService haptics = const HapticService(),
     PuzzleCatalog catalog = PuzzleCatalog.v1,
+    Random? random,
   })  : _generator = generator ?? PuzzleGenerator(),
         _shuffler = shuffler ?? TrayShuffler(),
         _imageLoader = imageLoader ?? PuzzleImageLoader(),
@@ -49,7 +51,8 @@ class GameProvider extends ChangeNotifier {
         _colouring = colouring ?? ColouringBook(),
         _ownsColouring = colouring == null,
         _haptics = haptics,
-        _catalog = catalog;
+        _catalog = catalog,
+        _random = random ?? Random();
 
   final PuzzleGenerator _generator;
   final TrayShuffler _shuffler;
@@ -74,6 +77,9 @@ class GameProvider extends ChangeNotifier {
 
   final PuzzleCatalog _catalog;
 
+  /// Resmi seçen zar (K-15). Testler tohumlu bir tane verir.
+  final Random _random;
+
   Future<void> _lastWrite = Future<void>.value();
 
   AppState _appState = AppState.loading;
@@ -81,6 +87,7 @@ class GameProvider extends ChangeNotifier {
   GameProgress _progress = const GameProgress.initial();
 
   PuzzleDefinition? _definition;
+  PuzzleGrid? _grid;
   List<PuzzlePiece> _pieces = const [];
   Map<int, PieceRuntimeState> _runtime = const {};
   ui.Image? _image;
@@ -101,60 +108,56 @@ class GameProvider extends ChangeNotifier {
   PuzzleDefinition get puzzle =>
       _definition ?? (throw StateError('no puzzle started yet'));
 
-  PuzzleGrid get grid => puzzle.grid;
+  /// Oynanan puzzle'ın ebadı; resmin değil, safhanın (K-15).
+  PuzzleGrid get grid => _grid ?? (throw StateError('no puzzle started yet'));
 
   List<PuzzlePiece> get pieces => _pieces;
 
   ui.Image? get image => _image;
 
-  // ── Merdiven (§4) ─────────────────────────────────────────────────────
+  // ── Oyun: safhalar ve arabalar (K-15) ─────────────────────────────────
 
-  int get unlockedLevelCount =>
-      _catalog.unlockedLevelCount(_progress.completedPuzzleIds);
+  /// Şu anki arabanın kaçıncı safhası, 0'dan.
+  int get stage => _progress.stage;
 
-  List<LevelDefinition> get unlockedLevels =>
-      _catalog.levels.take(unlockedLevelCount).toList();
+  /// Bu safhanın puzzle ebadı.
+  PuzzleGrid get stageGrid => GameRules.stageGrids[_progress.stage];
 
-  bool isLevelUnlocked(int levelIndex) =>
-      _catalog.isLevelUnlocked(levelIndex, _progress.completedPuzzleIds);
+  /// Bu oyunda biten arabalar.
+  int get carsFinished => _progress.carsFinished;
+
+  /// Bu safha arabanın son safhası mı: boyamadan sonra araba gider.
+  bool get isLastStageOfCar => _progress.stage == GameRules.stagesPerCar - 1;
+
+  /// Üç araba bitti: sırada oyun sonu kutlaması ve yeni bir oyun var.
+  bool get isGameOver => _progress.carsFinished >= GameRules.carsPerGame;
 
   bool isPuzzleCompleted(String puzzleId) => _progress.isCompleted(puzzleId);
 
-  /// Sunulacak sonraki puzzle; açık olan her şey bittiyse null.
+  /// Sıradaki resim, havuzdan rastgele (K-15).
   ///
-  /// Görseli eksik olan puzzle atlanır, ama yine de oynanmamış sayılır —
-  /// hiçbir şeyin kilidini açmamalıdır (§14).
-  PuzzleDefinition? get nextPuzzle => _catalog.firstUnsolved(
-        _progress.completedPuzzleIds,
-        unavailable: _unloadable,
-      );
+  /// Bir oyunda aynı resim iki kez gelmez. Havuz bir oyuna yetmezse tekrar
+  /// serbesttir, ama az önce oynanan hemen yeniden gelmez. Görseli
+  /// yüklenemeyen resim hiç gelmez (§14). Oynanabilecek hiçbir şey yoksa
+  /// null.
+  PuzzleDefinition? _pickPicture() {
+    final pool = [
+      for (final puzzle in _catalog.puzzles)
+        if (!_unloadable.contains(puzzle.id)) puzzle,
+    ];
+    if (pool.isEmpty) return null;
 
-  /// §4 — bitirilmiş bütün puzzle'lar, katalog sırasında. Serbest Mod'un
-  /// sunduğu bunlardır ve albümdeki çıkartmaların tam olarak aynısıdırlar
-  /// (§25).
-  List<PuzzleDefinition> get replayablePuzzles => [
-        for (final level in _catalog.levels)
-          for (final puzzle in level.puzzles)
-            if (_progress.isCompleted(puzzle.id) &&
-                !_unloadable.contains(puzzle.id))
-              puzzle,
-      ];
-
-  /// Geriye yeni bir şey kalmayıp oyun tekrarlarla yaşamaya başlayınca
-  /// true olur.
-  bool get isInFreeMode => nextPuzzle == null && replayablePuzzles.isNotEmpty;
-
-  /// Serbest Mod'da sırada sunulacak bitirilmiş puzzle.
-  ///
-  /// En son oynananın bir sonrakidir; böylece oyna'ya basmayı sürdüren bir
-  /// çocuk aynı resmi almak yerine albümde yürür (§4).
-  PuzzleDefinition? get nextReplay {
-    final replayable = replayablePuzzles;
-    if (replayable.isEmpty) return null;
-
-    final lastPlayed = _progress.lastPlayedPuzzleId;
-    final at = replayable.indexWhere((puzzle) => puzzle.id == lastPlayed);
-    return replayable[(at + 1) % replayable.length];
+    final fresh = [
+      for (final puzzle in pool)
+        if (!_progress.playedThisGame.contains(puzzle.id)) puzzle,
+    ];
+    final notAgain = [
+      for (final puzzle in pool)
+        if (puzzle.id != _progress.lastPlayedPuzzleId) puzzle,
+    ];
+    final choices =
+        fresh.isNotEmpty ? fresh : (notAgain.isNotEmpty ? notAgain : pool);
+    return choices[_random.nextInt(choices.length)];
   }
 
   // ── Tek oturum ────────────────────────────────────────────────────────
@@ -189,17 +192,25 @@ class GameProvider extends ChangeNotifier {
 
   /// Bir puzzle kurar ve görselini hazırlar.
   ///
-  /// Görsel yüklenemezse çocuk hiçbir hata görmez: puzzle sıradan çıkarılır
-  /// ve yerine oynanabilir olan bir sonraki başlar. Hiçbir şey yüklenemezse
+  /// Ebat verilmezse bu safhanınkidir (K-15). Albümden seçilen bir resim de
+  /// böyle oynanır: resmi çocuk seçer, ebadı safha.
+  ///
+  /// Görsel yüklenemezse çocuk hiçbir hata görmez: resim havuzdan çıkarılır
+  /// ve yerine başka bir resim aynı ebatla başlar. Hiçbir şey yüklenemezse
   /// uygulama [AppState.error] durumuna yerleşir ve ekran sakin ve boş kalır
   /// (§14, §2).
-  Future<void> startPuzzle(PuzzleDefinition definition) async {
+  Future<void> startPuzzle(
+    PuzzleDefinition definition, {
+    PuzzleGrid? grid,
+  }) async {
+    final size = grid ?? stageGrid;
     _appState = AppState.loading;
     _sessionState = PuzzleSessionState.idle;
     _definition = definition;
-    _pieces = _generator.generate(definition.grid);
+    _grid = size;
+    _pieces = _generator.generate(size);
 
-    final slots = _shuffler.assignSlots(definition.grid.pieceCount);
+    final slots = _shuffler.assignSlots(size.pieceCount);
     _runtime = Map.unmodifiable({
       for (final piece in _pieces)
         piece.id: PieceRuntimeState(
@@ -207,7 +218,11 @@ class GameProvider extends ChangeNotifier {
           traySlotIndex: slots[piece.id],
         ),
     });
-    _progress = _progress.copyWith(lastPlayedPuzzleId: definition.id);
+    _progress = _progress.copyWith(
+      lastPlayedPuzzleId: definition.id,
+      playedThisGame: {..._progress.playedThisGame, definition.id},
+      currentSolved: false,
+    );
     // Nerede olduğumuz, uygulama bu puzzle'ın sonuna hiç varmasa bile
     // saklanmaya değer (§25).
     _persist();
@@ -225,13 +240,13 @@ class GameProvider extends ChangeNotifier {
         return true;
       }());
 
-      final fallback = nextPuzzle;
+      final fallback = _pickPicture();
       if (fallback == null) {
         _appState = AppState.error;
         notifyListeners();
         return;
       }
-      return startPuzzle(fallback);
+      return startPuzzle(fallback, grid: size);
     }
 
     final previousPath = _imagePath;
@@ -244,18 +259,12 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// İlerler: bitirilmemiş sonraki puzzle ya da bitirilmiş bir tanesi
-  /// yeniden.
-  ///
-  /// Burada sessizce dönmek, hepsi bitince uygulamayı temelli boş bir
-  /// ekranda bırakıyordu — "her şeyi bitirdin" ile "hâlâ yükleniyor" birbirine
-  /// tıpatıp benziyordu. §4'ün o noktada istediği şey Serbest Mod'dur ve aynı
-  /// zamanda dürüst cevap budur: oynanacak her zaman bir şey vardır (§2).
+  /// Bu safhanın puzzle'ını rastgele bir resimle başlatır (K-15).
   Future<void> startNextPuzzle() async {
-    final next = nextPuzzle ?? nextReplay;
+    final next = _pickPicture();
     if (next == null) {
-      // Yeni bir şey de yok, bitirilmiş bir şey de: buraya gelmenin tek
-      // yolu, görselleri hiç yüklenmeyen bir katalogdur (§14).
+      // Oynanabilecek tek bir resim yok: buraya gelmenin tek yolu, görselleri
+      // hiç yüklenmeyen bir katalogdur (§14).
       _appState = AppState.error;
       notifyListeners();
       return;
@@ -263,30 +272,83 @@ class GameProvider extends ChangeNotifier {
     await startPuzzle(next);
   }
 
+  /// Bir safhanın dizisi bitti — kutlama, balon, çıkartma, boyama — ya da
+  /// çocuk dizinin ortasında çıktı (§30). Oyun bir safha ilerler (K-15).
+  ///
+  /// Beşinci safhadan sonra araba biter: boyama defteri sıradaki arabaya
+  /// geçer, safha 2 × 2'ye döner. Üçüncü araba oyunu bitirir ([isGameOver]).
+  ///
+  /// Yalnızca çözülmüş bir puzzle'dan sonra bir şey yapar; iki kez
+  /// çağrılması bir safhayı iki kez ilerletmez.
+  Future<void> finishStage() async {
+    if (!_progress.currentSolved) return;
+
+    var stage = _progress.stage + 1;
+    var cars = _progress.carsFinished;
+    if (stage >= GameRules.stagesPerCar) {
+      stage = 0;
+      cars += 1;
+      await _colouring.startNextCar();
+    }
+    _progress = _progress.copyWith(
+      stage: stage,
+      carsFinished: cars,
+      currentSolved: false,
+    );
+    _persist();
+    notifyListeners();
+  }
+
+  /// Oyun sonu kutlamasından sonra: ilk arabanın 2 × 2'sinden yeniden
+  /// (K-15). Çıkartmalar kalır; boyama defteri arabaları kaldığı yerden
+  /// sürdürür.
+  Future<void> startNewGame() async {
+    _progress = _progress.copyWith(
+      stage: 0,
+      carsFinished: 0,
+      playedThisGame: const {},
+      currentSolved: false,
+      clearLastPlayed: true,
+    );
+    _persist();
+    notifyListeners();
+    await startNextPuzzle();
+  }
+
   // ── İlerleme (§25, §26) ───────────────────────────────────────────────
 
-  /// Kayıtlı ilerlemeyi yükler ve çocuğun bıraktığı yerden devam eder (§25).
+  /// Kayıtlı ilerlemeyi yükler ve çocuğun bıraktığı yerden devam eder
+  /// (§25, K-15).
+  ///
+  /// Bir safhanın puzzle'ı çözülmüş ama dizisi bitmeden uygulama kapanmışsa
+  /// safha ilerletilir: çözülmüş bir board'a dönmek çocuğa hiçbir şey
+  /// vermezdi. Yarım kalan bir puzzle aynı resimle, ama baştan açılır. Bitmiş
+  /// bir oyun yenisiyle açılır.
   Future<void> resume() async {
     final repository = _progressRepository;
     if (repository != null) {
       final stored = await repository.load();
-      // Doğru olan, bitirilmiş puzzle'lardır; açık kademe burada onlardan
-      // yeniden türetilir, böylece saklanmış bir kademe kataloğun izin
-      // verdiğinden daha cömert olamaz (§4).
-      _progress = stored.copyWith(
-        unlockedLevel: _catalog.unlockedLevelCount(stored.completedPuzzleIds),
-      );
+      // Bu sürümün kurallarından büyük bir safha hiç oynanamaz.
+      _progress = stored.stage < GameRules.stagesPerCar
+          ? stored
+          : stored.copyWith(stage: 0);
       notifyListeners();
     }
 
-    final lastPlayed = _progress.lastPlayedPuzzleId;
-    final unfinished =
-        lastPlayed == null ? null : _catalog.findById(lastPlayed);
-    if (unfinished != null &&
-        !_progress.isCompleted(unfinished.id) &&
-        !_unloadable.contains(unfinished.id) &&
-        isLevelUnlocked(_catalog.levelOf(unfinished.id).index)) {
-      await startPuzzle(unfinished);
+    if (_progress.currentSolved) {
+      await finishStage();
+    } else if (!isGameOver) {
+      final lastPlayed = _progress.lastPlayedPuzzleId;
+      final unfinished =
+          lastPlayed == null ? null : _catalog.findById(lastPlayed);
+      if (unfinished != null && !_unloadable.contains(unfinished.id)) {
+        await startPuzzle(unfinished);
+        return;
+      }
+    }
+
+    if (isGameOver) {
+      await startNewGame();
       return;
     }
     await startNextPuzzle();
@@ -431,13 +493,9 @@ class GameProvider extends ChangeNotifier {
 
     if (isComplete) {
       _sessionState = PuzzleSessionState.completed;
-      // Merdivenin sonraki basamağını açan şey, bitirmektir (§4).
-      _progress = _progress.withCompleted(puzzle.id).copyWith(
-            unlockedLevel: _catalog.unlockedLevelCount({
-              ..._progress.completedPuzzleIds,
-              puzzle.id,
-            }),
-          );
+      // Resim çıkartma olarak kazanılır; safha, dizisi bitince ilerler
+      // (K-15, [finishStage]).
+      _progress = _progress.withCompleted(puzzle.id);
       _persist();
       // Bitiş ezgisi parçanın kendi 'pop' sesinin yerine geçer: son parçada
       // aynı anda iki ses, ödül değil gürültü olurdu (§22, §23).

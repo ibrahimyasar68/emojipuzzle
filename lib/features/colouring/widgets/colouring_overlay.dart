@@ -32,6 +32,7 @@ class ColouringOverlay extends StatefulWidget {
     required this.onFinished,
     this.audio,
     this.haptics = const HapticService(),
+    this.finishesCar = false,
   });
 
   final ColouringBook book;
@@ -43,6 +44,11 @@ class ColouringOverlay extends StatefulWidget {
   final AudioService? audio;
 
   final HapticService? haptics;
+
+  /// Bu safha arabanın son safhası mı (K-15). Öyleyse boyamadan sonra araba
+  /// — beyaz parçası kalmış olsa bile — ekrandan sürülerek çıkar. Sıradaki
+  /// arabaya geçmek defterin değil oyunun işidir.
+  final bool finishesCar;
 
   @override
   State<ColouringOverlay> createState() => _ColouringOverlayState();
@@ -77,13 +83,9 @@ class _ColouringOverlayState extends State<ColouringOverlay>
   @override
   void initState() {
     super.initState();
-    // Araba bir önceki sefer tamamlanmış ama sürülüp gitmeden önce oyundan
-    // çıkılmış olabilir: boyanacak bir şeyi olmayan bir araba açılmaz.
-    if (widget.book.isCarComplete) unawaited(widget.book.startNextCar());
-
     _settle.addStatusListener((status) {
       if (status != AnimationStatus.completed) return;
-      if (widget.book.isCarComplete) {
+      if (widget.finishesCar) {
         widget.audio?.playPuzzleComplete();
         _drive.forward();
       } else {
@@ -92,7 +94,6 @@ class _ColouringOverlayState extends State<ColouringOverlay>
     });
     _drive.addStatusListener((status) async {
       if (status != AnimationStatus.completed) return;
-      await widget.book.startNextCar();
       _finish();
     });
   }
@@ -129,6 +130,9 @@ class _ColouringOverlayState extends State<ColouringOverlay>
     final part = widget.book.car.partAt(local / layout.scale);
     // Kâğıda dokunmak bir şey boyamaz ve bir şey söylemez (§20).
     if (part == null) return;
+    // Boyanmış parça kilitlidir (K-15): beş safha beş parçadır ve yeniden
+    // boyanan bir parça, arabanın bir parçasını beyaz bırakırdı.
+    if (widget.book.colourOf(part.id) != null) return;
 
     _painted = true;
     _freshPart = part.id;

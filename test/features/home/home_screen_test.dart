@@ -270,7 +270,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(harness.game.progress.completedPuzzleIds, isEmpty);
-    expect(harness.game.progress.unlockedLevel, 1);
+    expect(harness.game.progress.stage, 0);
+    expect(harness.game.progress.carsFinished, 0);
     expect(harness.game.progress.lastPlayedPuzzleId, isNull);
     // The car goes back to a blank first model too (§24.2).
     expect(harness.game.colouring.carIndex, 0);

@@ -1,173 +1,131 @@
-import '../models/level_definition.dart';
 import '../models/puzzle_category.dart';
 import '../models/puzzle_definition.dart';
-import '../models/puzzle_grid.dart';
 
-/// Oyunun içeriği ve içinde ilerleme kuralları (§4, §13).
+/// Oyunun resimleri (§13, K-15).
 ///
-/// JSON değil Dart: on sekiz puzzle bir ayrıştırıcıya değmez ve derleyici,
-/// griddeki bir yazım hatasını JSON dosyasının ancak çocuğun cihazında
-/// patlayacağı yerde yakalar. İçerik tek ekrana sığmamaya başladığında JSON
-/// ilginç hale gelir (§13).
+/// JSON değil Dart: on sekiz resim bir ayrıştırıcıya değmez ve derleyici,
+/// bir yazım hatasını JSON dosyasının ancak çocuğun cihazında patlayacağı
+/// yerde yakalar.
+///
+/// Artık bir merdiven değil, bir havuzdur: kademe de kilit açma da yoktur.
+/// Her safhada bu havuzdan rastgele bir resim gelir ve puzzle'ın ebadını
+/// safha belirler (`GameRules`). Sıra yalnızca albümün ve testlerin işine
+/// yarar.
 class PuzzleCatalog {
-  const PuzzleCatalog(this.levels);
+  const PuzzleCatalog(this.puzzles);
 
-  final List<LevelDefinition> levels;
+  final List<PuzzleDefinition> puzzles;
 
-  /// K-1 = A: üç kademe. K-12 ile her kademede altı puzzle, toplam on sekiz:
-  /// her kademeye bir meyve, basit biçimler küçük gride, ayrıntılılar büyük
-  /// gride. Engine 1×3 ve 3×4'ü desteklemeye devam eder — bunlar engine
-  /// yetenekleridir, içerik değil (§4).
   static const PuzzleCatalog v1 = PuzzleCatalog([
-    LevelDefinition(
-      index: 1,
-      requiredCompletions: 2,
-      puzzles: [
-        PuzzleDefinition(
-          id: 'apple_01',
-          imagePath: 'assets/images/puzzles/apple.png',
-          category: PuzzleCategory.fruits,
-          grid: PuzzleGrid(rows: 2, columns: 2),
-          displayName: 'Elma',
-        ),
-        PuzzleDefinition(
-          id: 'cat_01',
-          imagePath: 'assets/images/puzzles/cat.png',
-          category: PuzzleCategory.animals,
-          grid: PuzzleGrid(rows: 2, columns: 2),
-          displayName: 'Kedi',
-        ),
-        PuzzleDefinition(
-          id: 'ball_01',
-          imagePath: 'assets/images/puzzles/ball.png',
-          category: PuzzleCategory.shapes,
-          grid: PuzzleGrid(rows: 2, columns: 2),
-          displayName: 'Top',
-        ),
-        PuzzleDefinition(
-          id: 'strawberry_01',
-          imagePath: 'assets/images/puzzles/strawberry.png',
-          category: PuzzleCategory.fruits,
-          grid: PuzzleGrid(rows: 2, columns: 2),
-          displayName: 'Çilek',
-        ),
-        PuzzleDefinition(
-          id: 'moon_01',
-          imagePath: 'assets/images/puzzles/moon.png',
-          category: PuzzleCategory.nature,
-          grid: PuzzleGrid(rows: 2, columns: 2),
-          displayName: 'Ay',
-        ),
-        PuzzleDefinition(
-          id: 'sheep_01',
-          imagePath: 'assets/images/puzzles/sheep.png',
-          category: PuzzleCategory.animals,
-          grid: PuzzleGrid(rows: 2, columns: 2),
-          displayName: 'Koyun',
-        ),
-      ],
+    PuzzleDefinition(
+      id: 'apple_01',
+      imagePath: 'assets/images/puzzles/apple.png',
+      category: PuzzleCategory.fruits,
+      displayName: 'Elma',
     ),
-    LevelDefinition(
-      index: 2,
-      requiredCompletions: 2,
-      puzzles: [
-        PuzzleDefinition(
-          id: 'banana_01',
-          imagePath: 'assets/images/puzzles/banana.png',
-          category: PuzzleCategory.fruits,
-          grid: PuzzleGrid(rows: 2, columns: 3),
-          displayName: 'Muz',
-        ),
-        PuzzleDefinition(
-          id: 'dog_01',
-          imagePath: 'assets/images/puzzles/dog.png',
-          category: PuzzleCategory.animals,
-          grid: PuzzleGrid(rows: 2, columns: 3),
-          displayName: 'Köpek',
-        ),
-        PuzzleDefinition(
-          id: 'bus_01',
-          imagePath: 'assets/images/puzzles/bus.png',
-          category: PuzzleCategory.vehicles,
-          grid: PuzzleGrid(rows: 2, columns: 3),
-          displayName: 'Otobüs',
-        ),
-        PuzzleDefinition(
-          id: 'watermelon_01',
-          imagePath: 'assets/images/puzzles/watermelon.png',
-          category: PuzzleCategory.fruits,
-          grid: PuzzleGrid(rows: 2, columns: 3),
-          displayName: 'Karpuz',
-        ),
-        PuzzleDefinition(
-          id: 'bicycle_01',
-          imagePath: 'assets/images/puzzles/bicycle.png',
-          category: PuzzleCategory.vehicles,
-          grid: PuzzleGrid(rows: 2, columns: 3),
-          displayName: 'Bisiklet',
-        ),
-        PuzzleDefinition(
-          id: 'turtle_01',
-          imagePath: 'assets/images/puzzles/turtle.png',
-          category: PuzzleCategory.animals,
-          grid: PuzzleGrid(rows: 2, columns: 3),
-          displayName: 'Kaplumbağa',
-        ),
-      ],
+    PuzzleDefinition(
+      id: 'cat_01',
+      imagePath: 'assets/images/puzzles/cat.png',
+      category: PuzzleCategory.animals,
+      displayName: 'Kedi',
     ),
-    LevelDefinition(
-      index: 3,
-      requiredCompletions: 2,
-      puzzles: [
-        PuzzleDefinition(
-          id: 'car_01',
-          imagePath: 'assets/images/puzzles/car.png',
-          category: PuzzleCategory.vehicles,
-          grid: PuzzleGrid(rows: 3, columns: 3),
-          displayName: 'Araba',
-        ),
-        PuzzleDefinition(
-          id: 'sun_01',
-          imagePath: 'assets/images/puzzles/sun.png',
-          category: PuzzleCategory.nature,
-          grid: PuzzleGrid(rows: 3, columns: 3),
-          displayName: 'Güneş',
-        ),
-        PuzzleDefinition(
-          id: 'lion_01',
-          imagePath: 'assets/images/puzzles/lion.png',
-          category: PuzzleCategory.animals,
-          grid: PuzzleGrid(rows: 3, columns: 3),
-          displayName: 'Aslan',
-        ),
-        PuzzleDefinition(
-          id: 'pineapple_01',
-          imagePath: 'assets/images/puzzles/pineapple.png',
-          category: PuzzleCategory.fruits,
-          grid: PuzzleGrid(rows: 3, columns: 3),
-          displayName: 'Ananas',
-        ),
-        PuzzleDefinition(
-          id: 'airplane_01',
-          imagePath: 'assets/images/puzzles/airplane.png',
-          category: PuzzleCategory.vehicles,
-          grid: PuzzleGrid(rows: 3, columns: 3),
-          displayName: 'Uçak',
-        ),
-        PuzzleDefinition(
-          id: 'saturn_01',
-          imagePath: 'assets/images/puzzles/saturn.png',
-          category: PuzzleCategory.nature,
-          grid: PuzzleGrid(rows: 3, columns: 3),
-          displayName: 'Satürn',
-        ),
-      ],
+    PuzzleDefinition(
+      id: 'ball_01',
+      imagePath: 'assets/images/puzzles/ball.png',
+      category: PuzzleCategory.shapes,
+      displayName: 'Top',
+    ),
+    PuzzleDefinition(
+      id: 'strawberry_01',
+      imagePath: 'assets/images/puzzles/strawberry.png',
+      category: PuzzleCategory.fruits,
+      displayName: 'Çilek',
+    ),
+    PuzzleDefinition(
+      id: 'moon_01',
+      imagePath: 'assets/images/puzzles/moon.png',
+      category: PuzzleCategory.nature,
+      displayName: 'Ay',
+    ),
+    PuzzleDefinition(
+      id: 'sheep_01',
+      imagePath: 'assets/images/puzzles/sheep.png',
+      category: PuzzleCategory.animals,
+      displayName: 'Koyun',
+    ),
+    PuzzleDefinition(
+      id: 'banana_01',
+      imagePath: 'assets/images/puzzles/banana.png',
+      category: PuzzleCategory.fruits,
+      displayName: 'Muz',
+    ),
+    PuzzleDefinition(
+      id: 'dog_01',
+      imagePath: 'assets/images/puzzles/dog.png',
+      category: PuzzleCategory.animals,
+      displayName: 'Köpek',
+    ),
+    PuzzleDefinition(
+      id: 'bus_01',
+      imagePath: 'assets/images/puzzles/bus.png',
+      category: PuzzleCategory.vehicles,
+      displayName: 'Otobüs',
+    ),
+    PuzzleDefinition(
+      id: 'watermelon_01',
+      imagePath: 'assets/images/puzzles/watermelon.png',
+      category: PuzzleCategory.fruits,
+      displayName: 'Karpuz',
+    ),
+    PuzzleDefinition(
+      id: 'bicycle_01',
+      imagePath: 'assets/images/puzzles/bicycle.png',
+      category: PuzzleCategory.vehicles,
+      displayName: 'Bisiklet',
+    ),
+    PuzzleDefinition(
+      id: 'turtle_01',
+      imagePath: 'assets/images/puzzles/turtle.png',
+      category: PuzzleCategory.animals,
+      displayName: 'Kaplumbağa',
+    ),
+    PuzzleDefinition(
+      id: 'car_01',
+      imagePath: 'assets/images/puzzles/car.png',
+      category: PuzzleCategory.vehicles,
+      displayName: 'Araba',
+    ),
+    PuzzleDefinition(
+      id: 'sun_01',
+      imagePath: 'assets/images/puzzles/sun.png',
+      category: PuzzleCategory.nature,
+      displayName: 'Güneş',
+    ),
+    PuzzleDefinition(
+      id: 'lion_01',
+      imagePath: 'assets/images/puzzles/lion.png',
+      category: PuzzleCategory.animals,
+      displayName: 'Aslan',
+    ),
+    PuzzleDefinition(
+      id: 'pineapple_01',
+      imagePath: 'assets/images/puzzles/pineapple.png',
+      category: PuzzleCategory.fruits,
+      displayName: 'Ananas',
+    ),
+    PuzzleDefinition(
+      id: 'airplane_01',
+      imagePath: 'assets/images/puzzles/airplane.png',
+      category: PuzzleCategory.vehicles,
+      displayName: 'Uçak',
+    ),
+    PuzzleDefinition(
+      id: 'saturn_01',
+      imagePath: 'assets/images/puzzles/saturn.png',
+      category: PuzzleCategory.nature,
+      displayName: 'Satürn',
     ),
   ]);
-
-  List<PuzzleDefinition> get puzzles => [
-        for (final level in levels) ...level.puzzles,
-      ];
 
   PuzzleDefinition byId(String puzzleId) => puzzles.firstWhere(
         (puzzle) => puzzle.id == puzzleId,
@@ -179,7 +137,7 @@ class PuzzleCatalog {
       );
 
   /// Hata fırlatmak yerine null; depodan gelen ve bu sürümde artık
-  /// bulunmayan bir puzzle'ı adlandırabilecek kimlikler için (§25.1).
+  /// bulunmayan bir resmi adlandırabilecek kimlikler için (§25.1).
   PuzzleDefinition? findById(String puzzleId) {
     for (final puzzle in puzzles) {
       if (puzzle.id == puzzleId) return puzzle;
@@ -187,75 +145,19 @@ class PuzzleCatalog {
     return null;
   }
 
-  LevelDefinition levelOf(String puzzleId) => levels.firstWhere(
-        (level) => level.puzzles.any((puzzle) => puzzle.id == puzzleId),
-        orElse: () => throw ArgumentError.value(
-          puzzleId,
-          'puzzleId',
-          'not in the catalogue',
-        ),
-      );
-
-  /// Katalogdaki bütün puzzle'lar, çocuğun onlarla karşılaşma sırasıyla.
-  List<PuzzleDefinition> get allPuzzles => [
-        for (final level in levels) ...level.puzzles,
-      ];
-
-  /// Albümün biçimi (§25): puzzle'lar kategorilerine göre gruplanmış.
+  /// Albümün biçimi (§25): resimler kategorilerine göre gruplanmış.
   ///
-  /// Yalnızca gerçekten puzzle'ı olan kategoriler görünür ve enum'daki
+  /// Yalnızca gerçekten resmi olan kategoriler görünür ve enum'daki
   /// sırayla gelirler; böylece çocuk çıkartma kazandıkça albüm kendini
   /// yeniden dizmez.
   Map<PuzzleCategory, List<PuzzleDefinition>> get byCategory {
     final grouped = <PuzzleCategory, List<PuzzleDefinition>>{};
     for (final category in PuzzleCategory.values) {
-      final puzzles = allPuzzles
+      final inCategory = puzzles
           .where((puzzle) => puzzle.category == category)
           .toList(growable: false);
-      if (puzzles.isNotEmpty) grouped[category] = puzzles;
+      if (inCategory.isNotEmpty) grouped[category] = inCategory;
     }
     return Map.unmodifiable(grouped);
-  }
-
-  /// Tamamlananlara göre kaç kademenin açık olduğu (§4).
-  ///
-  /// Bir kademe, kendisinden öncekinde [LevelDefinition.requiredCompletions]
-  /// kadar puzzle bitince açılır. Merdiven hiçbir basamağı atlamaz: bir
-  /// kademe eksik kaldığı anda üstündeki her şey kapalı kalır.
-  int unlockedLevelCount(Set<String> completedPuzzleIds) {
-    var unlocked = 1;
-    for (var i = 0; i < levels.length - 1; i++) {
-      final level = levels[i];
-      final done = level.puzzles
-          .where((puzzle) => completedPuzzleIds.contains(puzzle.id))
-          .length;
-      if (done < level.requiredCompletions) break;
-      unlocked = i + 2;
-    }
-    return unlocked;
-  }
-
-  bool isLevelUnlocked(int levelIndex, Set<String> completedPuzzleIds) =>
-      levelIndex <= unlockedLevelCount(completedPuzzleIds);
-
-  /// Sunulacak sonraki puzzle: çocuğun açtığı kademeler içindeki ilk
-  /// bitirilmemiş olan. Null, erişilebilir her şeyin bittiği anlamına gelir.
-  ///
-  /// [unavailable], şu an oynanamayacak puzzle'ları tutar — yüklenemeyen
-  /// görseller (§14). Atlanırlar, ama tamamlananların aksine hiçbir şeyin
-  /// kilidini açmazlar.
-  PuzzleDefinition? firstUnsolved(
-    Set<String> completedPuzzleIds, {
-    Set<String> unavailable = const {},
-  }) {
-    final unlocked = unlockedLevelCount(completedPuzzleIds);
-    for (final level in levels.take(unlocked)) {
-      for (final puzzle in level.puzzles) {
-        if (completedPuzzleIds.contains(puzzle.id)) continue;
-        if (unavailable.contains(puzzle.id)) continue;
-        return puzzle;
-      }
-    }
-    return null;
   }
 }

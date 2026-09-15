@@ -1,15 +1,16 @@
 import 'dart:async' show unawaited;
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/puzzle_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../album/widgets/sticker_reward_overlay.dart';
 import '../../balloon/widgets/balloon_game_overlay.dart';
+import '../../../core/constants/puzzle_config.dart';
 import '../../celebration/widgets/celebration_overlay.dart';
+import '../../colouring/widgets/car_parade_overlay.dart';
 import '../../colouring/widgets/colouring_overlay.dart';
+import '../engine/geometry/board_fitter.dart';
 import '../engine/geometry/coordinate_mapper.dart';
 import '../engine/geometry/snap_calculator.dart';
 import '../engine/geometry/tray_layout_calculator.dart';
@@ -79,6 +80,9 @@ class _PuzzleScreenState extends State<PuzzleScreen>
 
   /// Boyama safhası ekrandayken true (§24.2).
   bool _colouring = false;
+
+  /// Oyun sonu kutlaması ekrandayken true (K-15).
+  bool _parading = false;
 
   /// Oynamayı bırakmış bir çocuğu gözler (§21).
   late final HintController _hint;
@@ -189,7 +193,8 @@ class _PuzzleScreenState extends State<PuzzleScreen>
     final wasCelebrating = _celebrating ||
         _playingBalloons ||
         _stickerAwarded != null ||
-        _colouring;
+        _colouring ||
+        _parading;
 
     _cancelDrag(game);
     _hint.pause();
@@ -200,11 +205,12 @@ class _PuzzleScreenState extends State<PuzzleScreen>
         _playingBalloons = false;
         _stickerAwarded = null;
         _colouring = false;
+        _parading = false;
       });
       // Dizinin arkasındaki resim tamamlandı. Oyunu çözülmüş bir board'da
-      // bırakmak çocuğa dönecek bir şey vermezdi, bu yüzden sonraki puzzle
-      // çıkarken hazırlanır.
-      unawaited(game.startNextPuzzle());
+      // bırakmak çocuğa dönecek bir şey vermezdi, bu yüzden safha ilerler ve
+      // sonraki puzzle çıkarken hazırlanır (K-15).
+      unawaited(_afterInterruptedSequence(game));
     }
 
     await game.saveProgress();
@@ -434,12 +440,41 @@ class _PuzzleScreenState extends State<PuzzleScreen>
   void _finishColouring(GameProvider game) {
     if (!_colouring) return;
     setState(() => _colouring = false);
-    _moveOn(game);
+    unawaited(_moveOn(game));
   }
 
-  void _moveOn(GameProvider game) {
+  /// Safha bitti: oyun bir safha ilerler (K-15). Üçüncü araba da bittiyse
+  /// sırada oyun sonu kutlaması var, değilse bir sonraki safhanın puzzle'ı.
+  Future<void> _moveOn(GameProvider game) async {
+    await game.finishStage();
+    if (!mounted) return;
+    if (game.isGameOver) {
+      setState(() => _parading = true);
+      return;
+    }
     _hint.resume();
-    game.startNextPuzzle();
+    await game.startNextPuzzle();
+  }
+
+  /// Oyun sonu kutlaması bitti (K-15): yeni oyun hazırlanır ve çocuk Home'a
+  /// döner. Oyna'ya bastığında 2 × 2'lik ilk puzzle çoktan hazırdır.
+  void _finishParade(GameProvider game) {
+    if (!_parading) return;
+    setState(() => _parading = false);
+    unawaited(game.startNewGame());
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) navigator.pop();
+  }
+
+  /// Dizinin ortasında çıkıldı (§30). Kazanılan hiçbir şey geri alınmaz:
+  /// safha ilerler, oyun bittiyse yenisi başlar.
+  Future<void> _afterInterruptedSequence(GameProvider game) async {
+    await game.finishStage();
+    if (game.isGameOver) {
+      await game.startNewGame();
+    } else {
+      await game.startNextPuzzle();
+    }
   }
 
   @override
@@ -469,25 +504,20 @@ class _PuzzleScreenState extends State<PuzzleScreen>
 
             return LayoutBuilder(
               builder: (context, constraints) {
-                final boardEdge = math.min(
-                  math.min(
-                    constraints.maxWidth - 2 * PuzzleConfig.boardMargin,
-                    constraints.maxHeight * PuzzleConfig.boardHeightFactor,
-                  ),
-                  PuzzleConfig.maxBoardSize,
+                // Board önce §40'ın boyunda; büyük bir grid tepsiye
+                // sığmıyorsa küçülür (K-15).
+                final fit = BoardFitter.fit(
+                  area: constraints.biggest,
+                  grid: game.grid,
                 );
+                final boardEdge = fit.boardEdge;
                 final boardSize = Size(boardEdge, boardEdge);
                 final paths = _pathsFor(game, boardSize);
 
-                final trayHeight = constraints.maxHeight - boardEdge;
                 final pieceSize = CoordinateMapper.pieceSizeOf(
                   CoordinateMapper.cellSizeOf(game.grid, boardSize),
                 );
-                final layout = TrayLayoutCalculator.calculate(
-                  traySize: Size(constraints.maxWidth, trayHeight),
-                  pieceCount: game.grid.pieceCount,
-                  boardPieceSize: pieceSize,
-                );
+                final layout = fit.tray;
                 final trayScale = layout.itemSize.width / pieceSize.width;
                 // Otomatik yerleştirme için saklanır; o iş build içinde
                 // değil bir zamanlayıcıda olur (§21).
@@ -604,8 +634,20 @@ class _PuzzleScreenState extends State<PuzzleScreen>
                             ColouringOverlay(
                               book: game.colouring,
                               audio: game.audio,
+                              finishesCar: game.isLastStageOfCar,
                               onFinished: () => _finishColouring(game),
                             ),
+                          if (_parading) ...[
+                            CelebrationOverlay(
+                              duration: PuzzleConfig.carParadeDuration,
+                              onFinished: () {},
+                            ),
+                            CarParadeOverlay(
+                              cars: game.colouring.recentCars,
+                              audio: game.audio,
+                              onFinished: () => _finishParade(game),
+                            ),
+                          ],
                         ],
                       );
                     },

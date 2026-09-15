@@ -1,10 +1,12 @@
 import 'dart:math' show Random;
 
 import 'package:emoji_puzzle_kids/core/services/storage_service.dart';
+import 'package:emoji_puzzle_kids/features/puzzle/data/game_rules.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/data/progress_repository.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/data/puzzle_catalog.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/puzzle_generator.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/tray_shuffler.dart';
+import 'package:emoji_puzzle_kids/features/puzzle/models/app_state.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/models/game_progress.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/providers/game_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,10 +15,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// One device, kept across "app restarts".
 late StorageService storage;
 
-GameProvider _newSession() => GameProvider(
+GameProvider _newSession({int seed = 1}) => GameProvider(
       generator: PuzzleGenerator(random: Random(1)),
       shuffler: TrayShuffler(random: Random(1)),
       progressRepository: ProgressRepository(storage),
+      random: Random(seed),
     );
 
 void _solve(GameProvider game) {
@@ -33,50 +36,40 @@ void main() {
     storage = await StorageService.create();
   });
 
-  test('progress survives closing and opening the app (§25)', () async {
+  test('a finished stage survives closing and opening the app (§25)', () async {
     final first = _newSession();
     await first.resume();
-    _solve(first); // apple_01
-    await first.pendingWrite;
-    first.dispose();
-
-    final second = _newSession();
-    await second.resume();
-
-    expect(second.isPuzzleCompleted('apple_01'), isTrue);
-    expect(second.progress.completedPuzzleIds, {'apple_01'});
-    second.dispose();
-  });
-
-  test('two completions keep level 2 open after a restart (§4)', () async {
-    final first = _newSession();
-    await first.resume();
-    _solve(first); // apple_01
-    await first.startNextPuzzle(); // cat_01
+    final solved = first.puzzle.id;
     _solve(first);
+    await first.finishStage();
     await first.pendingWrite;
     first.dispose();
 
-    final second = _newSession();
+    final second = _newSession(seed: 2);
     await second.resume();
 
-    expect(second.unlockedLevelCount, 2);
-    expect(second.isLevelUnlocked(2), isTrue);
+    expect(second.isPuzzleCompleted(solved), isTrue);
+    expect(second.stage, 1);
+    expect(second.grid, GameRules.stageGrids[1]);
     second.dispose();
   });
 
   test('an unfinished puzzle is picked up where it was left (§25)', () async {
     final first = _newSession();
     await first.resume();
-    await first.startPuzzle(PuzzleCatalog.v1.byId('cat_01'));
+    _solve(first);
+    await first.finishStage();
+    await first.startNextPuzzle();
+    final halfway = first.puzzle.id;
     first.markPlaced(0); // started, not finished
     await first.pendingWrite;
     first.dispose();
 
-    final second = _newSession();
+    final second = _newSession(seed: 9);
     await second.resume();
 
-    expect(second.puzzle.id, 'cat_01');
+    expect(second.puzzle.id, halfway, reason: 'the same picture');
+    expect(second.grid, GameRules.stageGrids[1], reason: 'at the same stage');
     expect(
       second.placedCount,
       0,
@@ -85,21 +78,44 @@ void main() {
     second.dispose();
   });
 
-  test('a finished last puzzle hands over to the next one', () async {
+  test('a puzzle solved but not yet rewarded moves its stage on (K-15)',
+      () async {
     final first = _newSession();
     await first.resume();
-    _solve(first); // apple_01, and it was also the last played
+    final solved = first.puzzle.id;
+    _solve(first); // the app is closed during the celebration
     await first.pendingWrite;
     first.dispose();
 
     final second = _newSession();
     await second.resume();
 
-    expect(second.puzzle.id, 'cat_01');
+    expect(second.stage, 1, reason: 'no going back to a solved board');
+    expect(second.puzzle.id, isNot(solved));
+    expect(second.progress.currentSolved, isFalse);
+    expect(second.appState, AppState.ready);
     second.dispose();
   });
 
-  test('a stored puzzle id this build no longer has is ignored', () async {
+  test('a game left at its end opens as a new game', () async {
+    await ProgressRepository(storage).save(
+      const GameProgress(
+        completedPuzzleIds: {'apple_01'},
+        carsFinished: GameRules.carsPerGame,
+      ),
+    );
+
+    final game = _newSession();
+    await game.resume();
+
+    expect(game.isGameOver, isFalse);
+    expect(game.carsFinished, 0);
+    expect(game.stage, 0);
+    expect(game.progress.completedPuzzleIds, {'apple_01'});
+    game.dispose();
+  });
+
+  test('a stored picture this build no longer has is ignored', () async {
     await ProgressRepository(storage).save(
       const GameProgress.initial().copyWith(lastPlayedPuzzleId: 'dragon_99'),
     );
@@ -107,23 +123,21 @@ void main() {
     final game = _newSession();
     await game.resume();
 
-    expect(game.puzzle.id, 'apple_01');
+    expect(game.appState, AppState.ready);
+    expect(PuzzleCatalog.v1.findById(game.puzzle.id), isNotNull);
     game.dispose();
   });
 
-  test('a stored level more generous than the catalogue is corrected',
-      () async {
-    // Nothing finished, but the file claims level 3 is open.
+  test('a stored stage beyond these rules starts the car again', () async {
     await ProgressRepository(storage).save(
-      const GameProgress(unlockedLevel: 3, completedPuzzleIds: {}),
+      const GameProgress(completedPuzzleIds: {}, stage: 9),
     );
 
     final game = _newSession();
     await game.resume();
 
-    expect(game.unlockedLevelCount, 1);
-    expect(game.progress.unlockedLevel, 1);
-    expect(game.isLevelUnlocked(2), isFalse);
+    expect(game.stage, 0);
+    expect(game.grid, GameRules.stageGrids.first);
     game.dispose();
   });
 
@@ -131,6 +145,7 @@ void main() {
     final first = _newSession();
     await first.resume();
     _solve(first);
+    await first.finishStage();
     await first.pendingWrite;
 
     await first.clearProgress();
@@ -141,11 +156,8 @@ void main() {
     await second.resume();
 
     expect(second.progress.completedPuzzleIds, isEmpty);
-    expect(second.progress.unlockedLevel, 1);
-    // Starting a puzzle records where we are again, so the child is back at
-    // the very beginning rather than at a blank slate.
-    expect(second.puzzle.id, 'apple_01');
-    expect(second.progress.lastPlayedPuzzleId, 'apple_01');
+    expect(second.stage, 0);
+    expect(second.progress.lastPlayedPuzzleId, second.puzzle.id);
     second.dispose();
   });
 
@@ -160,6 +172,6 @@ void main() {
     _solve(game);
     await game.pendingWrite;
 
-    expect(game.isPuzzleCompleted('apple_01'), isTrue);
+    expect(game.isPuzzleCompleted(game.puzzle.id), isTrue);
   });
 }

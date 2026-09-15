@@ -56,6 +56,7 @@ cevaplandı; değişen [ZORUNLU] maddeler kendi bölümlerinde işaretlidir.
 | K-7 | Boyama çizimleri (siyah çizgili arabalar) **kodla çizilir** (Path); lisans kaydı gerekmez. | §24.2, §33 |
 | K-8 | Boyama ekranında §2'nin "en fazla 5 dokunulabilir eleman" sınırı **esner**: renk seçimi + ~6 araba parçası, her biri ≥ 64 px. | §2, §24.2 |
 | K-9 | Renk sabit bir listeden değil, **serbest bir paletten** seçilir: bir şeritte bütün tonlar açıktan koyuya, yanında beyazdan siyaha gri şerit. Parmak palette gezdikçe seçim de gezer. *(Faz 18 sırasında, 15 Eylül; K-8'in "6 renk"ini değiştirdi.)* | §24.2 |
+| K-15 | **Yeni oyun kuralları.** Kademe ve kilit açma kalktı. Bir oyun 3 araba, bir araba 5 safhadır; her safhada havuzdan **rastgele** bir resim gelir (bir oyunda tekrar etmez) ve puzzle ebadını **safha** belirler: 2×2 → 2×3 → 3×3 → 4×3 → 4×4. Her safhanın sonunda arabanın bir parçası boyanır; **boyanan parça kilitlenir**, "geç" oku kalır. 5. safhadan sonra araba — beyaz parçası kalsa bile — sürülüp gider ve sıradaki araba 2×2'den başlar. 3 araba bitince **oyun sonu**: biten arabalar yan yana, konfeti, sonra Home ve yeni oyun; arabalar sırayla devam eder. 4×3 ve 4×4 küçük ekranlarda sığsın diye **board gerektiğinde küçülür** (§40); 64 px ve kaymayan tepsi kuralları korunur. Albümden seçilen resim o anki safhanın ebadıyla oynanır. *(15 Eylül, kullanıcı istedi.)* | §2, §4, §16, §24.2, §25, §40 |
 | K-14 | Yeni kategori **Eşyalar** (`objects`): kitap, mikroskop, dürbün. §4'ün [ZORUNLU] "enum yalnızca 5 değer" kuralı 6'ya çıktı. Her kademeye bir tane: kitap 2×2, dürbün 2×3, mikroskop 3×3. Görselleri proje sahibi sağlayacak. *(15 Eylül, kullanıcı istedi.)* | §4, §25 |
 | K-13 | Boyama defterine **kamyon ve traktör** eklendi: 5 model (sedan, kamyonet, yarış arabası, kamyon, traktör), yine kodla çizilir ve her parça 64 px ölçümünü geçer. *(15 Eylül, kullanıcı istedi.)* | §24.2 |
 | K-12 | İçerik **18 puzzle**: her kademeye 3 yeni resim (3 kademe × 6). Karpuz, çilek, ananas → meyveler; uçak, bisiklet → taşıtlar; ay, Satürn → doğa; kaplumbağa, koyun → hayvanlar. Kategori listesi (5 değer) değişmedi. Görseller OpenMoji, aynı kaynak ve lisans. *(15 Eylül, kullanıcı istedi; oyun kuralları sonra değişecek, kademe yerleşimi geçici olabilir.)* | §4 |
@@ -175,6 +176,8 @@ Minimum dokunma hedefi pazarlık konusu değildir. Bir layout 64 px'i sağlayam�
 
 Bu, MVP'de parça sayısının üst sınırıdır (§4, §16).
 
+*K-15'te ölçüldü ve düzeltildi:* tepsi hesabı board'dan artan bütün yüksekliği kullandığı için 360×640'ta 16 parça da 64 px'te sığar. Sığmayan ekranlarda (320×568'de 12 ve 16 parça, sistem çubukları düşülmüş 360×592'de 16 parça) board küçülür (§40). Kural değişmedi; üst sınır 16 oldu.
+
 ---
 
 # 3. CORE GAMEPLAY
@@ -207,6 +210,8 @@ Yanlış hareket hiçbir şekilde ilerlemeyi cezalandırmaz.
 ---
 
 # 4. KADEME VE İÇERİK YAPISI
+
+> **K-15 ile bu bölümün kademe, kilit açma ve Serbest Mod kuralları kalktı.** Oyunun biçimi artık safha ve arabadır (§0.3, K-15; kod: `features/puzzle/data/game_rules.dart`). Aşağıdaki resim listesi bir **havuz** olarak geçerlidir; kademe tablosu ve `requiredCompletions` tarihçe olarak bırakıldı.
 
 **[ZORUNLU]** — *v2.2'de değişti, bkz. K-1*
 
@@ -847,7 +852,7 @@ Kurallar:
 * Parçalar arası minimum boşluk **12 logical px**'tir.
 * Hesap widget içinde değil, `engine/geometry/tray_layout_calculator.dart` içinde yapılır ve unit test edilir.
 
-Referans sonuç (360×640 dp, board 344, tray 256):
+Referans sonuç (360×640 dp, board 344, tray 256) — *v2.2'nin tahmini; K-15'te ölçülünce 12 ve 16 parçanın da sığdığı görüldü, bkz. §2 notu ve §40:*
 
 | Parça | Satır × Sütun | itemSize | Durum |
 |------:|---------------|---------:|-------|
@@ -1163,7 +1168,9 @@ Parça boyanır → kısa ses → ~0,9 sn
 **[ZORUNLU]**
 
 * Boyama **her** puzzle bitişinde gelir, Serbest Mod dahil. Sticker yalnızca ilk bitirişte verilir (§25).
-* Her bitişte **bir** parça boyanır. Boyanmış bir parça yeniden boyanabilir; bu da o bitişin hakkıdır.
+* Her bitişte **bir** parça boyanır. *K-15:* boyanmış parça **kilitlidir**, yalnızca beyaz bir parça boyanabilir — beş safha beş parçadır.
+* *K-15:* arabanın **son safhasında** (5.) boyamadan ya da geçildikten sonra araba — beyaz parçası kalsa bile — sürülüp gider; sıradaki arabaya geçmeye oyun karar verir, boyama sayfası değil.
+* *K-15:* **3 araba** bitince oyun sonu: bu oyunda biten arabalar yan yana gelir (konfetiyle), bir süre sonra ya da dokununca Home'a dönülür ve yeni oyun hazırlanır. Geri tuşu da aynı yere götürür (§30).
 * Safha **atlanabilir** (§23): "geç" oku hemen sonraki puzzle'a geçer, hiçbir şey boyanmaz. Kâğıda ya da boş alana dokunmak hiçbir şey yapmaz, bir şey söylemez (§20).
 * Renk **serbest bir paletten** seçilir (K-9). Dikey ekranda palet altta: tonlar enine, açıklık boyuna; yatay ekranda sağda: tonlar boyuna, açıklık enine. Yanında beyazdan siyaha gri şerit. Dokunmak ve sürüklemek aynı şeyi yapar: parmağın altındaki renk seçilir; şeritten taşan parmak kenardaki rengi seçer.
 * Palette **çizilen renk, boyanan rengin kendisidir** — otomatik test ekran piksellerini seçilen renkle karşılaştırır.
@@ -1171,7 +1178,7 @@ Parça boyanır → kısa ses → ~0,9 sn
 * Seçilen renk ayrıca **sol üst köşedeki çerçeveli bir karede** görünür (K-10); parmak palette gezerken kare de anında değişir. Kare dokunuşa kapalıdır. Yatay ekranda "geç" oku karenin altına iner.
 * Boya, palet sırası olarak değil **renk değeri (opak ARGB)** olarak saklanır.
 * Araba **kodla çizilir** (K-7). Her model 5–6 parçadır; her parçanın görünen alanına en dar ekranda (320 dp) bile 64 px'lik bir daire sığar (§2, K-8) — otomatik test eder.
-* 5 model sırayla gelir — sedan, kamyonet, yarış arabası, kamyon, traktör (K-13); sonuncudan sonra ilkine dönülür. Tamamlanmış ama sürülüp gitmeden oyundan çıkılmış bir araba, safha bir sonraki açılışında yeni modelle başlar.
+* 5 model sırayla gelir — sedan, kamyonet, yarış arabası, kamyon, traktör (K-13); sonuncudan sonra ilkine dönülür. Her modelin tam **5** parçası vardır (safha sayısı; testle korunur). Defter en son biten 3 arabayı hatırlar (oyun sonu için).
 * Boyama durumu **ayrı bir anahtarda** saklanır (`emoji_puzzle.colouring`), `GameProgress`'te değil: feature bağımsızlığı korunur ve §25.1 şema değişikliği ilerlemeyi silmez. Bozuk kayıt → ilk araba, boş (§25.1'in ruhu).
 * §26 ilerleme sıfırlaması boyama defterini de ilk arabaya, boş olarak döndürür.
 * Geri tuşu (§30): safha kesilir, boyanan parça kalır, sonraki puzzle hazırlanır.
@@ -1181,6 +1188,8 @@ Parça boyanır → kısa ses → ~0,9 sn
 ---
 
 # 25. PROGRESS VE STICKER ALBUM
+
+> *K-15 — şema 2:* `unlockedLevel` kalktı; `stage` (0–4), `carsFinished` (bu oyunda), `playedThisGame` (bu oyunda gelmiş resimler) ve `currentSolved` (puzzle çözüldü ama safhanın dizisi bitmedi — açılışta safha ilerletilir) geldi. Şema 1'den geçişte **çıkartmalar korunur**, oyun baştan başlar. Albüm aynı kalır: bir resmi ilk kez bitirmek çıkartmasını verir.
 
 **[ZORUNLU]** — *v2.2'de sadeleştirildi*
 
@@ -1624,6 +1633,8 @@ board = min(
 
 Board kare kalır. Tablet: max 500×500, centered.
 
+**[ZORUNLU]** — *K-15'te eklendi:* yukarıdaki boyda tepsi her parçayı 64 px'te tutamıyorsa board, tutabileceği en büyük boya kadar 2 px adımlarla küçülür; en uzun kenarındaki hücre 64 px'in altına inecek kadar küçülmez. Ödün sırası: dokunma hedefi (asla) > kaymayan tepsi (asla) > board boyu. Hesap `engine/geometry/board_fitter.dart`'tadır ve testlidir.
+
 Test edilecek ekranlar:
 
 ```text
@@ -1814,6 +1825,8 @@ Ortamında Flutter SDK yoksa "testler geçti" deme. Testleri yaz, çalıştırı
 | **15** | Responsive + tablet + accessibility smoke test | Farklı ekranlarda layout bozulmuyor |
 | **16** | Asset/license audit + privacy + test tamamlaması + final polish | Tüm testler yeşil, belirgin jank yok, lisanslar tamam |
 | **17** | Balon renk eşleştirme (K-5; K-11 ile 10 balon, 3 sn) | Aynı renk çifti birlikte patlıyor, yanlış renkte seçim sessizce geçiyor, eşi olmayan balon kalmıyor |
+| **21** | Yeni oyun kuralları: 5 safha, 3 araba, rastgele resim, board sığdırma (K-15) | 2×2→4×4 safhalar oynanıyor, araba 5. safhada gidiyor, 3 arabada oyun sonu, 4×4 küçük telefonda 64 px |
+| **20** | Kamyon, traktör; Eşyalar kategorisi (K-13, K-14) | 5 araba modeli ölçümü geçiyor, Eşyalar'ın kendi gradyanı var |
 | **19** | 9 yeni puzzle, 18'e çıkış (K-12) | 18 puzzle 3 kademede oynanıyor, albümde doğru kategoride, lisanslar tamam |
 | **18** | Boyama safhası (K-6, K-7, K-8) | Her bitirişte bir parça boyanıyor, atlanabiliyor, boyama kalıcı, araba bitince yeni model |
 
