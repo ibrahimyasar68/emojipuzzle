@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import '../../../core/constants/puzzle_config.dart';
@@ -16,6 +18,9 @@ import 'balloon_painter.dart';
 /// duyduğu iki servis ve bittiğini söyleyecek bir yol verilir; geri kalan
 /// her şey — kaç balon, ne hızda geldikleri, ne zaman bittiği —
 /// [BalloonGameController] içindedir ve bu widget yalnızca onu çizer.
+///
+/// Oyun renk eşleştirmedir (K-5): bir dokunuş balonu seçer, aynı renkten
+/// ikinci bir dokunuş ikisini birlikte patlatır.
 ///
 /// Burada hiçbir şey kaybedilemez. Süre dolduğunda hâlâ havada olan
 /// balonlara dokunulmaz: mesaj yok, ses yok, surat yok (§20).
@@ -55,6 +60,10 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
 
   final List<_Burst> _bursts = [];
   bool _handedBack = false;
+
+  /// Seçimin başladığı an, çizim saatinde; büyüme ve sallanma buradan
+  /// ölçülür.
+  Duration _selectedAt = Duration.zero;
 
   Duration get _elapsed => _clock.duration! * _clock.value;
 
@@ -113,24 +122,68 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
     super.dispose();
   }
 
-  void _pop(Balloon balloon, Size playArea) {
-    final rect = BalloonLayout.rectOf(balloon, playArea, _elapsed);
+  void _tap(Balloon balloon, Size playArea) {
+    final wasSelected = _game.selectedId;
+    final popped = _game.tap(balloon.id);
+
+    if (popped.isEmpty) {
+      // Yeni bir seçim: yalnızca bir dokunuş hissi. Ses yok — ses patlamanın
+      // ödülüdür, farklı renkteki bir dokunuş da ceza değildir (§20).
+      if (_game.selectedId != wasSelected) {
+        _selectedAt = _elapsed;
+        widget.haptics?.selection();
+      }
+      return;
+    }
+
+    final elapsed = _elapsed;
     setState(() {
-      _bursts.add(
-        _Burst(
-          balloon: balloon,
-          centre: rect.center,
-          radius: rect.width / 2,
-          startedAt: _elapsed,
-        ),
-      );
+      for (final gone in popped) {
+        final rect = BalloonLayout.rectOf(gone, playArea, elapsed);
+        _bursts.add(
+          _Burst(
+            balloon: gone,
+            centre: rect.center,
+            radius: rect.width / 2,
+            startedAt: elapsed,
+            // Seçili balon büyümüş haliyle patlar; küçülüp sonra şişmez.
+            startScale:
+                gone.id == wasSelected ? PuzzleConfig.balloonSelectedScale : 1,
+          ),
+        );
+      }
     });
 
-    // Önce animasyon, sonra ses, sonra parçacıklar — haptik en sonda,
-    // çünkü oyunun vazgeçebileceği tek ses odur (§27).
+    // İki balon, tek patlama sesi. Önce animasyon, sonra ses — haptik en
+    // sonda, çünkü oyunun vazgeçebileceği tek ses odur (§27).
     widget.audio?.playBalloonPop();
     widget.haptics?.light();
-    _game.pop(balloon.id);
+  }
+
+  /// Seçili balon büyür; eşine nabız attırılan balon şişip iner (§24).
+  double _scaleOf(Balloon balloon, Duration elapsed) {
+    if (balloon.id == _game.selectedId) {
+      final grow = ((elapsed - _selectedAt).inMicroseconds /
+              PuzzleConfig.balloonSelectDuration.inMicroseconds)
+          .clamp(0.0, 1.0);
+      return 1 + (PuzzleConfig.balloonSelectedScale - 1) * grow;
+    }
+    if (balloon.id == _game.partnerHintId) {
+      final phase = elapsed.inMicroseconds /
+          PuzzleConfig.balloonPartnerHintPeriod.inMicroseconds;
+      final pulse = 0.5 - 0.5 * math.cos(phase * 2 * math.pi);
+      return 1 + (PuzzleConfig.balloonPartnerHintScale - 1) * pulse;
+    }
+    return 1;
+  }
+
+  /// Seçili balon hafifçe sallanır: seçim yalnızca boyuta bırakılmaz.
+  double _wobbleOf(Balloon balloon, Duration elapsed) {
+    if (balloon.id != _game.selectedId) return 0;
+    final phase = (elapsed - _selectedAt).inMicroseconds /
+        PuzzleConfig.balloonSelectedWobblePeriod.inMicroseconds;
+    return math.sin(phase * 2 * math.pi) *
+        PuzzleConfig.balloonSelectedWobbleRadians;
   }
 
   @override
@@ -184,18 +237,24 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
       child: GestureDetector(
         key: ValueKey('balloon-${balloon.id}'),
         behavior: HitTestBehavior.opaque,
-        onTap: () => _pop(balloon, playArea),
+        onTap: () => _tap(balloon, playArea),
         child: Opacity(
           // Yavaşça beliriyor ama ilk kareden itibaren dokunulabilir:
           // çocuğun görebildiği balon, uzanabileceği balondur (§2).
           opacity: BalloonLayout.opacityOf(balloon, elapsed),
-          child: CustomPaint(
-            painter: BalloonPainter(
-              colour:
-                  balloonColours[balloon.colourIndex % balloonColours.length],
-              stringColour: context.palette.balloonString,
+          // Büyüme ve sallanma yalnızca çizimdedir; dokunma alanı yerinde
+          // kalır.
+          child: Transform.rotate(
+            angle: _wobbleOf(balloon, elapsed),
+            child: CustomPaint(
+              painter: BalloonPainter(
+                colour:
+                    balloonColours[balloon.colourIndex % balloonColours.length],
+                stringColour: context.palette.balloonString,
+                scale: _scaleOf(balloon, elapsed),
+              ),
+              size: Size.square(diameter),
             ),
-            size: Size.square(diameter),
           ),
         ),
       ),
@@ -209,8 +268,9 @@ class _BalloonGameOverlayState extends State<BalloonGameOverlay>
         .clamp(0.0, 1.0);
     final colour =
         balloonColours[burst.balloon.colourIndex % balloonColours.length];
-    final swell = 1 +
-        (PuzzleConfig.balloonPopScale - 1) * (progress * 2.5).clamp(0.0, 1.0);
+    final swell = burst.startScale +
+        (PuzzleConfig.balloonPopScale - burst.startScale) *
+            (progress * 2.5).clamp(0.0, 1.0);
 
     return [
       Positioned.fromRect(
@@ -253,9 +313,13 @@ class _Burst {
     required this.centre,
     required this.radius,
     required this.startedAt,
+    required this.startScale,
   });
 
   final Balloon balloon;
+
+  /// Patlamanın hangi boyuttan başladığı: seçili balon zaten büyümüştür.
+  final double startScale;
 
   /// Patladığı yerde dondurulur: parçalar salınımla birlikte kaymaz.
   final Offset centre;

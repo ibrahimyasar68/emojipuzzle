@@ -7,10 +7,16 @@ import '../../../core/constants/puzzle_config.dart';
 import '../models/balloon.dart';
 
 /// Balon mini oyununun kuralları (§24): kaç balon olduğu, ne zaman
-/// geldikleri ve oyunun ne zaman bittiği.
+/// geldikleri, hangi ikisinin birlikte patladığı ve oyunun ne zaman
+/// bittiği.
 ///
-/// Piksel de widget da tutmaz; böylece "on iki balon, aynı anda sekiz, on
-/// beş saniye" bir birim testinde saniye saniye denetlenebilir. Saat, sade
+/// Oyun renk eşleştirmedir (K-5): bir balona dokunmak onu seçer, aynı
+/// renkten ikinci bir balona dokunmak ikisini birlikte patlatır. Farklı
+/// renkten bir balona dokunmak bir hata değildir; seçim sessizce oraya
+/// geçer (§20).
+///
+/// Piksel de widget da tutmaz; böylece "altı renk çifti, aynı anda sekiz,
+/// on beş saniye" bir birim testinde saniye saniye denetlenebilir. Saat, sade
 /// bir zamanlayıcıdır ve [advance] ile elle sürülebilir — `HintController`
 /// ile aynı kalıp (§21).
 ///
@@ -26,11 +32,14 @@ class BalloonGameController extends ChangeNotifier {
     this.timeLimit = PuzzleConfig.balloonGameDuration,
     this.earlyFinishDelay = PuzzleConfig.balloonEarlyFinishDelay,
     this.tickInterval = PuzzleConfig.balloonTickInterval,
+    this.partnerHintDelay = PuzzleConfig.balloonPartnerHintDelay,
     this.colourCount = 5,
     Random? random,
   })  : _random = random ?? Random(),
         assert(total > 0, 'a game with no balloons is not a game'),
-        assert(maxActive > 0, 'at least one balloon must fit'),
+        assert(total % 2 == 0, 'balloons come in pairs (K-5)'),
+        assert(maxActive >= 2, 'at least one pair must fit'),
+        assert(initialSpawn % 2 == 0, 'the opening is whole pairs'),
         assert(initialSpawn <= maxActive, 'the opening cannot break the cap');
 
   /// Oyunun toplamda kaç balon ürettiği.
@@ -39,11 +48,14 @@ class BalloonGameController extends ChangeNotifier {
   /// Aynı anda havada olabilecek balon sayısının tavanı.
   final int maxActive;
 
-  /// Oyun açıldığında kaç tanesinin çoktan havada olduğu.
+  /// Oyun açıldığında kaç tanesinin çoktan havada olduğu; her zaman çift.
   final int initialSpawn;
 
-  /// Yer olduğunda bir balon ile diğeri arasındaki aralık.
+  /// Yer olduğunda bir çift ile diğeri arasındaki aralık.
   final Duration spawnInterval;
+
+  /// Seçili bir balonun eşine ne zaman nabız attırılacağı.
+  final Duration partnerHintDelay;
 
   /// Oyun nasıl gidiyor olursa olsun bu noktada biter.
   final Duration timeLimit;
@@ -91,6 +103,8 @@ class BalloonGameController extends ChangeNotifier {
   Duration? _closeAt;
   bool _finished = false;
   bool _paused = false;
+  int? _selectedId;
+  Duration? _selectedAt;
 
   /// Havadaki balonlar, geliş sıralarıyla.
   List<Balloon> get balloons => List.unmodifiable(_balloons);
@@ -100,6 +114,29 @@ class BalloonGameController extends ChangeNotifier {
 
   /// Çocuğun kaç tanesini patlattığı.
   int get poppedCount => _popped;
+
+  /// Çocuğun seçtiği ve eşini beklediği balon; yoksa null.
+  int? get selectedId => _selectedId;
+
+  /// Seçili balon [partnerHintDelay] kadar beklediyse, onunla aynı renkteki
+  /// balonlardan biri — nabız atacak olan. Aksi halde null.
+  ///
+  /// Ekranda her rengin balon sayısı her an çift olduğu için seçili bir
+  /// balonun eşi her zaman oradadır.
+  int? get partnerHintId {
+    final selectedId = _selectedId;
+    final selectedAt = _selectedAt;
+    if (selectedId == null || selectedAt == null) return null;
+    if (_elapsed - selectedAt < partnerHintDelay) return null;
+
+    final colour = _find(selectedId)?.colourIndex;
+    for (final balloon in _balloons) {
+      if (balloon.id != selectedId && balloon.colourIndex == colour) {
+        return balloon.id;
+      }
+    }
+    return null;
+  }
 
   Duration get elapsed => _elapsed;
   bool get isRunning => _timer != null;
@@ -127,10 +164,16 @@ class BalloonGameController extends ChangeNotifier {
     if (_timer != null || _finished) return;
     _refillFreeCells();
     // Oyunu açan balonlar, yükselirken aynı anda havada olan tek gruptur;
-    // bu yüzden her birine ayrı bir sütun verilir.
+    // bu yüzden sütunlara sırayla dağıtılır. Aynı sütuna düşen ikisi aynı
+    // anda, aynı hızda yükselir ve aralarındaki mesafe hiç kapanmaz.
     final columnOrder = List<int>.generate(columns, (i) => i)..shuffle(_random);
-    for (var i = 0; i < initialSpawn && _canSpawn; i++) {
-      _spawn(preferredColumn: columnOrder[i % columns]);
+    for (var i = 0; i < initialSpawn && _canSpawnPair; i += 2) {
+      _spawnPair(
+        preferredColumns: (
+          columnOrder[i % columns],
+          columnOrder[(i + 1) % columns],
+        ),
+      );
     }
     _timer = Timer.periodic(tickInterval, (_) => advance(tickInterval));
     notifyListeners();
@@ -163,38 +206,75 @@ class BalloonGameController extends ChangeNotifier {
       // Aralık, ona yer olup olmadığına bakılmadan önce harcanır ve bu
       // bilinçlidir: dolu kalan bir ekran kredi biriktirip bir balon
       // patladığı anda topluca balon salmaz.
-      if (!_canSpawn) break;
-      _spawn();
+      if (!_canSpawnPair) break;
+      _spawnPair();
       spawned = true;
     }
 
     if (spawned) notifyListeners();
   }
 
-  /// Çocuk bir balona dokundu. Bilinmeyen kimlikler yok sayılır: çoktan
-  /// gitmiş bir balona ikinci kez dokunmak hata değil, çocuğun parmağıdır
-  /// (§20).
-  void pop(int id) {
-    if (_finished) return;
-    final index = _balloons.indexWhere((b) => b.id == id);
-    if (index < 0) return;
+  /// Çocuk bir balona dokundu (K-5). Patlayanları döndürür: ya aynı
+  /// renkten iki balon, ya da hiçbiri.
+  ///
+  /// * Seçili balon yoksa, bu balon seçilir.
+  /// * Seçili balonun kendisine dokunmak hiçbir şey yapmaz; çift dokunuşun
+  ///   bir anlamı yoktur (§2).
+  /// * Seçili balonla aynı renkteyse ikisi birlikte patlar.
+  /// * Farklı renkteyse seçim sessizce bu balona geçer. Sayılmaz, anılmaz
+  ///   (§20).
+  ///
+  /// Bilinmeyen kimlikler yok sayılır: çoktan gitmiş bir balona dokunmak
+  /// hata değil, çocuğun parmağıdır.
+  List<Balloon> tap(int id) {
+    if (_finished) return const [];
+    final balloon = _find(id);
+    if (balloon == null) return const [];
 
-    final balloon = _balloons.removeAt(index);
-    _popped++;
+    final selectedId = _selectedId;
+    final selected = selectedId == null ? null : _find(selectedId);
+    if (selected != null && selected.id == id) return const [];
 
-    // Durduğu yer yeniden boşaldı.
-    final cell = _cellOf.remove(balloon.id);
-    if (cell != null) _freeCells.add(cell);
+    if (selected == null || selected.colourIndex != balloon.colourIndex) {
+      _selectedId = id;
+      _selectedAt = _elapsed;
+      notifyListeners();
+      return const [];
+    }
+
+    _selectedId = null;
+    _selectedAt = null;
+    _remove(selected);
+    _remove(balloon);
 
     // Üretilen bütün balonlar patlatıldı: erken bitirmenin ödülü, erken
     // bitirmektir (§24).
     if (_popped >= total) _closeAt = _elapsed + earlyFinishDelay;
 
     notifyListeners();
+    return [selected, balloon];
   }
 
-  bool get _canSpawn =>
-      _spawned < total && _balloons.length < maxActive && _freeCells.isNotEmpty;
+  Balloon? _find(int id) {
+    for (final balloon in _balloons) {
+      if (balloon.id == id) return balloon;
+    }
+    return null;
+  }
+
+  void _remove(Balloon balloon) {
+    _balloons.remove(balloon);
+    _popped++;
+
+    // Durduğu yer yeniden boşaldı.
+    final cell = _cellOf.remove(balloon.id);
+    if (cell != null) _freeCells.add(cell);
+  }
+
+  bool get _canSpawnPair =>
+      _spawned + 2 <= total &&
+      _balloons.length + 2 <= maxActive &&
+      _freeCells.length >= 2;
 
   /// Boş bir hücre; istenen sütunda boş varsa oradan.
   int _takeCell(int? preferredColumn) {
@@ -214,7 +294,18 @@ class BalloonGameController extends ChangeNotifier {
     _freeCells.shuffle(_random);
   }
 
-  void _spawn({int? preferredColumn}) {
+  /// Aynı renkten iki balon, aynı anda (K-5). Balonlar hep ikişer doğup
+  /// ikişer patladığı için ekranda her rengin sayısı her an çifttir.
+  ///
+  /// Çiftler paletten çekilmek yerine palet üzerinde yürür: arka arkaya beş
+  /// çift beş farklı renktir.
+  void _spawnPair({(int, int)? preferredColumns}) {
+    final colourIndex = (_spawned ~/ 2 + _colourOffset) % colourCount;
+    _spawn(colourIndex, preferredColumn: preferredColumns?.$1);
+    _spawn(colourIndex, preferredColumn: preferredColumns?.$2);
+  }
+
+  void _spawn(int colourIndex, {int? preferredColumn}) {
     final cell = _takeCell(preferredColumn);
     final column = cell % columns;
     final row = cell ~/ columns;
@@ -225,9 +316,7 @@ class BalloonGameController extends ChangeNotifier {
       id: _spawned,
       x: (column + 0.5) / columns + (_random.nextDouble() - 0.5) * 0.014,
       restY: (row + 0.5) / rows + (_random.nextDouble() - 0.5) * 0.014,
-      // Paletten çekmek yerine palet üzerinde yürünür: arka arkaya beş
-      // balon beş farklı renktir, üç tane mor değil.
-      colourIndex: (_spawned + _colourOffset) % colourCount,
+      colourIndex: colourIndex,
       sizeFactor: 0.92 + _random.nextDouble() * 0.14,
       bobPhase: _random.nextDouble(),
       bornAt: _elapsed,

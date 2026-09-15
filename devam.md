@@ -1,7 +1,7 @@
 # Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 15 Eylül 2026, Faz 16 kapandı, Faz 17 başladı.
+Son güncelleme: 15 Eylül 2026, Faz 17 onaylandı, Faz 18 başladı.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -28,10 +28,10 @@ Son güncelleme: 15 Eylül 2026, Faz 16 kapandı, Faz 17 başladı.
 | 14 | Navigation, Android Back, lifecycle | ✅ onaylandı |
 | 15 | Responsive, tablet, accessibility | ✅ onaylandı |
 | 16 | Asset/lisans denetimi, privacy, final cila | ✅ onaylandı |
-| **17** | **Balon renk eşleştirme** | **⏳ sürüyor** |
-| 18 | Boyama safhası (araba) | bekliyor |
+| 17 | Balon renk eşleştirme | ✅ onaylandı |
+| **18** | **Boyama safhası (araba)** | **⏳ sürüyor** |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **895 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **908 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
 On dokuz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
@@ -48,6 +48,15 @@ On dokuz commit, **GitHub'da yayında**:
 - **Görseller = OpenMoji**, CC BY-SA 4.0, **618×618** (kullanıcı §34'ün 1024
   hedefinden sapmayı onayladı; SVG'den render için `librsvg` kurulu değil).
 - **Sesler = sentezlenmiş**, indirilmedi: `dart run tool/generate_sfx.dart`.
+- **16 fazdan sonra iki yeni safha** (15 Eylül, spec §0.3):
+  - **K-5** — balon oyunu renk eşleştirmedir; farklı renkte ikinci dokunuşta
+    seçim sessizce yeni balona geçer.
+  - **K-6** — sticker'dan sonra **atlanabilir** boyama safhası: kutlama →
+    balon → sticker → boyama → sonraki puzzle. Boyama her bitirişte gelir.
+  - **K-7** — boyama çizimleri (siyah çizgili arabalar) **kodla** çizilir.
+  - **K-8** — boyama ekranında §2'nin 5 öğe sınırı esner: 6 renk + ~6 parça.
+  - Boyama durumu `GameProgress`'e değil **ayrı bir anahtara** yazılacak
+    (feature bağımsızlığı; şema değişince ilerleme silinmesin).
 
 ---
 
@@ -238,6 +247,15 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 - **Home ekranla büyür.** Düğmeler kısa kenar / 360 oranında, en çok 2 kat
   (`PuzzleConfig.home*`); 360'tan küçükte küçülmez. Tavan olmadan 1024 dp
   tablette oyna düğmesi 450 px'i geçerdi.
+- **Balonlar çift doğar, çift patlar** (K-5). Bir çiftin iki balonu aynı
+  anda ve aynı renkte doğar; eşleşen iki balon birlikte patlar. Bu yüzden
+  ekranda her rengin sayısı her an çifttir ve eşi olmayan balon kalmaz —
+  rastgele dokunan 20 oyunda her tıkta testle korunuyor. Açılış sayısı ve
+  toplam çift olmak zorunda (assert). Kimlikler çift içinde ardışık
+  (`2k`, `2k+1`); akış testi buna dayanıyor.
+- **Seçim çizimdedir, dokunma alanında değil.** Seçili balon `BalloonPainter`
+  `scale` ile büyür, `Transform.rotate` ile sallanır; dokunma kutusu yerinde
+  kalır, komşunun 72 px'ini yemez.
 - **Widget genişliğini `rect.width`'ten alma.** `sağ − sol` kayan noktada
   tam 72 vermiyor (71.99999999999999); boyut `BalloonLayout.diameterOf`
   üzerinden verilir.
@@ -256,8 +274,8 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   çıkmaz. Ama `startPuzzle` asenkron olduğu için `tester.runAsync` gerekir.
 - **Balon oyunu ekrandayken `pumpAndSettle` kullanılamaz** (kutlama gibi).
   Puzzle akış testleri balon oyununu 15 sn açık pump'la geçiyor.
-- Balon testinde `pump(1500ms)` dördüncü balonu da getirir (spawn 1.2 sn).
-  "Açılışta üç balon" iddiası için 1100 ms pump'lanır.
+- Balonlar **ikişer** gelir (Faz 17): açılışta 4, sonra 2,4 sn'de bir çift.
+  "Açılışta iki çift" iddiası için 1100 ms pump'lanır (üçüncü çift 2,4 sn'de).
 - Salınım (bob), yerleşme anındaki konum karşılaştırmalarını bozar; yükselme
   yönü iki ara noktayla (200/800 ms) ölçülür.
 - **Lifecycle testleri geçerli sırayı izlemeli:** resumed → inactive →
@@ -434,3 +452,26 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
    "taşınan yerde kalsın, bu ikona bir şey yapmayalım" dedi. Dosya pakete
    girmiyor, git'e eklenmedi (depo public), lisans testi yeşil. Bir gün
    kullanılacaksa kaynağı ve lisansı `assets/LICENSES.md`'ye işlenmeli.
+
+---
+
+## 10. Faz 17 durumu — balon renk eşleştirme
+
+**Yapılanlar** (15 Eylül'de onaylandı):
+
+- Spec: §0.3 (K-5..K-8), §2 istisnaları, §23 notu, §24 yeniden yazıldı,
+  §24.2 boyama taslağı, §44'e Faz 17 ve 18 satırları.
+- `BalloonGameController.tap(id)` → patlayan balonları döndürür (ya aynı
+  renkten iki, ya hiç). `pop` kaldırıldı. `selectedId`, `partnerHintId`.
+- Çiftler: açılışta 4 balon, 2,4 sn'de bir çift (geliş hızı değişmedi),
+  toplam 12, en çok 8. Çiftler paletin üzerinde yürür.
+- Seçili balon 120 ms'de 1,12'ye büyür ve ±0,08 rad sallanır; 3 sn seçili
+  kalırsa eşlerinden biri 800 ms periyotla 1,08'e nabız atar.
+- Seçimde yalnızca haptik `selection`; ses yalnızca patlamada, çift başına
+  bir kez. Farklı renk: ses yok, sayılmaz (§20).
+- 13 yeni test; dört mutasyonla kanıtlandı (yanlış renk de patlatır, renk
+  balon başına yürür, ipucu beklemez, seçilen büyümez — hepsi kırmızı).
+- **Emülatörde elle oynanmadı.**
+
+**Sırada: Faz 18 — boyama** (Faz 17 onaylanınca). Plan §0.3 ve devam.md §2'de.
+

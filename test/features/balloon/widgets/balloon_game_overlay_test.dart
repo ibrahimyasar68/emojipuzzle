@@ -5,8 +5,10 @@ import 'dart:ui' as ui;
 import 'package:emoji_puzzle_kids/core/constants/puzzle_config.dart';
 import 'package:emoji_puzzle_kids/core/services/audio_service.dart';
 import 'package:emoji_puzzle_kids/core/theme/app_theme.dart';
+import 'package:emoji_puzzle_kids/features/balloon/models/balloon.dart';
 import 'package:emoji_puzzle_kids/features/balloon/providers/balloon_game_controller.dart';
 import 'package:emoji_puzzle_kids/features/balloon/widgets/balloon_game_overlay.dart';
+import 'package:emoji_puzzle_kids/features/balloon/widgets/balloon_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter_test/flutter_test.dart';
@@ -15,8 +17,8 @@ import '../../../support/recording_sound_player.dart';
 
 const _referencePhone = Size(360, 640);
 
-/// Long enough for the first balloons to have drifted into view, and short
-/// enough that the fourth one has not arrived yet (§24).
+/// Long enough for the opening pairs to have drifted into view, and short
+/// enough that the third pair has not arrived yet (§24).
 const _afterTheRise = Duration(milliseconds: 1100);
 
 class _Harness {
@@ -60,15 +62,39 @@ Future<_Harness> _pumpGame(WidgetTester tester) async {
 
 Finder _balloon(int id) => find.byKey(ValueKey('balloon-$id'));
 
+/// How big the balloon is drawn right now: chosen and hinted balloons swell.
+double _drawnScale(WidgetTester tester, int id) {
+  final paint = tester.widget<CustomPaint>(
+    find.descendant(of: _balloon(id), matching: find.byType(CustomPaint)),
+  );
+  return (paint.painter! as BalloonPainter).scale;
+}
+
+/// Two balloons in the air that share a colour, and one that does not.
+(Balloon, Balloon) _aPair(BalloonGameController game) {
+  final balloons = game.balloons;
+  for (final first in balloons) {
+    for (final second in balloons) {
+      if (first.id != second.id && first.colourIndex == second.colourIndex) {
+        return (first, second);
+      }
+    }
+  }
+  throw StateError('no pair in the air');
+}
+
+Balloon _anotherColour(BalloonGameController game, Balloon than) =>
+    game.balloons.firstWhere((b) => b.colourIndex != than.colourIndex);
+
 void main() {
-  testWidgets('it opens with three balloons in the air (§24)', (tester) async {
+  testWidgets('it opens with two pairs in the air (§24)', (tester) async {
     await _pumpGame(tester);
     await tester.pump(_afterTheRise);
 
-    expect(_balloon(0), findsOneWidget);
-    expect(_balloon(1), findsOneWidget);
-    expect(_balloon(2), findsOneWidget);
-    expect(_balloon(3), findsNothing);
+    for (var id = 0; id < 4; id++) {
+      expect(_balloon(id), findsOneWidget, reason: 'balloon $id');
+    }
+    expect(_balloon(4), findsNothing);
 
     await tester.pump(const Duration(seconds: 15));
   });
@@ -77,7 +103,7 @@ void main() {
     await _pumpGame(tester);
     await tester.pump(_afterTheRise);
 
-    for (var id = 0; id < 3; id++) {
+    for (var id = 0; id < 4; id++) {
       final size = tester.getSize(_balloon(id));
       expect(
         size.width,
@@ -93,21 +119,116 @@ void main() {
     await tester.pump(const Duration(seconds: 15));
   });
 
-  testWidgets('a tap pops it: sound, then gone (§24, §27)', (tester) async {
+  testWidgets('one tap chooses a balloon: it grows, nothing pops (K-5)', (
+    tester,
+  ) async {
     final harness = await _pumpGame(tester);
     await tester.pump(_afterTheRise);
+    final (first, _) = _aPair(harness.game);
 
-    await tester.tap(_balloon(0));
+    expect(_drawnScale(tester, first.id), 1);
+    await tester.tap(_balloon(first.id));
+    await tester.pump(PuzzleConfig.balloonSelectDuration);
+
+    expect(harness.game.selectedId, first.id);
+    expect(harness.player.played, isEmpty, reason: 'a pop is what sounds');
+    expect(harness.game.poppedCount, 0);
+    expect(_balloon(first.id), findsOneWidget);
+    expect(
+      _drawnScale(tester, first.id),
+      closeTo(PuzzleConfig.balloonSelectedScale, 0.001),
+      reason: 'the choice shows in its size, not only its colour',
+    );
+
+    // And it still takes up only its own place to touch (§2).
+    expect(
+      tester.getSize(_balloon(first.id)).width,
+      lessThan(PuzzleConfig.balloonTouchTargetSize * 2),
+    );
+
+    await tester.pump(const Duration(seconds: 15));
+  });
+
+  testWidgets('a same-colour pair pops together: one sound, both gone', (
+    tester,
+  ) async {
+    final harness = await _pumpGame(tester);
+    await tester.pump(_afterTheRise);
+    final (first, second) = _aPair(harness.game);
+
+    await tester.tap(_balloon(first.id));
+    await tester.pump();
+    await tester.tap(_balloon(second.id));
     await tester.pump();
 
     expect(harness.player.played, [Sfx.balloonPop]);
-    expect(harness.game.poppedCount, 1);
-    expect(_balloon(0), findsNothing, reason: 'it is not tappable twice');
+    expect(harness.game.poppedCount, 2);
+    expect(_balloon(first.id), findsNothing);
+    expect(_balloon(second.id), findsNothing);
 
-    // The burst plays itself out and leaves nothing behind.
+    // The bursts play themselves out and leave nothing behind.
     await tester.pump(PuzzleConfig.balloonPopDuration);
     await tester.pump(const Duration(milliseconds: 50));
     expect(tester.takeException(), isNull);
+
+    await tester.pump(const Duration(seconds: 15));
+  });
+
+  testWidgets('a different colour moves the choice, and says nothing (§20)', (
+    tester,
+  ) async {
+    final harness = await _pumpGame(tester);
+    await tester.pump(_afterTheRise);
+    final (first, _) = _aPair(harness.game);
+    final other = _anotherColour(harness.game, first);
+
+    await tester.tap(_balloon(first.id));
+    await tester.pump();
+    await tester.tap(_balloon(other.id));
+    await tester.pump(PuzzleConfig.balloonSelectDuration);
+
+    expect(harness.game.selectedId, other.id);
+    expect(harness.player.played, isEmpty, reason: 'no buzzer, no anything');
+    expect(harness.game.poppedCount, 0);
+    expect(_balloon(first.id), findsOneWidget, reason: 'nothing is lost');
+    expect(_drawnScale(tester, first.id), 1, reason: 'it lets go');
+    expect(_drawnScale(tester, other.id), greaterThan(1));
+
+    await tester.pump(const Duration(seconds: 15));
+  });
+
+  testWidgets('a balloon chosen for three seconds sets its partner pulsing', (
+    tester,
+  ) async {
+    final harness = await _pumpGame(tester);
+    await tester.pump(_afterTheRise);
+    final (first, _) = _aPair(harness.game);
+
+    await tester.tap(_balloon(first.id));
+    await tester.pump(const Duration(milliseconds: 2500));
+    final others = [
+      for (final b in harness.game.balloons)
+        if (b.id != first.id) b.id,
+    ];
+    for (final id in others) {
+      expect(_drawnScale(tester, id), 1, reason: 'no hint before 3 s');
+    }
+
+    await tester.pump(const Duration(milliseconds: 600));
+    final hinted = harness.game.partnerHintId;
+    expect(hinted, isNotNull);
+
+    // A pulse, sampled over one period: it swells and comes back.
+    var largest = 1.0;
+    var smallest = 2.0;
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 80));
+      final scale = _drawnScale(tester, hinted!);
+      largest = scale > largest ? scale : largest;
+      smallest = scale < smallest ? scale : smallest;
+    }
+    expect(largest, greaterThan(1.05));
+    expect(smallest, lessThan(1.03));
 
     await tester.pump(const Duration(seconds: 15));
   });
@@ -145,13 +266,14 @@ void main() {
   testWidgets('popping all twelve ends it early (§24)', (tester) async {
     final harness = await _pumpGame(tester);
 
-    // Pop whatever is in the air, as fast as a child possibly could.
+    // Pop every pair in the air, as fast as a child possibly could.
     for (var i = 0; i < 60 && harness.game.poppedCount < 12; i++) {
       await tester.pump(const Duration(milliseconds: 200));
-      for (final balloon in [...harness.game.balloons]) {
-        final finder = _balloon(balloon.id);
-        if (finder.evaluate().isEmpty) continue;
-        await tester.tap(finder, warnIfMissed: false);
+      while (harness.game.balloons.isNotEmpty) {
+        final (first, second) = _aPair(harness.game);
+        await tester.tap(_balloon(first.id), warnIfMissed: false);
+        await tester.pump();
+        await tester.tap(_balloon(second.id), warnIfMissed: false);
         await tester.pump();
       }
     }
@@ -207,7 +329,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
     }
 
-    await tester.tap(_balloon(1), warnIfMissed: false);
+    // One pair mid-pop, and another balloon chosen and waiting.
+    final (first, second) = _aPair(game);
+    await tester.tap(_balloon(first.id), warnIfMissed: false);
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.tap(_balloon(second.id), warnIfMissed: false);
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.tap(_balloon(game.balloons.first.id), warnIfMissed: false);
     for (var i = 0; i < 6; i++) {
       await tester.pump(const Duration(milliseconds: 16));
     }

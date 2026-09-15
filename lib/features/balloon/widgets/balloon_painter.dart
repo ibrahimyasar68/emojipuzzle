@@ -27,7 +27,7 @@ class BalloonPainter extends CustomPainter {
   /// İpin rengi; temaya bağlıdır, çünkü ip zeminin üstünde durur (§24).
   final Color stringColour;
 
-  /// Patlamadan hemen önceki şişme.
+  /// Şişme: seçilince, eşine nabız attırılırken ve patlamadan hemen önce.
   final double scale;
 
   @override

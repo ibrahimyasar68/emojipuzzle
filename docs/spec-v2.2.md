@@ -43,6 +43,21 @@ Bu bölüm yalnızca neyin değiştiğini gösterir. Detay ilgili bölümdedir.
 
 ---
 
+# 0.3 v2.2 SONRASI EKLER — FAZ 17 VE 18
+
+*15 Eylül 2026'da eklendi.* 16 fazlık plan tamamlandıktan sonra proje sahibi
+iki yeni safha istedi. Aşağıdaki kararlar §45 gereği önce soruldu ve
+cevaplandı; değişen [ZORUNLU] maddeler kendi bölümlerinde işaretlidir.
+
+| # | Karar | Bölüm |
+|---|-------|-------|
+| K-5 | Balon oyunu **renk eşleştirmedir**: aynı renkten iki balona art arda dokunulunca ikisi birlikte patlar. İkinci dokunuş farklı renkteyse **seçim sessizce yeni balona geçer**; hiçbir geri bildirim yok (§20). | §24 |
+| K-6 | Balon sekansından ve sticker'dan sonra **boyama safhası** gelir ve **atlanabilir**. Sıra: kutlama → balon → sticker → boyama → sonraki puzzle. | §23, §24.2 |
+| K-7 | Boyama çizimleri (siyah çizgili arabalar) **kodla çizilir** (Path); lisans kaydı gerekmez. | §24.2, §33 |
+| K-8 | Boyama ekranında §2'nin "en fazla 5 dokunulabilir eleman" sınırı **esner**: 6 renk + ~6 araba parçası, her biri ≥ 64 px. | §2, §24.2 |
+
+---
+
 # 0.2 AÇIK KARARLAR
 
 Bu maddeler karara bağlanmadan ilgili faza geçilmez.
@@ -143,6 +158,8 @@ Bu nedenle:
 * Önemli yönlendirmeler mümkün olduğunca görsel, animasyon ve ses yoluyla yapılır.
 
 Bu kurallar puzzle ekranı, home, celebration, balloon game ve album dahil tüm çocuk-facing ekranlar için geçerlidir.
+
+*İstisnalar:* balon oyunu en fazla 8 balon gösterir (§24); boyama ekranı 6 renk ve ~6 araba parçası gösterir (K-8, §24.2). İkisinde de her hedef en az 64 px'tir (balonda 72 px).
 
 **[ZORUNLU] — 64 px kuralı bir tavan dayatır**
 
@@ -1069,25 +1086,30 @@ Kutlama sekansı:
 * ekrana dokunmak sekansı hızlandırabilir
 * çocuk gereksiz yere bekletilmez
 
+*Faz 18'de (K-6):* sticker ödülünden sonra, sonraki puzzle'dan önce boyama safhası gelir (§24.2). Sticker yalnızca ilk bitirişte verilir; boyama **her** bitirişte gelir, Serbest Mod dahil.
+
 ---
 
 # 24. BALLOON MINI GAME
 
 Ayrı bir feature modülüdür. Puzzle feature'ına bağımlı olmaz.
 
+**[ZORUNLU]** — *Faz 17'de değişti (K-5): tek dokunuş değil, renk eşleştirme*
+
 ```text
 Idle floating
  ↓
-Tap
+Tap → balon seçilir (büyür, hafifçe sallanır)
  ↓
-Scale
- ↓
-Pop sound
- ↓
-Particle
- ↓
-Disappear
+Aynı renkten başka bir balona tap
+ ├── aynı renk → ikisi birlikte: scale → pop sound → particle → disappear
+ └── farklı renk → seçim sessizce yeni balona geçer
 ```
+
+* Seçili balona tekrar dokunmak hiçbir şey yapmaz (çift dokunuş anlamı taşımaz, §2).
+* Farklı renkte ikinci dokunuş bir hata değildir: ses yok, titreşim yok, "yanlış" yok (§20).
+* Seçim yalnızca renkle değil **boyut ve hareketle** gösterilir.
+* Bir balon **3 saniye** seçili kalırsa eşlerinden biri hafifçe nabız atar. Okuma bilmeyen çocuk kuralı böyle öğrenir.
 
 **[ZORUNLU]**
 
@@ -1095,16 +1117,21 @@ Disappear
 * minimum hit target 72 px
 * maksimum süre 15 saniye
 
-**[ZORUNLU] — Bitiş ve spawn kuralı** — *v2.2'de eklendi*
+**[ZORUNLU] — Bitiş ve spawn kuralı** — *v2.2'de eklendi, Faz 17'de değişti*
 
-* Oyun toplam **12 balon** üretir.
-* Spawn aralığı: başlangıçta 3 balon, sonra ~1.2 sn'de bir, aktif balon sayısı 8'i geçmeyecek şekilde.
+* Oyun toplam **12 balon** üretir: **6 renk çifti**. Bir çiftin iki balonu aynı anda ve aynı renkte doğar.
+* Spawn: başlangıçta **4 balon (2 çift)**, sonra **~2,4 sn'de bir çift**, aktif balon sayısı 8'i geçmeyecek şekilde. Balonların geliş hızı v2.2 ile aynıdır.
+* Ekranda her rengin balon sayısı her an **çifttir**: eşi olmayan bir balon asla kalmaz.
 * Bitiş koşulu, hangisi önce olursa:
   * 12 balonun tamamı patlatıldı → **500 ms sonra kapanır** (erken bitiş ödüldür)
   * 15 saniye doldu → kapanır
 * Ekranda patlatılmamış balon kalması bir başarısızlık değildir; hiçbir geri bildirim verilmez (§20).
 
 İleride renk/sayı/şekil bulma gibi mini oyunlara genişletilebilir.
+
+## 24.2 Boyama safhası
+
+*Faz 18'de ayrıntılandırılacak.* Kararlar: K-6, K-7, K-8 (§0.3). Siyah çizgili bir araba ekrana gelir, altta renk paleti durur; seçilen renkle arabanın dokunulan parçası boyanır ve sonraki puzzle'a geçilir. Her puzzle bitişinde bir parça boyanır. Araba tamamlanınca farklı bir araba modeliyle yeniden başlanır. Safha atlanabilir.
 
 ---
 
@@ -1741,6 +1768,8 @@ Ortamında Flutter SDK yoksa "testler geçti" deme. Testleri yaz, çalıştırı
 | **14** | Navigation + Android Back + lifecycle | Ekran geçişleri ve interruption güvenli |
 | **15** | Responsive + tablet + accessibility smoke test | Farklı ekranlarda layout bozulmuyor |
 | **16** | Asset/license audit + privacy + test tamamlaması + final polish | Tüm testler yeşil, belirgin jank yok, lisanslar tamam |
+| **17** | Balon renk eşleştirme (K-5) | Aynı renk çifti birlikte patlıyor, yanlış renkte seçim sessizce geçiyor, eşi olmayan balon kalmıyor |
+| **18** | Boyama safhası (K-6, K-7, K-8) | Her bitirişte bir parça boyanıyor, atlanabiliyor, boyama kalıcı, araba bitince yeni model |
 
 **[TERCİH]**
 

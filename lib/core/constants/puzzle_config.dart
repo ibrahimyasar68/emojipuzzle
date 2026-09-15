@@ -158,10 +158,28 @@ abstract final class PuzzleConfig {
   static const int balloonTotal = 12;
   static const int balloonMaxActive = 8;
 
-  /// §24 — oyun açıldığında üç tanesi bekliyordur, sonra yer oldukça kabaca
-  /// her 1,2 saniyede bir tane gelir.
-  static const int balloonInitialSpawn = 3;
-  static const Duration balloonSpawnInterval = Duration(milliseconds: 1200);
+  /// §24, K-5 — oyun açıldığında iki renk çifti (dört balon) bekliyordur,
+  /// sonra yer oldukça kabaca her 2,4 saniyede bir çift gelir. Balonların
+  /// geliş hızı tek balonlu oyundakiyle (1,2 saniyede bir) aynıdır; yalnızca
+  /// artık ikişer ikişer gelirler, çünkü eşi olmayan bir balon çocuğun hiç
+  /// patlatamayacağı bir balondur.
+  static const int balloonInitialSpawn = 4;
+  static const Duration balloonSpawnInterval = Duration(milliseconds: 2400);
+
+  /// §24, K-5 — seçilen balon bu kadar büyür, bu sürede; ve seçili kaldıkça
+  /// bu açıyla, bu periyotla sallanır. Seçim yalnızca renge bırakılmaz:
+  /// boyut ve hareket de söyler.
+  static const double balloonSelectedScale = 1.12;
+  static const Duration balloonSelectDuration = Duration(milliseconds: 120);
+  static const double balloonSelectedWobbleRadians = 0.08;
+  static const Duration balloonSelectedWobblePeriod =
+      Duration(milliseconds: 700);
+
+  /// §24, K-5 — bir balon bu kadar seçili kalırsa eşlerinden biri nabız
+  /// atmaya başlar: okuma bilmeyen bir çocuğa kuralı gösteren tek şey.
+  static const Duration balloonPartnerHintDelay = Duration(seconds: 3);
+  static const Duration balloonPartnerHintPeriod = Duration(milliseconds: 800);
+  static const double balloonPartnerHintScale = 1.08;
 
   /// §24 — oyun nasıl gidiyor olursa olsun on beşinci saniyede biter.
   static const Duration balloonGameDuration = Duration(seconds: 15);
