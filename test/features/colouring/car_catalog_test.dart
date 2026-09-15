@@ -57,9 +57,13 @@ double inscribedRadiusOf(CarModel model, CarPart part) {
 }
 
 void main() {
-  test('three different cars, five or six parts each (§24.2, K-8)', () {
+  test('five different cars, five or six parts each (§24.2, K-8, K-13)', () {
     final models = CarCatalog.models;
-    expect(models, hasLength(3));
+    expect(models, hasLength(5));
+    expect(
+      models.map((m) => m.id),
+      containsAll(<String>['truck', 'tractor']),
+    );
     expect(models.map((m) => m.id).toSet(), hasLength(models.length));
 
     for (final model in models) {

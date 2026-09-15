@@ -9,7 +9,13 @@ import '../models/car_model.dart';
 /// `test/features/colouring/car_catalog_test.dart`. Küçük ayrıntılar (far,
 /// jant) bu yüzden parça değil, boyanmayan süs çizgisidir.
 abstract final class CarCatalog {
-  static final List<CarModel> models = [_sedan(), _pickup(), _racer()];
+  static final List<CarModel> models = [
+    _sedan(),
+    _pickup(),
+    _racer(),
+    _truck(),
+    _tractor(),
+  ];
 
   static CarModel _sedan() => CarModel(
         id: 'sedan',
@@ -140,6 +146,117 @@ abstract final class CarCatalog {
           Path()
             ..moveTo(40, 22)
             ..lineTo(58, 22),
+        ],
+      );
+
+  /// Kamyon: büyük kasa, önde kabin, üç teker. Cam kabinin içinde bir süs
+  /// çizgisidir: ayrı bir parça olsaydı kabini dokunulamayacak kadar
+  /// inceltirdi (K-8).
+  static CarModel _truck() => CarModel(
+        id: 'truck',
+        parts: [
+          CarPart(
+            id: 'box',
+            path: Path()
+              ..addRRect(
+                RRect.fromRectAndRadius(
+                  const Rect.fromLTRB(3, 10, 62, 60),
+                  const Radius.circular(3),
+                ),
+              ),
+          ),
+          CarPart(
+            id: 'cab',
+            path: _polygon(const [
+              Offset(64, 60),
+              Offset(64, 14),
+              Offset(80, 14),
+              Offset(97, 34),
+              Offset(97, 60),
+            ]),
+          ),
+          CarPart(id: 'rear-wheel', path: _circle(const Offset(17, 67), 12)),
+          CarPart(id: 'middle-wheel', path: _circle(const Offset(44, 67), 12)),
+          CarPart(id: 'front-wheel', path: _circle(const Offset(81, 67), 12)),
+        ],
+        details: [
+          _polygon(const [
+            Offset(68, 18),
+            Offset(79, 18),
+            Offset(91, 32),
+            Offset(68, 32),
+          ]),
+          _circle(const Offset(17, 67), 4.5),
+          _circle(const Offset(44, 67), 4.5),
+          _circle(const Offset(81, 67), 4.5),
+          Path()
+            ..moveTo(22, 16)
+            ..lineTo(22, 50),
+          Path()
+            ..moveTo(42, 16)
+            ..lineTo(42, 50),
+        ],
+      );
+
+  /// Traktör: arkada yüksek kabin ve kocaman teker, önde kaput, ızgaralı ön
+  /// panel ve küçük teker. Egzoz, cam ve ızgara çizgileri süstür.
+  ///
+  /// Ön panel bir far değil, bilerek dikdörtgen: aynı yere konan yuvarlak
+  /// bir far teker kadar büyük olmak zorundaydı (64 px, K-8) ve boyanınca
+  /// havada duran üçüncü bir teker gibi görünüyordu.
+  static CarModel _tractor() => CarModel(
+        id: 'tractor',
+        parts: [
+          CarPart(
+            id: 'cab',
+            path: Path()
+              ..addRRect(
+                RRect.fromRectAndRadius(
+                  const Rect.fromLTRB(8, 3, 44, 32),
+                  const Radius.circular(4),
+                ),
+              ),
+          ),
+          CarPart(
+            id: 'hood',
+            path: Path()
+              ..addRRect(
+                RRect.fromRectAndRadius(
+                  const Rect.fromLTRB(30, 30, 75, 58),
+                  const Radius.circular(4),
+                ),
+              ),
+          ),
+          CarPart(
+            id: 'grille',
+            path: Path()
+              ..addRRect(
+                RRect.fromRectAndRadius(
+                  const Rect.fromLTRB(73, 30, 97, 58),
+                  const Radius.circular(4),
+                ),
+              ),
+          ),
+          CarPart(id: 'rear-wheel', path: _circle(const Offset(25, 57), 21)),
+          CarPart(id: 'front-wheel', path: _circle(const Offset(82, 68), 12)),
+        ],
+        details: [
+          Path()
+            ..addRRect(
+              RRect.fromRectAndRadius(
+                const Rect.fromLTRB(14, 8, 38, 26),
+                const Radius.circular(2),
+              ),
+            ),
+          Path()
+            ..moveTo(62, 30)
+            ..lineTo(62, 14),
+          for (final y in const [37.0, 43.0, 49.0])
+            Path()
+              ..moveTo(78, y)
+              ..lineTo(92, y),
+          _circle(const Offset(25, 57), 8),
+          _circle(const Offset(82, 68), 4.5),
         ],
       );
 

@@ -1,7 +1,7 @@
 # Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 15 Eylül 2026, Faz 19 onaylandı, Faz 20 başladı.
+Son güncelleme: 15 Eylül 2026, Faz 20'nin hazır kısmı commit edildi, Faz 21 başladı.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -31,9 +31,10 @@ Son güncelleme: 15 Eylül 2026, Faz 19 onaylandı, Faz 20 başladı.
 | 17 | Balon renk eşleştirme | ✅ onaylandı |
 | 18 | Boyama safhası (araba) | ✅ onaylandı |
 | 19 | 9 yeni puzzle (18'e çıkış) | ✅ onaylandı |
-| **20** | **Kamyon, traktör; kitap, mikroskop, dürbün (Eşyalar)** | **⏳ sürüyor** |
+| 20 | Kamyon, traktör; Eşyalar kategorisi | ✅ commit (kitap/mikroskop/dürbün görselleri bekleniyor) |
+| **21** | **Yeni oyun kuralları: 5 safha, 3 araba** | **⏳ sürüyor** |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **970 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **972 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
 On dokuz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
@@ -63,6 +64,12 @@ On dokuz commit, **GitHub'da yayında**:
   - **K-11** — balon oyunu **10 balon** (5 çift), hepsi **3 sn'de** sahnede,
     çift renkleri **rastgele** (kullanıcı istedi: giriş uzun, balon çoktu).
     §24'ün [ZORUNLU] "en fazla 8 aktif balon"u 10'a çıktı.
+  - **K-14** — yeni kategori **Eşyalar** (`objects`): kitap, mikroskop,
+    dürbün. §4'ün 5 kategori kuralı 6'ya çıktı. Her kademeye bir tane
+    (kitap 2×2, dürbün 2×3, mikroskop 3×3). **Görselleri kullanıcı koyacak**
+    (indirme izni vermedi); dürbünün Unicode emojisi yok.
+  - **K-13** — boyama defterine kamyon ve traktör: 5 model, sırayla sedan,
+    kamyonet, yarış, kamyon, traktör.
   - **K-12** — 9 yeni puzzle (kullanıcı istedi): çilek, ay, koyun → 2×2;
     karpuz, bisiklet, kaplumbağa → 2×3; ananas, uçak, Satürn → 3×3. Ay ve
     Satürn **doğa** kategorisinde (5 kategori kuralı korundu). Kullanıcı
@@ -594,4 +601,35 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   neredeyse boş gradyan olacak. Emülatörde bakılmadı.
 
 **Sırada:** kullanıcı oyun kurallarını değiştirmek istiyor.
+
+---
+
+## 13. Faz 20 durumu — kamyon, traktör; Eşyalar
+
+**Yapılanlar** (15 Eylül'de commit edildi):
+
+- **Kamyon** (kasa, kabin, üç teker) ve **traktör** (kabin, kaput, ızgaralı
+  ön panel, büyük arka teker, küçük ön teker) kodla çizildi. En küçük parça
+  12,01 birim, gereken 10,96. Traktörün ilk hâlinde teker büyüklüğünde bir
+  far vardı; boyanınca havada üçüncü bir teker gibi göründüğü için
+  (görsel kontrolde) dikdörtgen ızgaraya çevrildi. Cam ve egzoz süs
+  çizgisi. Spec §24.2 ve K-13.
+- **Eşyalar** kategorisi: enum `objects`, pembe gradyan, albüm ikonu
+  (`Icons.category_rounded`) ve başlığı. Spec §4 ve K-14. Yeni
+  `puzzle_palette_test.dart` her kategorinin kendi gradyanı olduğunu
+  denetler; ilk yazılışı boştu (gradyan unutulsa da geçerdi), mutasyonla
+  yakalanıp düzeltildi.
+- Albüm boş kategoriyi göstermez; Eşyalar başlığı görseller gelince çıkar.
+
+**Bekleyen — kullanıcıdan:**
+
+- `assets/images/puzzles/book.png`, `microscope.png`, `binoculars.png`:
+  PNG, 1:1 kare, şeffaf zemin (§34), tercihen 618×618 (en fazla 1024),
+  OpenMoji'ye benzer kalın siyah çizgili üslup; her birinin kaynağı ve
+  lisansı (`assets/LICENSES.md` için, §33).
+- Dosyalar gelince: katalog satırları (kitap 2×2, dürbün 2×3, mikroskop
+  3×3 → kademe başına 7, toplam 21), lisans kaydı, testler (21 puzzle,
+  Eşyalar kategorisi dolu, albümde başlık).
+
+**Sonra:** kullanıcı oyun kurallarını yeniden belirleyecek.
 

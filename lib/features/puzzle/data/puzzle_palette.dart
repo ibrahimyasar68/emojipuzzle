@@ -51,6 +51,8 @@ abstract final class PuzzlePalette {
     PuzzleCategory.vehicles: (Color(0xFFEAF4FD), Color(0xFFB6D8F2)),
     PuzzleCategory.nature: (Color(0xFFFFFDEB), Color(0xFFDCEBA6)),
     PuzzleCategory.shapes: (Color(0xFFF8EEFA), Color(0xFFD8BFE4)),
+    // K-14 — öbür beşinden ayrılan yumuşak bir pembe.
+    PuzzleCategory.objects: (Color(0xFFFDEFF2), Color(0xFFF3C1CC)),
   };
 
   /// Bir kategorinin gradyanının iki ucu.

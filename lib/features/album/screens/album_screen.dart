@@ -31,6 +31,7 @@ class AlbumScreen extends StatelessWidget {
     PuzzleCategory.vehicles: Icons.directions_car_rounded,
     PuzzleCategory.nature: Icons.wb_sunny_rounded,
     PuzzleCategory.shapes: Icons.circle_rounded,
+    PuzzleCategory.objects: Icons.category_rounded,
   };
 
   /// Ekran okuyucu tarafından seslendirilir; hiç gösterilmez (§2, §31).
@@ -40,6 +41,7 @@ class AlbumScreen extends StatelessWidget {
     PuzzleCategory.vehicles: 'Taşıtlar',
     PuzzleCategory.nature: 'Doğa',
     PuzzleCategory.shapes: 'Şekiller',
+    PuzzleCategory.objects: 'Eşyalar',
   };
 
   @override

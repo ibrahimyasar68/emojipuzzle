@@ -56,6 +56,8 @@ cevaplandı; değişen [ZORUNLU] maddeler kendi bölümlerinde işaretlidir.
 | K-7 | Boyama çizimleri (siyah çizgili arabalar) **kodla çizilir** (Path); lisans kaydı gerekmez. | §24.2, §33 |
 | K-8 | Boyama ekranında §2'nin "en fazla 5 dokunulabilir eleman" sınırı **esner**: renk seçimi + ~6 araba parçası, her biri ≥ 64 px. | §2, §24.2 |
 | K-9 | Renk sabit bir listeden değil, **serbest bir paletten** seçilir: bir şeritte bütün tonlar açıktan koyuya, yanında beyazdan siyaha gri şerit. Parmak palette gezdikçe seçim de gezer. *(Faz 18 sırasında, 15 Eylül; K-8'in "6 renk"ini değiştirdi.)* | §24.2 |
+| K-14 | Yeni kategori **Eşyalar** (`objects`): kitap, mikroskop, dürbün. §4'ün [ZORUNLU] "enum yalnızca 5 değer" kuralı 6'ya çıktı. Her kademeye bir tane: kitap 2×2, dürbün 2×3, mikroskop 3×3. Görselleri proje sahibi sağlayacak. *(15 Eylül, kullanıcı istedi.)* | §4, §25 |
+| K-13 | Boyama defterine **kamyon ve traktör** eklendi: 5 model (sedan, kamyonet, yarış arabası, kamyon, traktör), yine kodla çizilir ve her parça 64 px ölçümünü geçer. *(15 Eylül, kullanıcı istedi.)* | §24.2 |
 | K-12 | İçerik **18 puzzle**: her kademeye 3 yeni resim (3 kademe × 6). Karpuz, çilek, ananas → meyveler; uçak, bisiklet → taşıtlar; ay, Satürn → doğa; kaplumbağa, koyun → hayvanlar. Kategori listesi (5 değer) değişmedi. Görseller OpenMoji, aynı kaynak ve lisans. *(15 Eylül, kullanıcı istedi; oyun kuralları sonra değişecek, kademe yerleşimi geçici olabilir.)* | §4 |
 | K-11 | Balon oyunu **10 balon** (5 çift) üretir ve hepsi **3 saniye içinde** sahneye çıkar; çiftlerin renkleri **rastgeledir**. §24'ün "en fazla 8 aktif balon" [ZORUNLU] maddesi bu yüzden 10'a çıktı. *(15 Eylül, kullanıcı istedi: giriş uzun sürüyordu, balon çoktu.)* | §2, §24 |
 | K-10 | Seçilen renk ekranın **sol üst köşesindeki bir karede** gösterilir; çocuk seçimin sonucunu parmağının altında kalmadan görür. *(Faz 18 sırasında, 15 Eylül.)* | §24.2 |
@@ -242,10 +244,11 @@ enum PuzzleCategory {
   vehicles,
   nature,
   shapes,
+  objects, // K-14 — Eşyalar
 }
 ```
 
-v1'de enum yalnızca bu 5 değeri içerir.
+v1'de enum yalnızca bu 5 değeri içeriyordu; K-14 ile **6** oldu (`objects`, Eşyalar).
 
 İleride `colors`, `numbers` vb. eklenebilir.
 
@@ -1168,7 +1171,7 @@ Parça boyanır → kısa ses → ~0,9 sn
 * Seçilen renk ayrıca **sol üst köşedeki çerçeveli bir karede** görünür (K-10); parmak palette gezerken kare de anında değişir. Kare dokunuşa kapalıdır. Yatay ekranda "geç" oku karenin altına iner.
 * Boya, palet sırası olarak değil **renk değeri (opak ARGB)** olarak saklanır.
 * Araba **kodla çizilir** (K-7). Her model 5–6 parçadır; her parçanın görünen alanına en dar ekranda (320 dp) bile 64 px'lik bir daire sığar (§2, K-8) — otomatik test eder.
-* 3 model sırayla gelir; sonuncudan sonra ilkine dönülür. Tamamlanmış ama sürülüp gitmeden oyundan çıkılmış bir araba, safha bir sonraki açılışında yeni modelle başlar.
+* 5 model sırayla gelir — sedan, kamyonet, yarış arabası, kamyon, traktör (K-13); sonuncudan sonra ilkine dönülür. Tamamlanmış ama sürülüp gitmeden oyundan çıkılmış bir araba, safha bir sonraki açılışında yeni modelle başlar.
 * Boyama durumu **ayrı bir anahtarda** saklanır (`emoji_puzzle.colouring`), `GameProgress`'te değil: feature bağımsızlığı korunur ve §25.1 şema değişikliği ilerlemeyi silmez. Bozuk kayıt → ilk araba, boş (§25.1'in ruhu).
 * §26 ilerleme sıfırlaması boyama defterini de ilk arabaya, boş olarak döndürür.
 * Geri tuşu (§30): safha kesilir, boyanan parça kalır, sonraki puzzle hazırlanır.
