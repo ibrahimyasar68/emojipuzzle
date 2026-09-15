@@ -1,6 +1,7 @@
 import 'dart:math' show Random;
 
 import 'package:emoji_puzzle_kids/core/constants/puzzle_config.dart';
+import 'package:emoji_puzzle_kids/features/colouring/data/paint_colours.dart';
 import 'package:emoji_puzzle_kids/features/home/screens/home_screen.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/coordinate_mapper.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/puzzle_generator.dart';
@@ -17,6 +18,9 @@ import '../../../support/recording_sound_player.dart';
 import 'package:emoji_puzzle_kids/core/services/audio_service.dart';
 
 const _referencePhone = Size(360, 640);
+
+/// What a part is painted with when the child does not touch the palette.
+final _initialPaint = PaletteChoice.initial.colour.toARGB32();
 
 class _Harness {
   _Harness(this.game, this.player);
@@ -255,6 +259,56 @@ void main() {
         findsNothing,
         reason: 'a child cannot read a dialog, so there is never one',
       );
+    });
+
+    testWidgets('leaving during the colouring keeps the paint (§30)', (
+      tester,
+    ) async {
+      final harness = await _pumpPuzzle(tester);
+      final game = harness.game;
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AudioService>.value(value: game.audio),
+            ChangeNotifierProvider<GameProvider>.value(value: game),
+          ],
+          child: const MaterialApp(home: HomeScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('home-play')));
+      await tester.pumpAndSettle();
+
+      await _solveWithFingers(tester, game);
+      await tester.pump(PuzzleConfig.celebrationDuration);
+      await tester.pump();
+      await tester.pump(PuzzleConfig.balloonGameDuration);
+      await tester.pump();
+      await tester.pump(PuzzleConfig.stickerRewardDuration);
+      await tester.pump();
+      expect(find.byKey(const ValueKey('colouring-overlay')), findsOneWidget);
+
+      // Paint, and press Back before the page has moved on by itself.
+      final card = tester.getRect(find.byKey(const ValueKey('colouring-card')));
+      await tester
+          .tapAt(card.topLeft + Offset(card.width / 2, card.height * 0.625));
+      await tester.pump();
+      expect(game.colouring.colourOf('body'), _initialPaint);
+      await _pressBack(tester);
+
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(
+        game.colouring.colourOf('body'),
+        _initialPaint,
+        reason: 'Back takes nothing away (§30)',
+      );
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pumpAndSettle();
+      expect(game.puzzle.id, 'cat_01', reason: 'not left on a solved board');
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('leaving mid-celebration keeps the sticker (§30)', (

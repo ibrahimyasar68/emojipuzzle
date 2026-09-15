@@ -11,9 +11,21 @@ const _phone = Size(360, 640);
 
 const _tick = Duration(milliseconds: 100);
 
-BalloonGameController _game({int? seed}) => BalloonGameController(
+/// By then every balloon has arrived and finished rising (§24).
+const _allOnStage = Duration(seconds: 3);
+
+BalloonGameController _game({int? seed, int? maxActive}) =>
+    BalloonGameController(
       random: Random(seed ?? 7),
+      maxActive: maxActive ?? PuzzleConfig.balloonMaxActive,
     );
+
+/// A game already running with all its balloons in the air.
+BalloonGameController _fullGame({int? seed}) {
+  final game = _game(seed: seed)..start();
+  _runFor(game, _allOnStage);
+  return game;
+}
 
 /// Runs the game clock forward without waiting for real time.
 void _runFor(BalloonGameController game, Duration total) {
@@ -65,7 +77,7 @@ void _popAll(BalloonGameController game) {
 
 void main() {
   group('spawning (§24)', () {
-    test('two pairs, four balloons, are already up when the game opens', () {
+    test('one pair is already up when the game opens', () {
       final game = _game();
       addTearDown(game.dispose);
 
@@ -73,34 +85,52 @@ void main() {
       game.start();
 
       expect(game.balloons, hasLength(PuzzleConfig.balloonInitialSpawn));
-      expect(game.spawnedCount, 4);
+      expect(game.spawnedCount, 2);
       expect(game.isFinished, isFalse);
     });
 
-    test('one more pair arrives roughly every 2.4 seconds', () {
+    test('another pair arrives every 0.6 seconds', () {
       final game = _game();
       addTearDown(game.dispose);
       game.start();
 
-      _runFor(game, const Duration(milliseconds: 2300));
-      expect(game.balloons, hasLength(4), reason: 'not yet');
+      _runFor(game, const Duration(milliseconds: 500));
+      expect(game.balloons, hasLength(2), reason: 'not yet');
 
       _runFor(game, const Duration(milliseconds: 200));
-      expect(game.balloons, hasLength(6));
+      expect(game.balloons, hasLength(4));
 
       _runFor(game, PuzzleConfig.balloonSpawnInterval);
-      expect(game.balloons, hasLength(8));
+      expect(game.balloons, hasLength(6));
     });
 
-    test('balloons still arrive as fast as they did one at a time', () {
+    test('all ten are up, and done rising, within three seconds', () {
+      final game = _game();
+      addTearDown(game.dispose);
+      game.start();
+
+      _runFor(game, const Duration(milliseconds: 2900));
       expect(
-        PuzzleConfig.balloonSpawnInterval.inMilliseconds / 2,
-        1200,
-        reason: 'two balloons per 2.4 s is one per 1.2 s (§24)',
+        game.balloons.where(
+          (b) => game.elapsed - b.bornAt >= PuzzleConfig.balloonRiseDuration,
+        ),
+        hasLength(lessThan(10)),
+        reason: 'the last pair is still rising just before three seconds',
       );
+
+      _runFor(game, const Duration(milliseconds: 100));
+      expect(game.balloons, hasLength(PuzzleConfig.balloonTotal));
+      expect(game.balloons, hasLength(10));
+      for (final balloon in game.balloons) {
+        expect(
+          game.elapsed - balloon.bornAt,
+          greaterThanOrEqualTo(PuzzleConfig.balloonRiseDuration),
+          reason: 'balloon ${balloon.id} is in its place',
+        );
+      }
     });
 
-    test('never more than eight in the air at once', () {
+    test('never more than ten in the air at once', () {
       final game = _game();
       addTearDown(game.dispose);
       game.start();
@@ -113,32 +143,33 @@ void main() {
       }
 
       expect(highest, PuzzleConfig.balloonMaxActive);
-      expect(highest, lessThanOrEqualTo(8));
+      expect(highest, lessThanOrEqualTo(10));
     });
 
-    test('never more than twelve balloons in the whole game', () {
+    test('never more than ten balloons in the whole game', () {
       final game = _game();
       addTearDown(game.dispose);
       game.start();
 
-      // Pop everything on sight for the full fifteen seconds, so the cap on
-      // active balloons is never what is holding spawning back.
+      // Pop everything on sight for the full fifteen seconds.
       for (var i = 0; i < 150; i++) {
         game.advance(_tick);
         _popAll(game);
       }
 
       expect(game.spawnedCount, PuzzleConfig.balloonTotal);
-      expect(game.spawnedCount, 12);
+      expect(game.spawnedCount, 10);
     });
 
-    test('popping a pair makes room for the next pair', () {
-      final game = _game();
+    // All ten fit on screen at once, so the cap never binds in the real
+    // game. It is still a rule of the controller, tested with a small cap.
+    test('with a lower cap, popping a pair makes room for the next pair', () {
+      final game = _game(maxActive: 4);
       addTearDown(game.dispose);
       game.start();
 
-      _runFor(game, const Duration(milliseconds: 5500));
-      expect(game.balloons, hasLength(PuzzleConfig.balloonMaxActive));
+      _runFor(game, const Duration(milliseconds: 700));
+      expect(game.balloons, hasLength(4));
       final spawnedWhenFull = game.spawnedCount;
 
       // Full: waiting changes nothing.
@@ -150,19 +181,18 @@ void main() {
       expect(game.spawnedCount, spawnedWhenFull + 2);
     });
 
-    test('a full screen does not bank up a burst of balloons', () {
-      final game = _game();
+    test('with a lower cap, a full screen does not bank up a burst', () {
+      final game = _game(maxActive: 4);
       addTearDown(game.dispose);
       game.start();
 
-      _runFor(game, const Duration(milliseconds: 5500));
-      expect(game.balloons, hasLength(PuzzleConfig.balloonMaxActive));
+      _runFor(game, const Duration(milliseconds: 700));
+      expect(game.balloons, hasLength(4));
 
       // Three seconds with the screen full, then two pairs' room at once.
       _runFor(game, const Duration(seconds: 3));
       final spawnedWhenFull = game.spawnedCount;
-      _popAPair(game);
-      _popAPair(game);
+      _popAll(game);
 
       game.advance(_tick);
       expect(
@@ -171,8 +201,7 @@ void main() {
         reason: 'the room does not refill on the next tick',
       );
 
-      // They come back at the same unhurried pace as always: one pair per
-      // interval, never two at once.
+      // They come back at the same pace as always: one pair per interval.
       _runFor(game, PuzzleConfig.balloonSpawnInterval);
       expect(game.spawnedCount, spawnedWhenFull + 2);
     });
@@ -180,9 +209,8 @@ void main() {
 
   group('matching colours (§24, K-5)', () {
     test('the first tap only chooses a balloon', () {
-      final game = _game();
+      final game = _fullGame();
       addTearDown(game.dispose);
-      game.start();
       final balloon = game.balloons.first;
 
       final popped = game.tap(balloon.id);
@@ -194,9 +222,8 @@ void main() {
     });
 
     test('a second tap on the same colour pops both together', () {
-      final game = _game();
+      final game = _fullGame();
       addTearDown(game.dispose);
-      game.start();
       final (first, second) = _aPair(game);
 
       game.tap(first.id);
@@ -210,9 +237,8 @@ void main() {
     });
 
     test('a different colour just moves the choice, silently (§20)', () {
-      final game = _game();
+      final game = _fullGame();
       addTearDown(game.dispose);
-      game.start();
       final (first, other) = _aMismatch(game);
       final before = game.balloons.length;
 
@@ -226,9 +252,8 @@ void main() {
     });
 
     test('tapping the chosen balloon again does nothing (§2)', () {
-      final game = _game();
+      final game = _fullGame();
       addTearDown(game.dispose);
-      game.start();
       final balloon = game.balloons.first;
 
       game.tap(balloon.id);
@@ -256,7 +281,11 @@ void main() {
 
           final counts = <int, int>{};
           for (final balloon in game.balloons) {
-            counts.update(balloon.colourIndex, (n) => n + 1, ifAbsent: () => 1);
+            counts.update(
+              balloon.colourIndex,
+              (n) => n + 1,
+              ifAbsent: () => 1,
+            );
           }
           for (final entry in counts.entries) {
             expect(
@@ -272,10 +301,8 @@ void main() {
     });
 
     test('a pair is born together, in one colour', () {
-      final game = _game();
+      final game = _fullGame();
       addTearDown(game.dispose);
-      game.start();
-      _runFor(game, const Duration(milliseconds: 5000));
 
       final balloons = game.balloons;
       for (var i = 0; i + 1 < balloons.length; i += 2) {
@@ -284,24 +311,39 @@ void main() {
       }
     });
 
-    test('consecutive pairs walk the palette instead of repeating', () {
-      final game = _game();
-      addTearDown(game.dispose);
-      game.start();
+    test('every pair is its own colour', () {
+      for (var seed = 0; seed < 20; seed++) {
+        final game = _fullGame(seed: seed);
+        expect(
+          game.balloons.map((b) => b.colourIndex).toSet(),
+          hasLength(PuzzleConfig.balloonTotal ~/ 2),
+          reason: 'seed $seed: five pairs, five colours',
+        );
+        game.dispose();
+      }
+    });
 
-      expect(
-        game.balloons.map((b) => b.colourIndex).toSet(),
-        hasLength(2),
-        reason: 'the two opening pairs are two different colours',
-      );
+    test('the colours come in a random order, game to game', () {
+      final orders = <String>{};
+      for (var seed = 0; seed < 30; seed++) {
+        final game = _fullGame(seed: seed);
+        final balloons = game.balloons;
+        orders.add([
+          for (var i = 0; i < balloons.length; i += 2) balloons[i].colourIndex,
+        ].join());
+        game.dispose();
+      }
+
+      // 120 possible orders; thirty games landing on only a handful would
+      // mean the dealing is not random at all.
+      expect(orders.length, greaterThanOrEqualTo(20));
     });
   });
 
   group('showing the way (§24, K-5)', () {
     test('a balloon chosen for three seconds gets its partner pulsing', () {
-      final game = _game();
+      final game = _fullGame();
       addTearDown(game.dispose);
-      game.start();
       final (first, _) = _aPair(game);
 
       game.tap(first.id);
@@ -311,16 +353,16 @@ void main() {
       expect(game.partnerHintId, isNull);
 
       _runFor(game, const Duration(milliseconds: 200));
-      final hinted =
-          game.balloons.firstWhere((b) => b.id == game.partnerHintId);
+      final hinted = game.balloons.firstWhere(
+        (b) => b.id == game.partnerHintId,
+      );
       expect(hinted.id, isNot(first.id));
       expect(hinted.colourIndex, first.colourIndex, reason: 'a real partner');
     });
 
     test('choosing another balloon starts the wait again', () {
-      final game = _game();
+      final game = _fullGame();
       addTearDown(game.dispose);
-      game.start();
       final (first, other) = _aMismatch(game);
 
       game.tap(first.id);
@@ -332,9 +374,8 @@ void main() {
     });
 
     test('popping the pair ends the hint', () {
-      final game = _game();
+      final game = _fullGame();
       addTearDown(game.dispose);
-      game.start();
       final (first, second) = _aPair(game);
 
       game.tap(first.id);
@@ -364,7 +405,7 @@ void main() {
       expect(game.balloons, isNotEmpty, reason: 'left in the air, not judged');
     });
 
-    test('all twelve popped ends it 500 ms later', () {
+    test('all ten popped ends it 500 ms later', () {
       final game = _game();
       addTearDown(game.dispose);
       var finished = 0;
@@ -427,7 +468,7 @@ void main() {
       game.onFinished = () => finished++;
       game.start();
 
-      _runFor(game, const Duration(seconds: 5));
+      _runFor(game, const Duration(seconds: 1));
       final spawnedBefore = game.spawnedCount;
 
       game.pause();
@@ -442,8 +483,8 @@ void main() {
       game.resume();
       expect(game.isPaused, isFalse);
 
-      // And what was left is still left: ten of the fifteen seconds.
-      _runFor(game, const Duration(seconds: 9));
+      // And what was left is still left: fourteen of the fifteen seconds.
+      _runFor(game, const Duration(seconds: 13));
       expect(game.isFinished, isFalse);
       _runFor(game, const Duration(seconds: 2));
       expect(game.isFinished, isTrue);
@@ -465,9 +506,8 @@ void main() {
 
   group('no penalty (§20)', () {
     test('balloons left in the air are not counted against the child', () {
-      final game = _game();
+      final game = _fullGame();
       addTearDown(game.dispose);
-      game.start();
 
       _popAPair(game);
       _runFor(game, const Duration(seconds: 16));
@@ -480,9 +520,8 @@ void main() {
     });
 
     test('tapping a balloon that is gone, or never was, is not an error', () {
-      final game = _game();
+      final game = _fullGame();
       addTearDown(game.dispose);
-      game.start();
       final (first, second) = _aPair(game);
 
       game.tap(first.id);
@@ -502,8 +541,8 @@ void main() {
       addTearDown(first.dispose);
       addTearDown(second.dispose);
 
-      _runFor(first, const Duration(seconds: 5));
-      _runFor(second, const Duration(seconds: 5));
+      _runFor(first, _allOnStage);
+      _runFor(second, _allOnStage);
 
       expect(
         first.balloons.map((b) => '${b.id}:${b.x}:${b.restY}:${b.colourIndex}'),
@@ -513,39 +552,39 @@ void main() {
     });
 
     test('no two balloons ever overlap (§2)', () {
-      final game = _game();
-      addTearDown(game.dispose);
-      game.start();
+      for (var seed = 0; seed < 5; seed++) {
+        final game = _game(seed: seed);
+        game.start();
 
-      // Checked against the real geometry, at every tick of a whole game,
-      // popping as we go so cells are reused as well as handed out.
-      for (var i = 0; i < 150; i++) {
-        game.advance(_tick);
-        final balloons = game.balloons;
-        for (var a = 0; a < balloons.length; a++) {
-          for (var b = a + 1; b < balloons.length; b++) {
-            final first =
-                BalloonLayout.rectOf(balloons[a], _phone, game.elapsed);
-            final second =
-                BalloonLayout.rectOf(balloons[b], _phone, game.elapsed);
-            expect(
-              first.overlaps(second.deflate(1)),
-              isFalse,
-              reason: 'balloons ${balloons[a].id} and ${balloons[b].id} '
-                  'at ${game.elapsed.inMilliseconds} ms',
-            );
+        // Checked against the real geometry, at every tick of a whole game,
+        // popping as we go so cells are reused as well as handed out.
+        for (var i = 0; i < 150; i++) {
+          game.advance(_tick);
+          final balloons = game.balloons;
+          for (var a = 0; a < balloons.length; a++) {
+            for (var b = a + 1; b < balloons.length; b++) {
+              final first =
+                  BalloonLayout.rectOf(balloons[a], _phone, game.elapsed);
+              final second =
+                  BalloonLayout.rectOf(balloons[b], _phone, game.elapsed);
+              expect(
+                first.overlaps(second.deflate(1)),
+                isFalse,
+                reason: 'seed $seed: balloons ${balloons[a].id} and '
+                    '${balloons[b].id} at ${game.elapsed.inMilliseconds} ms',
+              );
+            }
           }
+          if (i % 17 == 0 && balloons.isNotEmpty) _popAPair(game);
         }
-        if (i % 17 == 0 && balloons.isNotEmpty) _popAPair(game);
+        game.dispose();
       }
     });
 
     test('each one is placed inside the play area and knows when it was born',
         () {
-      final game = _game();
+      final game = _fullGame();
       addTearDown(game.dispose);
-      game.start();
-      _runFor(game, const Duration(seconds: 4));
 
       for (final balloon in game.balloons) {
         expect(balloon.x, inInclusiveRange(0.0, 1.0));

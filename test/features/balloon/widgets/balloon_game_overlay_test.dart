@@ -17,9 +17,9 @@ import '../../../support/recording_sound_player.dart';
 
 const _referencePhone = Size(360, 640);
 
-/// Long enough for the opening pairs to have drifted into view, and short
-/// enough that the third pair has not arrived yet (§24).
-const _afterTheRise = Duration(milliseconds: 1100);
+/// Long enough for every balloon to have arrived and risen into place: the
+/// whole entrance takes three seconds (§24, K-11).
+const _afterTheRise = Duration(milliseconds: 3100);
 
 class _Harness {
   _Harness(this.game, this.player, this.finished);
@@ -87,14 +87,37 @@ Balloon _anotherColour(BalloonGameController game, Balloon than) =>
     game.balloons.firstWhere((b) => b.colourIndex != than.colourIndex);
 
 void main() {
-  testWidgets('it opens with two pairs in the air (§24)', (tester) async {
-    await _pumpGame(tester);
-    await tester.pump(_afterTheRise);
+  testWidgets('all ten balloons are on stage within three seconds (K-11)', (
+    tester,
+  ) async {
+    final harness = await _pumpGame(tester);
 
-    for (var id = 0; id < 4; id++) {
-      expect(_balloon(id), findsOneWidget, reason: 'balloon $id');
+    // Frame by frame, the way the entrance really plays.
+    await tester.pump();
+    for (var i = 0; i < 150; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
     }
-    expect(_balloon(4), findsNothing);
+    await tester.pump(const Duration(milliseconds: 20));
+
+    expect(harness.game.balloons, hasLength(PuzzleConfig.balloonTotal));
+    for (var id = 0; id < PuzzleConfig.balloonTotal; id++) {
+      expect(_balloon(id), findsOneWidget, reason: 'balloon $id');
+      final opacity = tester.widget<Opacity>(
+        find.descendant(of: _balloon(id), matching: find.byType(Opacity)),
+      );
+      expect(opacity.opacity, 1, reason: 'balloon $id is fully in view');
+    }
+    expect(_balloon(PuzzleConfig.balloonTotal), findsNothing);
+
+    // Resting now: two frames apart it moves only by its gentle bob.
+    final before = tester.getRect(_balloon(PuzzleConfig.balloonTotal - 1));
+    await tester.pump(const Duration(milliseconds: 20));
+    final after = tester.getRect(_balloon(PuzzleConfig.balloonTotal - 1));
+    expect(
+      (after.top - before.top).abs(),
+      lessThan(2),
+      reason: 'the last pair has stopped rising',
+    );
 
     await tester.pump(const Duration(seconds: 15));
   });
@@ -103,7 +126,7 @@ void main() {
     await _pumpGame(tester);
     await tester.pump(_afterTheRise);
 
-    for (var id = 0; id < 4; id++) {
+    for (var id = 0; id < PuzzleConfig.balloonTotal; id++) {
       final size = tester.getSize(_balloon(id));
       expect(
         size.width,
@@ -263,11 +286,13 @@ void main() {
     );
   });
 
-  testWidgets('popping all twelve ends it early (§24)', (tester) async {
+  testWidgets('popping all ten ends it early (§24)', (tester) async {
     final harness = await _pumpGame(tester);
 
     // Pop every pair in the air, as fast as a child possibly could.
-    for (var i = 0; i < 60 && harness.game.poppedCount < 12; i++) {
+    for (var i = 0;
+        i < 60 && harness.game.poppedCount < PuzzleConfig.balloonTotal;
+        i++) {
       await tester.pump(const Duration(milliseconds: 200));
       while (harness.game.balloons.isNotEmpty) {
         final (first, second) = _aPair(harness.game);
@@ -278,7 +303,7 @@ void main() {
       }
     }
 
-    expect(harness.game.poppedCount, 12);
+    expect(harness.game.poppedCount, PuzzleConfig.balloonTotal);
     expect(harness.finished(), 0, reason: 'the last pop gets its moment');
 
     await tester.pump(const Duration(milliseconds: 300));

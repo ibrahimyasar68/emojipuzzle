@@ -5,6 +5,7 @@ import '../core/services/audio_service.dart';
 import '../core/services/sound_player.dart';
 import '../core/services/storage_service.dart';
 import '../core/theme/theme_settings.dart';
+import '../features/colouring/providers/colouring_book.dart';
 import '../features/puzzle/data/progress_repository.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/puzzle/providers/game_provider.dart';
@@ -28,6 +29,7 @@ class _EmojiPuzzleAppState extends State<EmojiPuzzleApp> {
   late final AudioService _audio;
   late final GameProvider _game;
   late final ThemeSettings _theme;
+  late final ColouringBook _colouring;
 
   @override
   void initState() {
@@ -44,15 +46,18 @@ class _EmojiPuzzleAppState extends State<EmojiPuzzleApp> {
     )..loadSettings();
     // Çocuk hâlâ Home'a bakarken devam ettirilir; böylece oyna'ya basınca
     // çoktan çizilmiş bir puzzle açılır (§25, §14).
+    _colouring = ColouringBook(storage: widget.storage)..load();
     _game = GameProvider(
       progressRepository: ProgressRepository(widget.storage),
       audio: _audio,
+      colouring: _colouring,
     )..resume();
   }
 
   @override
   void dispose() {
     _game.dispose();
+    _colouring.dispose();
     _audio.dispose();
     _theme.dispose();
     super.dispose();

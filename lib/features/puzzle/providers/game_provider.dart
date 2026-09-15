@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/services/puzzle_image_loader.dart';
+import '../../colouring/providers/colouring_book.dart';
 import '../data/progress_repository.dart';
 import '../data/puzzle_catalog.dart';
 import '../engine/geometry/puzzle_generator.dart';
@@ -36,6 +37,7 @@ class GameProvider extends ChangeNotifier {
     PuzzleImageLoader? imageLoader,
     ProgressRepository? progressRepository,
     AudioService? audio,
+    ColouringBook? colouring,
     HapticService haptics = const HapticService(),
     PuzzleCatalog catalog = PuzzleCatalog.v1,
   })  : _generator = generator ?? PuzzleGenerator(),
@@ -44,6 +46,8 @@ class GameProvider extends ChangeNotifier {
         _progressRepository = progressRepository,
         _audio = audio ?? AudioService(),
         _ownsAudio = audio == null,
+        _colouring = colouring ?? ColouringBook(),
+        _ownsColouring = colouring == null,
         _haptics = haptics,
         _catalog = catalog;
 
@@ -61,6 +65,12 @@ class GameProvider extends ChangeNotifier {
   final AudioService _audio;
   final bool _ownsAudio;
   final HapticService _haptics;
+
+  /// Her bitişten sonra bir parçası boyanan araba (§24.2). Durumu puzzle'ın
+  /// değildir; burada yalnızca ilerleme sıfırlanınca temizlensin diye durur
+  /// (§26).
+  final ColouringBook _colouring;
+  final bool _ownsColouring;
 
   final PuzzleCatalog _catalog;
 
@@ -86,6 +96,7 @@ class GameProvider extends ChangeNotifier {
   PuzzleCatalog get catalog => _catalog;
   GameProgress get progress => _progress;
   AudioService get audio => _audio;
+  ColouringBook get colouring => _colouring;
 
   PuzzleDefinition get puzzle =>
       _definition ?? (throw StateError('no puzzle started yet'));
@@ -306,6 +317,8 @@ class GameProvider extends ChangeNotifier {
     _progress = const GameProgress.initial();
     notifyListeners();
     await _progressRepository?.clear();
+    // Boyama defteri de ilk arabaya, boş döner.
+    await _colouring.clear();
   }
 
   // ── Oynama (§10, §17, §18, §19) ───────────────────────────────────────
@@ -459,6 +472,7 @@ class GameProvider extends ChangeNotifier {
     // Yalnızca kendi kurduğumuzu serbest bırakırız: dışarıdan verilen bir
     // servis uygulamaya aittir.
     if (_ownsAudio) _audio.dispose();
+    if (_ownsColouring) _colouring.dispose();
     super.dispose();
   }
 }

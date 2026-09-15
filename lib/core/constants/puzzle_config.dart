@@ -153,18 +153,20 @@ abstract final class PuzzleConfig {
   /// uyduğu 64 px'ten daha büyük bir vurma alanı alır.
   static const double balloonTouchTargetSize = 72;
 
-  /// §24 — mini oyun toplamda on iki balon üretir ve aynı anda havada
-  /// asla sekizden fazlası olmaz.
-  static const int balloonTotal = 12;
-  static const int balloonMaxActive = 8;
+  /// §24, K-11 — mini oyun toplamda on balon (beş renk çifti) üretir ve
+  /// hepsi aynı anda havada olabilir. On iki balon ve sekiz sınırı fazlaydı
+  /// (kullanıcı istedi); on balon 3 × 4'lük hücre ızgarasına üst üste
+  /// binmeden sığar.
+  static const int balloonTotal = 10;
+  static const int balloonMaxActive = 10;
 
-  /// §24, K-5 — oyun açıldığında iki renk çifti (dört balon) bekliyordur,
-  /// sonra yer oldukça kabaca her 2,4 saniyede bir çift gelir. Balonların
-  /// geliş hızı tek balonlu oyundakiyle (1,2 saniyede bir) aynıdır; yalnızca
-  /// artık ikişer ikişer gelirler, çünkü eşi olmayan bir balon çocuğun hiç
-  /// patlatamayacağı bir balondur.
-  static const int balloonInitialSpawn = 4;
-  static const Duration balloonSpawnInterval = Duration(milliseconds: 2400);
+  /// §24, K-5, K-11 — oyun açıldığında bir renk çifti bekliyordur, sonra her
+  /// 0,6 saniyede bir çift gelir. Balonlar ikişer gelir, çünkü eşi olmayan
+  /// bir balon çocuğun hiç patlatamayacağı bir balondur. Son çift 2,4.
+  /// saniyede doğar ve [balloonRiseDuration] ile 3. saniyede yerindedir:
+  /// giriş üç saniye sürer (kullanıcı istedi; önceki giriş uzun sürüyordu).
+  static const int balloonInitialSpawn = 2;
+  static const Duration balloonSpawnInterval = Duration(milliseconds: 600);
 
   /// §24, K-5 — seçilen balon bu kadar büyür, bu sürede; ve seçili kaldıkça
   /// bu açıyla, bu periyotla sallanır. Seçim yalnızca renge bırakılmaz:
@@ -184,7 +186,7 @@ abstract final class PuzzleConfig {
   /// §24 — oyun nasıl gidiyor olursa olsun on beşinci saniyede biter.
   static const Duration balloonGameDuration = Duration(seconds: 15);
 
-  /// §24 — on ikisini de patlatmak oyunu erken bitirir; duraklama, son
+  /// §24 — onunu da patlatmak oyunu erken bitirir; duraklama, son
   /// patlamanın görülmesine yetecek kadardır.
   static const Duration balloonEarlyFinishDelay = Duration(milliseconds: 500);
 
@@ -193,7 +195,7 @@ abstract final class PuzzleConfig {
   static const Duration balloonTickInterval = Duration(milliseconds: 50);
 
   /// §24 — bir balon bu süre boyunca oyun alanına süzülür, sonra yerinde
-  /// salınır. Balonlar asla yukarıdan kaçmaz: on ikisini de patlatan bir
+  /// salınır. Balonlar asla yukarıdan kaçmaz: onunu da patlatan bir
   /// çocuk erken bitişi hak etmiştir ve uçup giden bir balon bunu sessizce
   /// elinden alırdı.
   ///
@@ -201,7 +203,9 @@ abstract final class PuzzleConfig {
   /// yukarı uçmaz. Oyun alanını baştan sona kat etmek, onu çoktan orada
   /// duran balonların üzerinden geçirirdi ve örtülmüş bir balon, çocuğun
   /// vuramayacağı bir dokunma hedefidir (§2).
-  static const Duration balloonRiseDuration = Duration(milliseconds: 1000);
+  ///
+  /// K-11 — 0,6 saniye: giriş üç saniyeye sığsın diye 1 saniyeden kısaldı.
+  static const Duration balloonRiseDuration = Duration(milliseconds: 600);
   static const double balloonRiseDistance = 0.35;
   static const Duration balloonBobPeriod = Duration(milliseconds: 2600);
   static const double balloonBobAmplitude = 7;
@@ -213,6 +217,57 @@ abstract final class PuzzleConfig {
   /// §42 — bir patlama küçüktür; birkaçı üst üste binse bile 40 parçacık
   /// bütçesinin içinde yer kalır.
   static const int balloonPopParticles = 8;
+
+  /// §24.2 — boyama ekranının kenar payı, öğeler arasındaki boşluk ve "geç"
+  /// düğmesi. Hepsi §2'nin 64 px'inin üstünde.
+  static const double colouringMargin = 16;
+  static const double colouringGap = 12;
+  static const double colouringSkipButtonSize = 64;
+
+  /// §24.2 — araba kartı: board gibi en fazla 500 px (§6.1). Kartın yanlarına
+  /// kenar payından az boşluk bırakılır; 320 dp'lik telefonda her birim
+  /// parçanın dokunma alanıdır.
+  static const double colouringMaxCardWidth = 500;
+  static const double colouringCardInset = 8;
+
+  /// §24.2 — çizgi kalınlıkları, çizim biriminde (100 × 80'lik tuval).
+  static const double colouringOutlineWidth = 1.3;
+  static const double colouringDetailWidth = 0.9;
+
+  /// §24.2, K-9 — serbest renk paleti. Dikey ekranda altta bu yükseklikte
+  /// bir şerit, yatay ekranda sağda bu genişlikte bir sütun; ikisinde de
+  /// kenarda griler için dar bir şerit. Her biri 64 px'in üstünde (§2).
+  static const double colouringPaletteHeight = 144;
+  static const double colouringPaletteColumnWidth = 156;
+  static const double colouringGreyStripWidth = 64;
+
+  /// §24.2, K-9 — paletteki tonlar tam doygundur; açıklık bir uçta bu kadar
+  /// açık (pastel), öbür uçta bu kadar koyudur. Tam beyaz ve tam siyah gri
+  /// şeritten gelir.
+  static const double colouringLightestShade = 0.95;
+  static const double colouringDarkestShade = 0.1;
+
+  /// §24.2, K-10 — sol üst köşedeki kare: çocuk seçtiği rengi burada,
+  /// parmağının altında kalmadan görür. Dokunma hedefi değildir; çerçevesi
+  /// zemine yakın renkleri de görünür kılar.
+  static const double colouringPreviewSize = 64;
+  static const double colouringPreviewCornerRadius = 8;
+
+  /// §24.2, K-9 — seçilen noktadaki işaret: seçilen renkle dolu, siyah ve
+  /// beyaz çift çerçeveli bir halka. Seçim yalnızca renge bırakılmaz ve
+  /// her zeminde görünür.
+  static const double colouringMarkerSize = 40;
+  static const double colouringMarkerBorderWidth = 3;
+
+  /// §24.2 — boya parçaya bu sürede dolar; çocuk sonucunu görsün diye bir
+  /// süre daha beklenir, sonra sıradaki puzzle gelir (§23: gereksiz
+  /// bekletme yok).
+  static const Duration colouringFillDuration = Duration(milliseconds: 250);
+  static const Duration colouringSettleDuration = Duration(milliseconds: 900);
+
+  /// §24.2 — son parça boyanınca araba ekrandan sürülerek çıkar.
+  static const Duration colouringDriveOffDuration =
+      Duration(milliseconds: 1400);
 
   /// §23, §25 — çıkartmanın teslimi. Dizinin en kısa adımı: çıkartmalara
   /// bakılan yer albümdür, burası yalnızca birinin verildiği andır. Bir

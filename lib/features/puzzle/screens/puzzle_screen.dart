@@ -9,6 +9,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../album/widgets/sticker_reward_overlay.dart';
 import '../../balloon/widgets/balloon_game_overlay.dart';
 import '../../celebration/widgets/celebration_overlay.dart';
+import '../../colouring/widgets/colouring_overlay.dart';
 import '../engine/geometry/coordinate_mapper.dart';
 import '../engine/geometry/snap_calculator.dart';
 import '../engine/geometry/tray_layout_calculator.dart';
@@ -75,6 +76,9 @@ class _PuzzleScreenState extends State<PuzzleScreen>
 
   /// Az önce kazanılan çıkartma, teslim edilirken (§23, §25).
   PuzzleDefinition? _stickerAwarded;
+
+  /// Boyama safhası ekrandayken true (§24.2).
+  bool _colouring = false;
 
   /// Oynamayı bırakmış bir çocuğu gözler (§21).
   late final HintController _hint;
@@ -182,8 +186,10 @@ class _PuzzleScreenState extends State<PuzzleScreen>
   Future<void> _leaveForHome() async {
     final game = context.read<GameProvider>();
     final navigator = Navigator.of(context);
-    final wasCelebrating =
-        _celebrating || _playingBalloons || _stickerAwarded != null;
+    final wasCelebrating = _celebrating ||
+        _playingBalloons ||
+        _stickerAwarded != null ||
+        _colouring;
 
     _cancelDrag(game);
     _hint.pause();
@@ -193,6 +199,7 @@ class _PuzzleScreenState extends State<PuzzleScreen>
         _celebrating = false;
         _playingBalloons = false;
         _stickerAwarded = null;
+        _colouring = false;
       });
       // Dizinin arkasındaki resim tamamlandı. Oyunu çözülmüş bir board'da
       // bırakmak çocuğa dönecek bir şey vermezdi, bu yüzden sonraki puzzle
@@ -398,21 +405,35 @@ class _PuzzleScreenState extends State<PuzzleScreen>
   ///
   /// Sırada çıkartma var, ve yalnızca ilk kez bitirilen bir resim için:
   /// Serbest Mod'da çocuk ona zaten sahiptir ve yeniden teslim etmek hiçbir
-  /// şeyin ödülü olurdu (§4, §25).
+  /// şeyin ödülü olurdu (§4, §25). Çıkartmadan sonra — ya da çıkartma yoksa
+  /// hemen — boyama gelir (§24.2).
   void _finishBalloons(GameProvider game) {
     if (!_playingBalloons) return;
     final earned = _awardedSticker;
     setState(() {
       _playingBalloons = false;
       _stickerAwarded = earned;
+      // Çıkartma yoksa boyama hemen gelir (§24.2).
+      _colouring = earned == null;
     });
-    if (earned == null) _moveOn(game);
   }
 
-  /// Çıkartma görüldü. Sıradaki resme (§23).
-  void _finishSticker(GameProvider game) {
+  /// Çıkartma görüldü. Sırada boyama var (§23, §24.2).
+  void _finishSticker() {
     if (_stickerAwarded == null) return;
-    setState(() => _stickerAwarded = null);
+    setState(() {
+      _stickerAwarded = null;
+      _colouring = true;
+    });
+  }
+
+  /// Bir parça boyandı ya da çocuk geçti. Sıradaki resme (§23, §24.2).
+  ///
+  /// Boyama her bitirişte gelir, Serbest Mod dahil: çıkartma yalnızca bir
+  /// kez kazanılır, ama arabanın bir parçası her seferinde (K-6).
+  void _finishColouring(GameProvider game) {
+    if (!_colouring) return;
+    setState(() => _colouring = false);
     _moveOn(game);
   }
 
@@ -577,7 +598,13 @@ class _PuzzleScreenState extends State<PuzzleScreen>
                           if (_stickerAwarded != null)
                             StickerRewardOverlay(
                               puzzle: _stickerAwarded!,
-                              onFinished: () => _finishSticker(game),
+                              onFinished: _finishSticker,
+                            ),
+                          if (_colouring)
+                            ColouringOverlay(
+                              book: game.colouring,
+                              audio: game.audio,
+                              onFinished: () => _finishColouring(game),
                             ),
                         ],
                       );

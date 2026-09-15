@@ -1,7 +1,7 @@
 # Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 15 Eylül 2026, Faz 17 onaylandı, Faz 18 başladı.
+Son güncelleme: 15 Eylül 2026, Faz 18 onaylandı, Faz 19 başladı.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -29,9 +29,10 @@ Son güncelleme: 15 Eylül 2026, Faz 17 onaylandı, Faz 18 başladı.
 | 15 | Responsive, tablet, accessibility | ✅ onaylandı |
 | 16 | Asset/lisans denetimi, privacy, final cila | ✅ onaylandı |
 | 17 | Balon renk eşleştirme | ✅ onaylandı |
-| **18** | **Boyama safhası (araba)** | **⏳ sürüyor** |
+| 18 | Boyama safhası (araba) | ✅ onaylandı |
+| **19** | **9 yeni puzzle (18'e çıkış)** | **⏳ sürüyor** |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **908 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **968 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
 On dokuz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
@@ -54,9 +55,18 @@ On dokuz commit, **GitHub'da yayında**:
   - **K-6** — sticker'dan sonra **atlanabilir** boyama safhası: kutlama →
     balon → sticker → boyama → sonraki puzzle. Boyama her bitirişte gelir.
   - **K-7** — boyama çizimleri (siyah çizgili arabalar) **kodla** çizilir.
-  - **K-8** — boyama ekranında §2'nin 5 öğe sınırı esner: 6 renk + ~6 parça.
-  - Boyama durumu `GameProgress`'e değil **ayrı bir anahtara** yazılacak
-    (feature bağımsızlığı; şema değişince ilerleme silinmesin).
+  - **K-8** — boyama ekranında §2'nin 5 öğe sınırı esner: renk seçimi + ~6 parça.
+  - **K-9** — renk **serbest paletten** seçilir (kullanıcı Faz 18 sırasında
+    istedi, K-8'in "6 renk"ini değiştirdi): ton×açıklık şeridi + gri şerit.
+  - **K-11** — balon oyunu **10 balon** (5 çift), hepsi **3 sn'de** sahnede,
+    çift renkleri **rastgele** (kullanıcı istedi: giriş uzun, balon çoktu).
+    §24'ün [ZORUNLU] "en fazla 8 aktif balon"u 10'a çıktı.
+  - **K-10** — seçilen renk sol üst köşedeki çerçeveli bir karede de
+    görünür (kullanıcı istedi). Yatay ekranda "geç" oku karenin altına iner.
+  - Boyama durumu `GameProgress`'e değil **ayrı bir anahtara** yazılır
+    (`emoji_puzzle.colouring`; feature bağımsızlığı, şema değişince
+    ilerleme silinmesin). Klasör adı `features/colouring/` — kod tabanının
+    İngiliz yazımıyla (`colourIndex`, `outlineColour`) uyumlu.
 
 ---
 
@@ -146,6 +156,11 @@ lib/
     ├── album/                       # §25 — puzzle'a bağımlıdır (stickerlar
     │   ├── screens/album_screen.dart          # puzzle'ların kendisi)
     │   └── widgets/  # sticker_tile, sticker_reward_overlay
+    ├── colouring/                   # §24.2 — hiçbir feature'a bağımlı DEĞİL
+    │   ├── models/car_model.dart      # CarPart, CarModel (100×80 birim)
+    │   ├── data/      # car_catalog (3 araba, kodla), paint_colours (palet)
+    │   ├── providers/colouring_book.dart  # hangi araba, hangi parça, kalıcı
+    │   └── widgets/   # colouring_overlay, car_painter, colouring_layout
     └── home/
         ├── screens/home_screen.dart    # §29 giriş ekranı
         ├── screens/about_screen.dart   # §26 sıfırlama, §33 attribution, görünüm
@@ -256,6 +271,25 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 - **Seçim çizimdedir, dokunma alanında değil.** Seçili balon `BalloonPainter`
   `scale` ile büyür, `Transform.rotate` ile sallanır; dokunma kutusu yerinde
   kalır, komşunun 72 px'ini yemez.
+- **Boyama hiçbir feature'a bağlı değildir** (§24.2). `ColouringBook`
+  `GameProvider`'da durur (`game.colouring`) yalnızca §26 sıfırlaması onu da
+  temizlesin diye; puzzle → colouring yönü serbest, tersi yasak
+  (`feature_independence_test.dart`).
+- **Araba parçaları ölçülerek çizilir.** Her parçanın *görünen* alanına
+  (üstteki parçalar çıkarılınca) en küçük ölçekte 64 px'lik daire sığmalı;
+  `car_catalog_test.dart` bunu 0,5 birimlik ızgarada ölçer. Şu an en küçük
+  parça 12,5 birim, gereken 10,96 (568×320 yatay telefon). Yeni araba
+  çizilirse küçük ayrıntılar parça değil süs çizgisi (`details`) olur.
+- **Palette çizilen renk, boyanan renktir.** Palet iki gradyan katmanıdır:
+  tam doygun tonlar (HSL, L=0,5) + beyazdan saydama, saydamdan siyaha perde.
+  Tam doygun HSL'de açıklık beyaz/siyahla doğrusal karışım olduğu için bu
+  birebir tutar; `PaletteChoice.colour` aynı HSL'den hesaplanır.
+  `colouring_overlay_test.dart` ekran piksellerini ölçer (142 nokta, en
+  büyük fark 1). Perdenin durakları ya da açıklık sınırları değişirse iki
+  taraf birlikte değişmeli. Boya opak ARGB olarak saklanır.
+- **Boyama beklemeleri `AnimationController`'dır, `Timer` değil** — arka
+  planda durur (§28). Bitmiş ama sürülüp gitmeden çıkılmış araba, overlay
+  bir sonraki açılışta `startNextCar()` ile yenilenir.
 - **Widget genişliğini `rect.width`'ten alma.** `sağ − sol` kayan noktada
   tam 72 vermiyor (71.99999999999999); boyut `BalloonLayout.diameterOf`
   üzerinden verilir.
@@ -274,8 +308,13 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   çıkmaz. Ama `startPuzzle` asenkron olduğu için `tester.runAsync` gerekir.
 - **Balon oyunu ekrandayken `pumpAndSettle` kullanılamaz** (kutlama gibi).
   Puzzle akış testleri balon oyununu 15 sn açık pump'la geçiyor.
-- Balonlar **ikişer** gelir (Faz 17): açılışta 4, sonra 2,4 sn'de bir çift.
-  "Açılışta iki çift" iddiası için 1100 ms pump'lanır (üçüncü çift 2,4 sn'de).
+- Balonlar **ikişer** gelir (K-11): açılışta 2, sonra 0,6 sn'de bir çift,
+  yükselme 0,6 sn; 3. saniyede onu da yerinde. Overlay testleri balonlara
+  3,1 sn sonra dokunur (`_afterTheRise`). Yükselirken dokunulan balon hareketli
+  bir hedeftir; testte "ıskaladı" diye yanlış teşhis koydurur.
+- **Mutasyonu kanıt görselini üreten test dosyasıyla koşturma** — ya da
+  görsele mutasyonlar geri alınıp tam koşu yapıldıktan sonra bak. Faz 18'de
+  bozuk kodun ürettiği görsel bir an gerçek hata sanıldı.
 - Salınım (bob), yerleşme anındaki konum karşılaştırmalarını bozar; yükselme
   yönü iki ara noktayla (200/800 ms) ölçülür.
 - **Lifecycle testleri geçerli sırayı izlemeli:** resumed → inactive →
@@ -296,6 +335,10 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 - **Olmayan bir key'e `findsNothing` demek test değildir.** Faz 14'te
   `hint-pulse` diye bir key yokken test boşuna geçiyordu; hint'in durduğu
   artık ses kaydı ve `placedCount` üzerinden ölçülüyor.
+- **Animasyon süresi aşılınca biter, erişilince değil.** `pump(900ms)` +
+  `pump()` 900 ms'lik bir `AnimationController`'ı bitirmez (simülasyon
+  `t > süre` ister); son pump'a 20 ms eklenir. Faz 18'de üç test bu yüzden
+  kırmızıydı, geçen tek test tesadüfen fazladan 250 ms bekliyordu.
 - **Album ve About kaydırılabilir**; `ListView` ekran dışındaki çocukları hiç
   kurmaz. Testler `scrollUntilVisible` kullanır ve **yalnızca tek yöne**
   kaydırır — sticker'lar katalog sırasında değil, album (kategori) sırasında
@@ -463,8 +506,13 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   §24.2 boyama taslağı, §44'e Faz 17 ve 18 satırları.
 - `BalloonGameController.tap(id)` → patlayan balonları döndürür (ya aynı
   renkten iki, ya hiç). `pop` kaldırıldı. `selectedId`, `partnerHintId`.
-- Çiftler: açılışta 4 balon, 2,4 sn'de bir çift (geliş hızı değişmedi),
-  toplam 12, en çok 8. Çiftler paletin üzerinde yürür.
+- Çiftler: açılışta 4 balon, 2,4 sn'de bir çift, toplam 12, en çok 8.
+  **15 Eylül'de K-11 ile değişti:** 10 balon, en çok 10, açılışta 2, 0,6 sn'de
+  bir çift, yükselme 0,6 sn (giriş 3 sn). Renkler artık karıştırılmış
+  desteden dağıtılır: her çift ayrı renk, sıra her oyunda başka. Tamamen
+  rastgele renk bütün çiftleri aynı renge boyayabilirdi (eşleştirme biterdi).
+  Beş mutasyonla kanıtlandı (sabit sıra, tekrarlı renk, 1 sn yükselme,
+  2,4 sn aralık, 8 sınırı).
 - Seçili balon 120 ms'de 1,12'ye büyür ve ±0,08 rad sallanır; 3 sn seçili
   kalırsa eşlerinden biri 800 ms periyotla 1,08'e nabız atar.
 - Seçimde yalnızca haptik `selection`; ses yalnızca patlamada, çift başına
@@ -473,5 +521,44 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   balon başına yürür, ipucu beklemez, seçilen büyümez — hepsi kırmızı).
 - **Emülatörde elle oynanmadı.**
 
-**Sırada: Faz 18 — boyama** (Faz 17 onaylanınca). Plan §0.3 ve devam.md §2'de.
+---
+
+## 11. Faz 18 durumu — boyama safhası
+
+**Yapılanlar** (15 Eylül'de onaylandı):
+
+- Spec §24.2 yazıldı, §2 istisnasına "geç oku" eklendi.
+- Sıra: kutlama → balon → sticker (yalnızca ilk bitiriş) → **boyama** →
+  sonraki puzzle. Boyama her bitirişte, Serbest Mod dahil.
+- 3 araba (sedan, kamyonet, yarış), her biri 5 parça, kodla çizilir. Beyaz
+  kart, siyah çizgi.
+- **Serbest palet (K-9, kullanıcı istedi):** 6 sabit renk yerine sürekli
+  bir palet. Dikey ekranda altta (tonlar enine, açıktan koyuya boyuna),
+  yatayda sağda (tonlar boyuna). Yanında beyaz→siyah gri şerit (siyah
+  teker, beyaz cam için). Dokunmak ve sürüklemek aynı: parmağın altındaki
+  renk; şeritten taşan parmak kenardaki rengi seçer. Seçim noktasında
+  siyah-beyaz çift çerçeveli halka. Başlangıçta tam doygun mavi seçili.
+- **Renk karesi (K-10, kullanıcı istedi):** sol üst köşede 64 px, siyah
+  çerçeveli (beyaz seçilince de görünsün), dokunuşa kapalı. Parmak palette
+  gezerken her karede güncellenir. Yatayda "geç" oku karenin altında; kartın
+  ölçeği değişmedi.
+- Parçaya dokun → boya 250 ms'de akar, `playPieceSnap`, 900 ms sonra
+  sonraki puzzle. Bitişte bir parça; boyanmış parça yeniden boyanabilir.
+- Son parça → `playPuzzleComplete`, araba 1,4 sn'de sağdan çıkar, defter
+  sonraki modele geçer (sonuncudan sonra başa).
+- Geç oku hemen geçer; kâğıda ya da boşluğa dokunmak hiçbir şey yapmaz.
+  Geri tuşu: boya kalır, sonraki puzzle hazırlanır.
+- Kalıcılık ayrı anahtarda; bozuk kayıt → ilk araba boş. Sıfırlama defteri
+  de temizler.
+- 57 yeni test (Faz 17'den bu yana). İlk sürüm yedi mutasyonla kanıtlandı
+  (tek boyama sınırı, geç oku, araba değişimi, sticker sonrası boyama,
+  sıfırlama, ince parça, 60 px renk); serbest palet beş mutasyonla daha
+  (dokunuş yok sayılır, perde ters çizilir, boya hep başlangıç rengi,
+  saydam boya kabul, yatayda eksenler), renk karesi iki mutasyonla daha
+  (kare hep başlangıç rengi, yatayda ok kareyle çakışır) — hepsi kırmızı.
+- **Test tuzağı (yaşandı):** mutasyon koşusu `build/colouring.png`'i bozuk
+  kodla yeniden yazar. Kanıt görseline mutasyonlar bittikten sonra bakılır.
+- Kanıt görseli: `build/colouring.png`. **Emülatörde elle oynanmadı.**
+- Parça sayısı 5 (K-8 "~6" diyordu): 6. parça ya 64 px daireyi
+  sağlamıyordu (far, jant, kapı) ya da gövdeyi dokunulamaz kılıyordu.
 

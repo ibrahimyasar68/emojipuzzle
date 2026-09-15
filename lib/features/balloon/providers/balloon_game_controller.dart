@@ -15,8 +15,8 @@ import '../models/balloon.dart';
 /// renkten bir balona dokunmak bir hata değildir; seçim sessizce oraya
 /// geçer (§20).
 ///
-/// Piksel de widget da tutmaz; böylece "altı renk çifti, aynı anda sekiz,
-/// on beş saniye" bir birim testinde saniye saniye denetlenebilir. Saat, sade
+/// Piksel de widget da tutmaz; böylece "beş renk çifti, üç saniyede
+/// sahnede, on beş saniye" bir birim testinde saniye saniye denetlenebilir. Saat, sade
 /// bir zamanlayıcıdır ve [advance] ile elle sürülebilir — `HintController`
 /// ile aynı kalıp (§21).
 ///
@@ -75,8 +75,8 @@ class BalloonGameController extends ChangeNotifier {
   /// Üst üste binen balonlar, çocuğun vurması gereken 72 px'i sessizce
   /// yer (§2).
   ///
-  /// Üç sütun ve beş satır, en fazla sekiz balon için on beş yer demektir;
-  /// bu da dizilimin ızgara gibi değil, dağınık görünmesini sağlar.
+  /// Üç sütun ve dört satır, en fazla on balon için on iki yer demektir;
+  /// balonların hepsi aynı anda sahnede olabilir ve hiçbiri örtülmez.
   static const int columns = 3;
   static const int rows = 4;
 
@@ -88,8 +88,21 @@ class BalloonGameController extends ChangeNotifier {
   /// Her balonun hangi hücreyi aldığı; patlayınca geri versin diye.
   final Map<int, int> _cellOf = {};
 
-  /// Paletin nereden başladığı; her oyun turuncuyla açılmasın diye.
-  late final int _colourOffset = _random.nextInt(colourCount);
+  /// Çiftlerin renkleri, geliş sırasıyla. Palet karıştırılıp dağıtılır: her
+  /// oyunda başka bir sıra, ama çift sayısı renk sayısını aşmadıkça iki çift
+  /// asla aynı renkte olmaz. Tamamen rastgele renkler bütün çiftleri aynı
+  /// renge boyayabilirdi; o zaman her iki balon eşleşir ve eşleştirme
+  /// ortadan kalkardı (K-5).
+  late final List<int> _pairColours = _dealPairColours();
+
+  List<int> _dealPairColours() {
+    final pairs = total ~/ 2;
+    final deck = <int>[];
+    while (deck.length < pairs) {
+      deck.addAll(List<int>.generate(colourCount, (i) => i)..shuffle(_random));
+    }
+    return deck.take(pairs).toList(growable: false);
+  }
 
   /// Oyun nasıl biterse bitsin, bittiğinde bir kez çağrılır.
   VoidCallback? onFinished;
@@ -297,10 +310,9 @@ class BalloonGameController extends ChangeNotifier {
   /// Aynı renkten iki balon, aynı anda (K-5). Balonlar hep ikişer doğup
   /// ikişer patladığı için ekranda her rengin sayısı her an çifttir.
   ///
-  /// Çiftler paletten çekilmek yerine palet üzerinde yürür: arka arkaya beş
-  /// çift beş farklı renktir.
+  /// Çiftin rengi, karıştırılmış paletten sıradaki.
   void _spawnPair({(int, int)? preferredColumns}) {
-    final colourIndex = (_spawned ~/ 2 + _colourOffset) % colourCount;
+    final colourIndex = _pairColours[_spawned ~/ 2];
     _spawn(colourIndex, preferredColumn: preferredColumns?.$1);
     _spawn(colourIndex, preferredColumn: preferredColumns?.$2);
   }

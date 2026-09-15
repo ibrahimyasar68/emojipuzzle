@@ -243,6 +243,8 @@ void main() {
       harness.game.markPlaced(piece.id);
     }
     expect(harness.game.progress.completedPuzzleIds, isNotEmpty);
+    await harness.game.colouring.startNextCar();
+    await harness.game.colouring.paint('cab', 0xFF43A047);
 
     await tester.tap(find.byKey(const ValueKey('home-about')));
     await tester.pumpAndSettle();
@@ -270,5 +272,8 @@ void main() {
     expect(harness.game.progress.completedPuzzleIds, isEmpty);
     expect(harness.game.progress.unlockedLevel, 1);
     expect(harness.game.progress.lastPlayedPuzzleId, isNull);
+    // The car goes back to a blank first model too (§24.2).
+    expect(harness.game.colouring.carIndex, 0);
+    expect(harness.game.colouring.fills, isEmpty);
   });
 }

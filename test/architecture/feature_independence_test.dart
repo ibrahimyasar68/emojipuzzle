@@ -61,6 +61,25 @@ void main() {
     );
   });
 
+  test('the colouring page depends on no other feature (§24.2, §36)', () {
+    expect(_dartFilesIn('lib/features/colouring'), isNotEmpty);
+
+    final others = Directory('lib/features')
+        .listSync()
+        .whereType<Directory>()
+        .map((d) => d.path)
+        .where((path) => !path.endsWith('colouring'))
+        .toList();
+    expect(others, isNotEmpty);
+    for (final other in others) {
+      expect(
+        crossFeatureImports('lib/features/colouring', other),
+        isEmpty,
+        reason: other,
+      );
+    }
+  });
+
   test('the celebration does not depend on the puzzle either (§36)', () {
     expect(
       crossFeatureImports('lib/features/celebration', 'lib/features/puzzle'),

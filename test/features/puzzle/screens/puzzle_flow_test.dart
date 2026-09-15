@@ -3,6 +3,8 @@ import 'dart:math' show Random;
 import 'dart:ui' as ui;
 
 import 'package:emoji_puzzle_kids/core/constants/puzzle_config.dart';
+import 'package:emoji_puzzle_kids/features/colouring/data/paint_colours.dart';
+import 'package:emoji_puzzle_kids/features/colouring/models/car_model.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/data/puzzle_catalog.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/coordinate_mapper.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/puzzle_generator.dart';
@@ -17,6 +19,9 @@ import 'package:provider/provider.dart';
 final _captureKey = GlobalKey();
 
 const _referencePhone = Size(360, 640);
+
+/// What a part is painted with when the child does not touch the palette.
+final _initialPaint = PaletteChoice.initial.colour.toARGB32();
 
 Future<GameProvider> _pumpGame(WidgetTester tester) async {
   tester.view.physicalSize = _referencePhone;
@@ -92,6 +97,14 @@ Future<void> _watchSticker(WidgetTester tester) async {
   await tester.pump();
 }
 
+/// After the sticker — or straight after the balloons when there is none —
+/// the colouring page (§24.2). A test can skip it, as a child may.
+Future<void> _skipColouring(WidgetTester tester) async {
+  expect(find.byKey(const ValueKey('colouring-overlay')), findsOneWidget);
+  await tester.tap(find.byKey(const ValueKey('colouring-skip')));
+  await tester.pump();
+}
+
 /// Lets the real work behind `startPuzzle` (painting the picture) finish.
 Future<void> _settleAsync(WidgetTester tester) async {
   await tester.runAsync(
@@ -116,6 +129,7 @@ void main() {
     await _watchCelebration(tester);
     await _watchBalloons(tester);
     await _watchSticker(tester);
+    await _skipColouring(tester);
     await _settleAsync(tester);
 
     expect(game.puzzle.id, 'cat_01');
@@ -155,6 +169,7 @@ void main() {
 
     // And then the sticker, which is what the balloons were leading to.
     await _watchSticker(tester);
+    await _skipColouring(tester);
     await _settleAsync(tester);
 
     expect(game.puzzle.id, 'cat_01');
@@ -181,6 +196,7 @@ void main() {
     }
 
     await _watchSticker(tester);
+    await _skipColouring(tester);
     await _settleAsync(tester);
     expect(game.puzzle.id, 'cat_01');
     expect(tester.takeException(), isNull);
@@ -197,6 +213,7 @@ void main() {
     await _watchBalloons(tester);
     expect(find.byKey(const ValueKey('sticker-reward')), findsOneWidget);
     await _watchSticker(tester);
+    await _skipColouring(tester);
     await _settleAsync(tester);
 
     // Now play that same picture again, the way Free Mode does.
@@ -214,8 +231,45 @@ void main() {
       findsNothing,
       reason: 'it was already in the album; giving it again rewards nothing',
     );
+    // But a part of the car is still there to paint (K-6).
+    await _skipColouring(tester);
     await _settleAsync(tester);
     expect(game.progress.completedPuzzleIds, contains('apple_01'));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'the colouring page comes after the sticker, and one painted '
+      'part moves on (§24.2)', (tester) async {
+    final game = await _pumpGame(tester);
+    await _solveWithFingers(tester, game);
+    await _watchCelebration(tester);
+    await _watchBalloons(tester);
+    expect(find.byKey(const ValueKey('colouring-overlay')), findsNothing,
+        reason: 'the sticker comes first');
+    await _watchSticker(tester);
+
+    expect(find.byKey(const ValueKey('colouring-overlay')), findsOneWidget);
+    expect(game.puzzle.id, 'apple_01', reason: 'still waiting for the child');
+
+    // Paint the sedan's body with the colour ready from the start.
+    final card = tester.getRect(find.byKey(const ValueKey('colouring-card')));
+    await tester.tapAt(
+      card.topLeft +
+          const Offset(50, 50) * (card.width / CarModel.designSize.width),
+    );
+    await tester.pump();
+    expect(game.colouring.colourOf('body'), _initialPaint);
+
+    await tester.pump(PuzzleConfig.colouringSettleDuration);
+    // Done only once the duration is passed, not merely reached.
+    await tester.pump(const Duration(milliseconds: 20));
+    expect(find.byKey(const ValueKey('colouring-overlay')), findsNothing);
+
+    await _settleAsync(tester);
+    expect(game.puzzle.id, 'cat_01');
+    expect(game.colouring.colourOf('body'), _initialPaint,
+        reason: 'the paint stays');
     expect(tester.takeException(), isNull);
   });
 
@@ -280,6 +334,7 @@ void main() {
     await _watchCelebration(tester);
     await _watchBalloons(tester);
     await _watchSticker(tester);
+    await _skipColouring(tester);
     await _settleAsync(tester);
 
     // A stale path cache would show the previous puzzle's pieces here; a

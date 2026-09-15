@@ -54,7 +54,10 @@ cevaplandı; değişen [ZORUNLU] maddeler kendi bölümlerinde işaretlidir.
 | K-5 | Balon oyunu **renk eşleştirmedir**: aynı renkten iki balona art arda dokunulunca ikisi birlikte patlar. İkinci dokunuş farklı renkteyse **seçim sessizce yeni balona geçer**; hiçbir geri bildirim yok (§20). | §24 |
 | K-6 | Balon sekansından ve sticker'dan sonra **boyama safhası** gelir ve **atlanabilir**. Sıra: kutlama → balon → sticker → boyama → sonraki puzzle. | §23, §24.2 |
 | K-7 | Boyama çizimleri (siyah çizgili arabalar) **kodla çizilir** (Path); lisans kaydı gerekmez. | §24.2, §33 |
-| K-8 | Boyama ekranında §2'nin "en fazla 5 dokunulabilir eleman" sınırı **esner**: 6 renk + ~6 araba parçası, her biri ≥ 64 px. | §2, §24.2 |
+| K-8 | Boyama ekranında §2'nin "en fazla 5 dokunulabilir eleman" sınırı **esner**: renk seçimi + ~6 araba parçası, her biri ≥ 64 px. | §2, §24.2 |
+| K-9 | Renk sabit bir listeden değil, **serbest bir paletten** seçilir: bir şeritte bütün tonlar açıktan koyuya, yanında beyazdan siyaha gri şerit. Parmak palette gezdikçe seçim de gezer. *(Faz 18 sırasında, 15 Eylül; K-8'in "6 renk"ini değiştirdi.)* | §24.2 |
+| K-11 | Balon oyunu **10 balon** (5 çift) üretir ve hepsi **3 saniye içinde** sahneye çıkar; çiftlerin renkleri **rastgeledir**. §24'ün "en fazla 8 aktif balon" [ZORUNLU] maddesi bu yüzden 10'a çıktı. *(15 Eylül, kullanıcı istedi: giriş uzun sürüyordu, balon çoktu.)* | §2, §24 |
+| K-10 | Seçilen renk ekranın **sol üst köşesindeki bir karede** gösterilir; çocuk seçimin sonucunu parmağının altında kalmadan görür. *(Faz 18 sırasında, 15 Eylül.)* | §24.2 |
 
 ---
 
@@ -159,7 +162,7 @@ Bu nedenle:
 
 Bu kurallar puzzle ekranı, home, celebration, balloon game ve album dahil tüm çocuk-facing ekranlar için geçerlidir.
 
-*İstisnalar:* balon oyunu en fazla 8 balon gösterir (§24); boyama ekranı 6 renk ve ~6 araba parçası gösterir (K-8, §24.2). İkisinde de her hedef en az 64 px'tir (balonda 72 px).
+*İstisnalar:* balon oyunu en fazla 10 balon gösterir (§24, K-11); boyama ekranı bir renk paleti (ton şeridi + gri şerit), 5–6 araba parçası ve bir "geç" oku gösterir (K-8, K-9, §24.2). İkisinde de her hedef en az 64 px'tir (balonda 72 px).
 
 **[ZORUNLU] — 64 px kuralı bir tavan dayatır**
 
@@ -1113,17 +1116,18 @@ Aynı renkten başka bir balona tap
 
 **[ZORUNLU]**
 
-* maksimum 8 aktif balon
+* maksimum **10** aktif balon — *K-11'de 8'den çıktı; on balonun hepsi aynı anda sahnede olabilir*
 * minimum hit target 72 px
 * maksimum süre 15 saniye
 
 **[ZORUNLU] — Bitiş ve spawn kuralı** — *v2.2'de eklendi, Faz 17'de değişti*
 
-* Oyun toplam **12 balon** üretir: **6 renk çifti**. Bir çiftin iki balonu aynı anda ve aynı renkte doğar.
-* Spawn: başlangıçta **4 balon (2 çift)**, sonra **~2,4 sn'de bir çift**, aktif balon sayısı 8'i geçmeyecek şekilde. Balonların geliş hızı v2.2 ile aynıdır.
+* Oyun toplam **10 balon** üretir: **5 renk çifti** (K-11). Bir çiftin iki balonu aynı anda ve aynı renkte doğar.
+* Çiftlerin renkleri **rastgeledir**: palet her oyunda karıştırılıp dağıtılır, çift sayısı renk sayısını aşmadıkça iki çift aynı renkte olmaz. (Tamamen rastgele renkler bütün çiftleri aynı renge boyayabilir ve eşleştirmeyi ortadan kaldırırdı.)
+* Spawn: başlangıçta **2 balon (1 çift)**, sonra **0,6 sn'de bir çift**; balon **0,6 sn'de** yükselir. Son çift 2,4. saniyede doğar, **3. saniyede bütün balonlar yerindedir** (K-11).
 * Ekranda her rengin balon sayısı her an **çifttir**: eşi olmayan bir balon asla kalmaz.
 * Bitiş koşulu, hangisi önce olursa:
-  * 12 balonun tamamı patlatıldı → **500 ms sonra kapanır** (erken bitiş ödüldür)
+  * 10 balonun tamamı patlatıldı → **500 ms sonra kapanır** (erken bitiş ödüldür)
   * 15 saniye doldu → kapanır
 * Ekranda patlatılmamış balon kalması bir başarısızlık değildir; hiçbir geri bildirim verilmez (§20).
 
@@ -1131,7 +1135,39 @@ Aynı renkten başka bir balona tap
 
 ## 24.2 Boyama safhası
 
-*Faz 18'de ayrıntılandırılacak.* Kararlar: K-6, K-7, K-8 (§0.3). Siyah çizgili bir araba ekrana gelir, altta renk paleti durur; seçilen renkle arabanın dokunulan parçası boyanır ve sonraki puzzle'a geçilir. Her puzzle bitişinde bir parça boyanır. Araba tamamlanınca farklı bir araba modeliyle yeniden başlanır. Safha atlanabilir.
+*Faz 18'de eklendi.* Kararlar: K-6, K-7, K-8, K-9, K-10 (§0.3).
+
+Ayrı bir feature modülüdür (`features/colouring/`). Puzzle dahil hiçbir feature'a bağımlı olmaz; puzzle ekranı onu kullanır.
+
+```text
+Sticker ödülü (ya da sticker yoksa balonların hemen ardından)
+ ↓
+Beyaz kâğıt üstünde siyah çizgili araba + serbest renk paleti + köşede "geç" oku
+ ↓
+Paletten renk seç (mavi baştan seçili) → arabanın bir parçasına dokun
+ ↓
+Parça boyanır → kısa ses → ~0,9 sn
+ ├── araba bitmedi → sonraki puzzle
+ └── araba bitti → tamamlanma sesi → araba ekrandan sürülerek çıkar → sonraki puzzle
+```
+
+**[ZORUNLU]**
+
+* Boyama **her** puzzle bitişinde gelir, Serbest Mod dahil. Sticker yalnızca ilk bitirişte verilir (§25).
+* Her bitişte **bir** parça boyanır. Boyanmış bir parça yeniden boyanabilir; bu da o bitişin hakkıdır.
+* Safha **atlanabilir** (§23): "geç" oku hemen sonraki puzzle'a geçer, hiçbir şey boyanmaz. Kâğıda ya da boş alana dokunmak hiçbir şey yapmaz, bir şey söylemez (§20).
+* Renk **serbest bir paletten** seçilir (K-9). Dikey ekranda palet altta: tonlar enine, açıklık boyuna; yatay ekranda sağda: tonlar boyuna, açıklık enine. Yanında beyazdan siyaha gri şerit. Dokunmak ve sürüklemek aynı şeyi yapar: parmağın altındaki renk seçilir; şeritten taşan parmak kenardaki rengi seçer.
+* Palette **çizilen renk, boyanan rengin kendisidir** — otomatik test ekran piksellerini seçilen renkle karşılaştırır.
+* Seçili renk yalnızca renkle değil, dokunulan noktada duran **siyah-beyaz çift çerçeveli bir halkayla** gösterilir.
+* Seçilen renk ayrıca **sol üst köşedeki çerçeveli bir karede** görünür (K-10); parmak palette gezerken kare de anında değişir. Kare dokunuşa kapalıdır. Yatay ekranda "geç" oku karenin altına iner.
+* Boya, palet sırası olarak değil **renk değeri (opak ARGB)** olarak saklanır.
+* Araba **kodla çizilir** (K-7). Her model 5–6 parçadır; her parçanın görünen alanına en dar ekranda (320 dp) bile 64 px'lik bir daire sığar (§2, K-8) — otomatik test eder.
+* 3 model sırayla gelir; sonuncudan sonra ilkine dönülür. Tamamlanmış ama sürülüp gitmeden oyundan çıkılmış bir araba, safha bir sonraki açılışında yeni modelle başlar.
+* Boyama durumu **ayrı bir anahtarda** saklanır (`emoji_puzzle.colouring`), `GameProgress`'te değil: feature bağımsızlığı korunur ve §25.1 şema değişikliği ilerlemeyi silmez. Bozuk kayıt → ilk araba, boş (§25.1'in ruhu).
+* §26 ilerleme sıfırlaması boyama defterini de ilk arabaya, boş olarak döndürür.
+* Geri tuşu (§30): safha kesilir, boyanan parça kalır, sonraki puzzle hazırlanır.
+* Bekleme ve sürme animasyon denetleyicisiyle yapılır, `Timer` ile değil: uygulama arka plandayken durur (§28).
+* Paletteki kırmızı bir boya rengidir; §2'nin yasakladığı hata işareti değildir.
 
 ---
 
@@ -1768,7 +1804,7 @@ Ortamında Flutter SDK yoksa "testler geçti" deme. Testleri yaz, çalıştırı
 | **14** | Navigation + Android Back + lifecycle | Ekran geçişleri ve interruption güvenli |
 | **15** | Responsive + tablet + accessibility smoke test | Farklı ekranlarda layout bozulmuyor |
 | **16** | Asset/license audit + privacy + test tamamlaması + final polish | Tüm testler yeşil, belirgin jank yok, lisanslar tamam |
-| **17** | Balon renk eşleştirme (K-5) | Aynı renk çifti birlikte patlıyor, yanlış renkte seçim sessizce geçiyor, eşi olmayan balon kalmıyor |
+| **17** | Balon renk eşleştirme (K-5; K-11 ile 10 balon, 3 sn) | Aynı renk çifti birlikte patlıyor, yanlış renkte seçim sessizce geçiyor, eşi olmayan balon kalmıyor |
 | **18** | Boyama safhası (K-6, K-7, K-8) | Her bitirişte bir parça boyanıyor, atlanabiliyor, boyama kalıcı, araba bitince yeni model |
 
 **[TERCİH]**
