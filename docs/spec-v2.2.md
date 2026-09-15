@@ -56,6 +56,7 @@ cevaplandı; değişen [ZORUNLU] maddeler kendi bölümlerinde işaretlidir.
 | K-7 | Boyama çizimleri (siyah çizgili arabalar) **kodla çizilir** (Path); lisans kaydı gerekmez. | §24.2, §33 |
 | K-8 | Boyama ekranında §2'nin "en fazla 5 dokunulabilir eleman" sınırı **esner**: renk seçimi + ~6 araba parçası, her biri ≥ 64 px. | §2, §24.2 |
 | K-9 | Renk sabit bir listeden değil, **serbest bir paletten** seçilir: bir şeritte bütün tonlar açıktan koyuya, yanında beyazdan siyaha gri şerit. Parmak palette gezdikçe seçim de gezer. *(Faz 18 sırasında, 15 Eylül; K-8'in "6 renk"ini değiştirdi.)* | §24.2 |
+| K-12 | İçerik **18 puzzle**: her kademeye 3 yeni resim (3 kademe × 6). Karpuz, çilek, ananas → meyveler; uçak, bisiklet → taşıtlar; ay, Satürn → doğa; kaplumbağa, koyun → hayvanlar. Kategori listesi (5 değer) değişmedi. Görseller OpenMoji, aynı kaynak ve lisans. *(15 Eylül, kullanıcı istedi; oyun kuralları sonra değişecek, kademe yerleşimi geçici olabilir.)* | §4 |
 | K-11 | Balon oyunu **10 balon** (5 çift) üretir ve hepsi **3 saniye içinde** sahneye çıkar; çiftlerin renkleri **rastgeledir**. §24'ün "en fazla 8 aktif balon" [ZORUNLU] maddesi bu yüzden 10'a çıktı. *(15 Eylül, kullanıcı istedi: giriş uzun sürüyordu, balon çoktu.)* | §2, §24 |
 | K-10 | Seçilen renk ekranın **sol üst köşesindeki bir karede** gösterilir; çocuk seçimin sonucunu parmağının altında kalmadan görür. *(Faz 18 sırasında, 15 Eylül.)* | §24.2 |
 
@@ -207,11 +208,13 @@ Yanlış hareket hiçbir şekilde ilerlemeyi cezalandırmaz.
 
 **[ZORUNLU]** — *v2.2'de değişti, bkz. K-1*
 
-| Kademe | Parça | Grid  |
-| ------ | ----: | ----- |
-| 1      |     4 | 2 × 2 |
-| 2      |     6 | 2 × 3 |
-| 3      |     9 | 3 × 3 |
+| Kademe | Parça | Grid  | Puzzle |
+| ------ | ----: | ----- | -----: |
+| 1      |     4 | 2 × 2 |      6 |
+| 2      |     6 | 2 × 3 |      6 |
+| 3      |     9 | 3 × 3 |      6 |
+
+*K-12'de her kademe 3'ten 6 puzzle'a çıktı.*
 
 Engine 1×3 ve 3×4 dahil keyfi `rows × columns` gridlerini desteklemeye devam eder. Yukarıdaki tablo **içerik** kararıdır, engine kısıtı değildir. 1×3 için yazılmış engine testleri korunur.
 
@@ -221,12 +224,15 @@ Kademe açılma kuralı:
 
 Bir kademe, kendisinden önceki kademede `requiredCompletions` kadar puzzle tamamlandığında açılır. Bu sayı sabit değildir; `LevelDefinition` içinde veri olarak tutulur (§13). v1 değeri her kademe için **2**'dir.
 
-İlk sürüm içeriği:
+İçerik (K-12'den sonra):
 
 ```text
 Kademe 1 (2×2) → apple_01 (fruits),  cat_01 (animals),   ball_01 (shapes)
+                 strawberry_01 (fruits), moon_01 (nature), sheep_01 (animals)
 Kademe 2 (2×3) → banana_01 (fruits), dog_01 (animals),   bus_01 (vehicles)
+                 watermelon_01 (fruits), bicycle_01 (vehicles), turtle_01 (animals)
 Kademe 3 (3×3) → car_01 (vehicles),  sun_01 (nature),    lion_01 (animals)
+                 pineapple_01 (fruits), airplane_01 (vehicles), saturn_01 (nature)
 ```
 
 ```dart
@@ -1805,6 +1811,7 @@ Ortamında Flutter SDK yoksa "testler geçti" deme. Testleri yaz, çalıştırı
 | **15** | Responsive + tablet + accessibility smoke test | Farklı ekranlarda layout bozulmuyor |
 | **16** | Asset/license audit + privacy + test tamamlaması + final polish | Tüm testler yeşil, belirgin jank yok, lisanslar tamam |
 | **17** | Balon renk eşleştirme (K-5; K-11 ile 10 balon, 3 sn) | Aynı renk çifti birlikte patlıyor, yanlış renkte seçim sessizce geçiyor, eşi olmayan balon kalmıyor |
+| **19** | 9 yeni puzzle, 18'e çıkış (K-12) | 18 puzzle 3 kademede oynanıyor, albümde doğru kategoride, lisanslar tamam |
 | **18** | Boyama safhası (K-6, K-7, K-8) | Her bitirişte bir parça boyanıyor, atlanabiliyor, boyama kalıcı, araba bitince yeni model |
 
 **[TERCİH]**

@@ -80,7 +80,7 @@ void main() {
     }
 
     expect(played, PuzzleCatalog.v1.puzzles.map((p) => p.id).toList());
-    expect(game.progress.completedPuzzleIds, hasLength(9));
+    expect(game.progress.completedPuzzleIds, hasLength(18));
     expect(game.unlockedLevelCount, 3);
     expect(game.nextPuzzle, isNull);
   });
@@ -102,7 +102,7 @@ void main() {
     // Free Mode is what §4 asks for once every level is open.
     expect(game.isInFreeMode, isTrue);
     expect(game.puzzle.id, isNot(last), reason: 'a different picture');
-    expect(game.progress.completedPuzzleIds, hasLength(9));
+    expect(game.progress.completedPuzzleIds, hasLength(18));
   });
 
   test('a new puzzle brings a fresh board and a full tray', () async {

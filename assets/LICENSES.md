@@ -33,6 +33,18 @@ Files were taken from `color/618x618/` and renamed to the naming convention in
 | `car.png`    | 🚗    | U+1F697   |
 | `sun.png`    | ☀️    | U+2600    |
 | `lion.png`   | 🦁    | U+1F981   |
+| `strawberry.png` | 🍓 | U+1F353   |
+| `moon.png`   | 🌙    | U+1F319   |
+| `sheep.png`  | 🐑    | U+1F411   |
+| `watermelon.png` | 🍉 | U+1F349   |
+| `bicycle.png` | 🚲   | U+1F6B2   |
+| `turtle.png` | 🐢    | U+1F422   |
+| `pineapple.png` | 🍍  | U+1F34D   |
+| `airplane.png` | ✈️  | U+2708    |
+| `saturn.png` | 🪐    | U+1FA90   |
+
+The nine files after `lion.png` were added on 15 September 2026, from the
+same folder of the same repository (`master` branch), unmodified.
 
 ### Resolution note
 

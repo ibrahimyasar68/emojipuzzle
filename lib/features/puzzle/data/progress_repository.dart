@@ -7,7 +7,7 @@ import '../models/game_progress.dart';
 
 /// Çocuğun ilerlemesini okur ve yazar (§25).
 ///
-/// Her şey tek bir anahtarın altında tek bir JSON metnidir: dokuz puzzle'ın
+/// Her şey tek bir anahtarın altında tek bir JSON metnidir: on sekiz puzzle'ın
 /// veritabanına ihtiyacı yoktur ve tek bir değer hiçbir zaman yarım
 /// yazılamaz.
 ///

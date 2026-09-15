@@ -40,7 +40,7 @@ Future<List<PuzzleDefinition>> _pumpAlbum(
 
 Finder _sticker(String id) => find.byKey(ValueKey('sticker-$id'));
 
-/// The album scrolls: nine stickers under five headings do not fit on a
+/// The album scrolls: eighteen stickers under five headings do not fit on a
 /// phone, and a `ListView` never builds what is below the fold.
 Future<void> _scrollTo(WidgetTester tester, Finder target) =>
     tester.scrollUntilVisible(

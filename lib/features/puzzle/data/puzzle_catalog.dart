@@ -5,7 +5,7 @@ import '../models/puzzle_grid.dart';
 
 /// Oyunun içeriği ve içinde ilerleme kuralları (§4, §13).
 ///
-/// JSON değil Dart: dokuz puzzle bir ayrıştırıcıya değmez ve derleyici,
+/// JSON değil Dart: on sekiz puzzle bir ayrıştırıcıya değmez ve derleyici,
 /// griddeki bir yazım hatasını JSON dosyasının ancak çocuğun cihazında
 /// patlayacağı yerde yakalar. İçerik tek ekrana sığmamaya başladığında JSON
 /// ilginç hale gelir (§13).
@@ -14,8 +14,10 @@ class PuzzleCatalog {
 
   final List<LevelDefinition> levels;
 
-  /// K-1 = A: üç kademe, dokuz puzzle. Engine 1×3 ve 3×4'ü desteklemeye
-  /// devam eder — bunlar engine yetenekleridir, içerik değil (§4).
+  /// K-1 = A: üç kademe. K-12 ile her kademede altı puzzle, toplam on sekiz:
+  /// her kademeye bir meyve, basit biçimler küçük gride, ayrıntılılar büyük
+  /// gride. Engine 1×3 ve 3×4'ü desteklemeye devam eder — bunlar engine
+  /// yetenekleridir, içerik değil (§4).
   static const PuzzleCatalog v1 = PuzzleCatalog([
     LevelDefinition(
       index: 1,
@@ -41,6 +43,27 @@ class PuzzleCatalog {
           category: PuzzleCategory.shapes,
           grid: PuzzleGrid(rows: 2, columns: 2),
           displayName: 'Top',
+        ),
+        PuzzleDefinition(
+          id: 'strawberry_01',
+          imagePath: 'assets/images/puzzles/strawberry.png',
+          category: PuzzleCategory.fruits,
+          grid: PuzzleGrid(rows: 2, columns: 2),
+          displayName: 'Çilek',
+        ),
+        PuzzleDefinition(
+          id: 'moon_01',
+          imagePath: 'assets/images/puzzles/moon.png',
+          category: PuzzleCategory.nature,
+          grid: PuzzleGrid(rows: 2, columns: 2),
+          displayName: 'Ay',
+        ),
+        PuzzleDefinition(
+          id: 'sheep_01',
+          imagePath: 'assets/images/puzzles/sheep.png',
+          category: PuzzleCategory.animals,
+          grid: PuzzleGrid(rows: 2, columns: 2),
+          displayName: 'Koyun',
         ),
       ],
     ),
@@ -69,6 +92,27 @@ class PuzzleCatalog {
           grid: PuzzleGrid(rows: 2, columns: 3),
           displayName: 'Otobüs',
         ),
+        PuzzleDefinition(
+          id: 'watermelon_01',
+          imagePath: 'assets/images/puzzles/watermelon.png',
+          category: PuzzleCategory.fruits,
+          grid: PuzzleGrid(rows: 2, columns: 3),
+          displayName: 'Karpuz',
+        ),
+        PuzzleDefinition(
+          id: 'bicycle_01',
+          imagePath: 'assets/images/puzzles/bicycle.png',
+          category: PuzzleCategory.vehicles,
+          grid: PuzzleGrid(rows: 2, columns: 3),
+          displayName: 'Bisiklet',
+        ),
+        PuzzleDefinition(
+          id: 'turtle_01',
+          imagePath: 'assets/images/puzzles/turtle.png',
+          category: PuzzleCategory.animals,
+          grid: PuzzleGrid(rows: 2, columns: 3),
+          displayName: 'Kaplumbağa',
+        ),
       ],
     ),
     LevelDefinition(
@@ -95,6 +139,27 @@ class PuzzleCatalog {
           category: PuzzleCategory.animals,
           grid: PuzzleGrid(rows: 3, columns: 3),
           displayName: 'Aslan',
+        ),
+        PuzzleDefinition(
+          id: 'pineapple_01',
+          imagePath: 'assets/images/puzzles/pineapple.png',
+          category: PuzzleCategory.fruits,
+          grid: PuzzleGrid(rows: 3, columns: 3),
+          displayName: 'Ananas',
+        ),
+        PuzzleDefinition(
+          id: 'airplane_01',
+          imagePath: 'assets/images/puzzles/airplane.png',
+          category: PuzzleCategory.vehicles,
+          grid: PuzzleGrid(rows: 3, columns: 3),
+          displayName: 'Uçak',
+        ),
+        PuzzleDefinition(
+          id: 'saturn_01',
+          imagePath: 'assets/images/puzzles/saturn.png',
+          category: PuzzleCategory.nature,
+          grid: PuzzleGrid(rows: 3, columns: 3),
+          displayName: 'Satürn',
         ),
       ],
     ),

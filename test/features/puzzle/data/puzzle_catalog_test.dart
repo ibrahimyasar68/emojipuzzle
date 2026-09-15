@@ -4,21 +4,67 @@ import 'package:flutter_test/flutter_test.dart';
 
 const _catalog = PuzzleCatalog.v1;
 
-/// §4 — the ladder K-1 = A settled on.
+/// §4 — the ladder K-1 = A settled on, six to a level since K-12.
 const _expected = {
-  1: ['apple_01', 'cat_01', 'ball_01'],
-  2: ['banana_01', 'dog_01', 'bus_01'],
-  3: ['car_01', 'sun_01', 'lion_01'],
+  1: ['apple_01', 'cat_01', 'ball_01', 'strawberry_01', 'moon_01', 'sheep_01'],
+  2: [
+    'banana_01',
+    'dog_01',
+    'bus_01',
+    'watermelon_01',
+    'bicycle_01',
+    'turtle_01',
+  ],
+  3: [
+    'car_01',
+    'sun_01',
+    'lion_01',
+    'pineapple_01',
+    'airplane_01',
+    'saturn_01',
+  ],
 };
 
 void main() {
   group('v1 content (§4)', () {
-    test('three levels, three puzzles each', () {
+    test('three levels, six puzzles each (K-12)', () {
       expect(_catalog.levels, hasLength(3));
-      expect(_catalog.puzzles, hasLength(9));
+      expect(_catalog.puzzles, hasLength(18));
       for (final level in _catalog.levels) {
-        expect(level.puzzles, hasLength(3), reason: 'level ${level.index}');
+        expect(level.puzzles, hasLength(6), reason: 'level ${level.index}');
       }
+    });
+
+    test('the new pictures sit in the categories they belong to (K-12)', () {
+      const categories = {
+        'strawberry_01': 'fruits',
+        'watermelon_01': 'fruits',
+        'pineapple_01': 'fruits',
+        'airplane_01': 'vehicles',
+        'bicycle_01': 'vehicles',
+        'moon_01': 'nature',
+        'saturn_01': 'nature',
+        'turtle_01': 'animals',
+        'sheep_01': 'animals',
+      };
+      for (final entry in categories.entries) {
+        expect(
+          _catalog.byId(entry.key).category.name,
+          entry.value,
+          reason: entry.key,
+        );
+      }
+    });
+
+    test('every level has a fruit, and no category is left out', () {
+      for (final level in _catalog.levels) {
+        expect(
+          level.puzzles.map((p) => p.category.name),
+          contains('fruits'),
+          reason: 'level ${level.index}',
+        );
+      }
+      expect(_catalog.byCategory.keys, hasLength(5));
     });
 
     test('the puzzles are the ones the spec names, in order', () {
@@ -125,7 +171,7 @@ void main() {
 
     test('moves up once a level is finished', () {
       expect(
-        _catalog.firstUnsolved({'apple_01', 'cat_01', 'ball_01'})?.id,
+        _catalog.firstUnsolved(_expected[1]!.toSet())?.id,
         'banana_01',
       );
     });

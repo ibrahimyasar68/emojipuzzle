@@ -247,7 +247,7 @@ class GameProvider extends ChangeNotifier {
   /// İlerler: bitirilmemiş sonraki puzzle ya da bitirilmiş bir tanesi
   /// yeniden.
   ///
-  /// Burada sessizce dönmek, dokuzu da bitince uygulamayı temelli boş bir
+  /// Burada sessizce dönmek, hepsi bitince uygulamayı temelli boş bir
   /// ekranda bırakıyordu — "her şeyi bitirdin" ile "hâlâ yükleniyor" birbirine
   /// tıpatıp benziyordu. §4'ün o noktada istediği şey Serbest Mod'dur ve aynı
   /// zamanda dürüst cevap budur: oynanacak her zaman bir şey vardır (§2).

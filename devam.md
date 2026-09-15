@@ -1,7 +1,7 @@
 # Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 15 Eylül 2026, Faz 18 onaylandı, Faz 19 başladı.
+Son güncelleme: 15 Eylül 2026, Faz 19 onaylandı, Faz 20 başladı.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -30,9 +30,10 @@ Son güncelleme: 15 Eylül 2026, Faz 18 onaylandı, Faz 19 başladı.
 | 16 | Asset/lisans denetimi, privacy, final cila | ✅ onaylandı |
 | 17 | Balon renk eşleştirme | ✅ onaylandı |
 | 18 | Boyama safhası (araba) | ✅ onaylandı |
-| **19** | **9 yeni puzzle (18'e çıkış)** | **⏳ sürüyor** |
+| 19 | 9 yeni puzzle (18'e çıkış) | ✅ onaylandı |
+| **20** | **Kamyon, traktör; kitap, mikroskop, dürbün (Eşyalar)** | **⏳ sürüyor** |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **968 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **970 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
 On dokuz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
@@ -41,8 +42,9 @@ On dokuz commit, **GitHub'da yayında**:
 
 ## 2. Verilmiş kararlar (tekrar sorma)
 
-- **K-1 = A** — 3 kademe × 3 puzzle: 2×2, 2×3, 3×3. Engine 1×3 ve 3×4'ü
-  desteklemeye devam ediyor ama içerikte yoklar.
+- **K-1 = A** — 3 kademe: 2×2, 2×3, 3×3. Engine 1×3 ve 3×4'ü
+  desteklemeye devam ediyor ama içerikte yoklar. **K-12** (15 Eylül) ile
+  her kademede **6 puzzle, toplam 18**.
 - **K-2 = evet** — mute `AudioService` içinde ve kalıcı. Home'daki düğme Faz 13'te.
 - **K-3 = evet** — `.github/workflows/ci.yml` hazır (format + analyze + test).
 - **K-4 = evet** — debug overlay yapıldı, `debugShowPuzzleOverlay` bayrağıyla.
@@ -61,6 +63,11 @@ On dokuz commit, **GitHub'da yayında**:
   - **K-11** — balon oyunu **10 balon** (5 çift), hepsi **3 sn'de** sahnede,
     çift renkleri **rastgele** (kullanıcı istedi: giriş uzun, balon çoktu).
     §24'ün [ZORUNLU] "en fazla 8 aktif balon"u 10'a çıktı.
+  - **K-12** — 9 yeni puzzle (kullanıcı istedi): çilek, ay, koyun → 2×2;
+    karpuz, bisiklet, kaplumbağa → 2×3; ananas, uçak, Satürn → 3×3. Ay ve
+    Satürn **doğa** kategorisinde (5 kategori kuralı korundu). Kullanıcı
+    "sonra oyun kurallarını değiştireceğiz" dedi; kademe yerleşimi geçici
+    olabilir.
   - **K-10** — seçilen renk sol üst köşedeki çerçeveli bir karede de
     görünür (kullanıcı istedi). Yatay ekranda "geç" oku karenin altına iner.
   - Boyama durumu `GameProgress`'e değil **ayrı bir anahtara** yazılır
@@ -561,4 +568,30 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
 - Kanıt görseli: `build/colouring.png`. **Emülatörde elle oynanmadı.**
 - Parça sayısı 5 (K-8 "~6" diyordu): 6. parça ya 64 px daireyi
   sağlamıyordu (far, jant, kapı) ya da gövdeyi dokunulamaz kılıyordu.
+
+---
+
+## 12. Faz 19 durumu — 9 yeni puzzle
+
+**Yapılanlar** (15 Eylül'de onaylandı):
+
+- 9 PNG, kullanıcının izniyle OpenMoji `color/618x618/` klasöründen
+  indirildi (15 Eylül, `master`), değiştirilmeden `assets/images/puzzles/`'e
+  kondu. Kod noktaları ve dosya adları `assets/LICENSES.md` tablosunda;
+  indirilen dosyaların PNG ve 618×618 olduğu, resimlerin doğru olduğu gözle
+  (önizleme sayfası) doğrulandı.
+- Katalog: her kademeye bir meyve + iki başka resim eklendi; kademe sırası
+  eski üçün ardından yeni üç. `requiredCompletions` hâlâ 2.
+- Spec §4 tablosu ve içerik listesi, §44'e Faz 19 satırı, §0.3'e K-12.
+- Testler: 18 puzzle / kademe başına 6, yeni resimlerin kategorileri, her
+  kademede meyve, beş kategorinin hepsi dolu. İki mutasyonla kanıtlandı
+  (lisans satırı silinir → lisans testi kırmızı; Ay meyvelere düşer →
+  kategori testi kırmızı).
+- **Dikkat:** `firstUnsolved` bir kademeyi bitirmeden üstüne geçmez; artık
+  2×3'e varmak için altı 2×2 puzzle gerekiyor. Kullanıcının haber verdiği
+  kural değişikliğinde bu konuşulmalı.
+- Bisiklet resmi ince çizgili ve çok boşluklu: 2×3'te bazı parçalar
+  neredeyse boş gradyan olacak. Emülatörde bakılmadı.
+
+**Sırada:** kullanıcı oyun kurallarını değiştirmek istiyor.
 

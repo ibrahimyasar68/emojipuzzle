@@ -24,7 +24,7 @@ void _solveCurrentPuzzle(GameProvider game) {
 
 /// Plays the whole catalogue through, the way a child eventually would.
 Future<void> _finishEverything(GameProvider game) async {
-  for (var i = 0; i < 20 && game.nextPuzzle != null; i++) {
+  for (var i = 0; i < 40 && game.nextPuzzle != null; i++) {
     await game.startNextPuzzle();
     _solveCurrentPuzzle(game);
   }
@@ -40,7 +40,10 @@ void main() {
 
     await _finishEverything(game);
 
-    expect(game.progress.completedPuzzleIds, hasLength(9));
+    expect(
+      game.progress.completedPuzzleIds,
+      hasLength(PuzzleCatalog.v1.puzzles.length),
+    );
     expect(game.nextPuzzle, isNull, reason: 'nothing new is left');
     expect(game.isInFreeMode, isTrue);
 
