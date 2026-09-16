@@ -36,7 +36,7 @@ Son güncelleme: 17 Eylül 2026, tepsi kenar çizgisi + Eşyalar resimleri (K-16
 
 **Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1145 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
-Yirmi bir commit, **GitHub'da yayında**:
+Yirmi sekiz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
 
 ---
