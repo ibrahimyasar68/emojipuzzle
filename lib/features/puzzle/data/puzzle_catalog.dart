@@ -3,7 +3,7 @@ import '../models/puzzle_definition.dart';
 
 /// Oyunun resimleri (§13, K-15).
 ///
-/// JSON değil Dart: on sekiz resim bir ayrıştırıcıya değmez ve derleyici,
+/// JSON değil Dart: yirmi bir resim bir ayrıştırıcıya değmez ve derleyici,
 /// bir yazım hatasını JSON dosyasının ancak çocuğun cihazında patlayacağı
 /// yerde yakalar.
 ///
@@ -124,6 +124,26 @@ class PuzzleCatalog {
       imagePath: 'assets/images/puzzles/saturn.png',
       category: PuzzleCategory.nature,
       displayName: 'Satürn',
+    ),
+    // K-14, K-16 — Eşyalar; resimler bu projede kodla çizildi
+    // (`tool/generate_object_images.py`).
+    PuzzleDefinition(
+      id: 'book_01',
+      imagePath: 'assets/images/puzzles/book.png',
+      category: PuzzleCategory.objects,
+      displayName: 'Kitap',
+    ),
+    PuzzleDefinition(
+      id: 'microscope_01',
+      imagePath: 'assets/images/puzzles/microscope.png',
+      category: PuzzleCategory.objects,
+      displayName: 'Mikroskop',
+    ),
+    PuzzleDefinition(
+      id: 'binoculars_01',
+      imagePath: 'assets/images/puzzles/binoculars.png',
+      category: PuzzleCategory.objects,
+      displayName: 'Dürbün',
     ),
   ]);
 

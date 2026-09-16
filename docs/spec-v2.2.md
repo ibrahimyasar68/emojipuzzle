@@ -56,8 +56,9 @@ cevaplandı; değişen [ZORUNLU] maddeler kendi bölümlerinde işaretlidir.
 | K-7 | Boyama çizimleri (siyah çizgili arabalar) **kodla çizilir** (Path); lisans kaydı gerekmez. | §24.2, §33 |
 | K-8 | Boyama ekranında §2'nin "en fazla 5 dokunulabilir eleman" sınırı **esner**: renk seçimi + ~6 araba parçası, her biri ≥ 64 px. | §2, §24.2 |
 | K-9 | Renk sabit bir listeden değil, **serbest bir paletten** seçilir: bir şeritte bütün tonlar açıktan koyuya, yanında beyazdan siyaha gri şerit. Parmak palette gezdikçe seçim de gezer. *(Faz 18 sırasında, 15 Eylül; K-8'in "6 renk"ini değiştirdi.)* | §24.2 |
+| K-16 | **Eşyalar'ın üç resmi bu projede kodla çizildi** (`tool/generate_object_images.py`, Pillow): OpenMoji üslubunda (72 birim ızgara, 2 birim siyah çizgi, OpenMoji paletinden düz renkler), 1024×1024, şeffaf zemin. §33'ün [ZORUNLU] kaynak listesine **projenin kendi çizimi** eklendi; hiçbir OpenMoji dosyası kopyalanmadı ya da uyarlanmadı, attribution gerekmez. *(17 Eylül, kullanıcı istedi: "görselleri sen çiz"; K-14'ün "proje sahibi sağlayacak" kısmını değiştirdi.)* | §33, §34 |
 | K-15 | **Yeni oyun kuralları.** Kademe ve kilit açma kalktı. Bir oyun 3 araba, bir araba 5 safhadır; her safhada havuzdan **rastgele** bir resim gelir (bir oyunda tekrar etmez) ve puzzle ebadını **safha** belirler: 2×2 → 2×3 → 3×3 → 4×3 → 4×4. Her safhanın sonunda arabanın bir parçası boyanır; **boyanan parça kilitlenir**, "geç" oku kalır. 5. safhadan sonra araba — beyaz parçası kalsa bile — sürülüp gider ve sıradaki araba 2×2'den başlar. 3 araba bitince **oyun sonu**: biten arabalar yan yana, konfeti, sonra Home ve yeni oyun; arabalar sırayla devam eder. 4×3 ve 4×4 küçük ekranlarda sığsın diye **board gerektiğinde küçülür** (§40); 64 px ve kaymayan tepsi kuralları korunur. Albümden seçilen resim o anki safhanın ebadıyla oynanır. *(15 Eylül, kullanıcı istedi.)* | §2, §4, §16, §24.2, §25, §40 |
-| K-14 | Yeni kategori **Eşyalar** (`objects`): kitap, mikroskop, dürbün. §4'ün [ZORUNLU] "enum yalnızca 5 değer" kuralı 6'ya çıktı. Her kademeye bir tane: kitap 2×2, dürbün 2×3, mikroskop 3×3. Görselleri proje sahibi sağlayacak. *(15 Eylül, kullanıcı istedi.)* | §4, §25 |
+| K-14 | Yeni kategori **Eşyalar** (`objects`): kitap, mikroskop, dürbün. §4'ün [ZORUNLU] "enum yalnızca 5 değer" kuralı 6'ya çıktı. Her kademeye bir tane: kitap 2×2, dürbün 2×3, mikroskop 3×3 (K-15'ten sonra kademe yok, üçü de havuzda). Görselleri proje sahibi sağlayacaktı; K-16 ile kodla çizildi. *(15 Eylül, kullanıcı istedi.)* | §4, §25 |
 | K-13 | Boyama defterine **kamyon ve traktör** eklendi: 5 model (sedan, kamyonet, yarış arabası, kamyon, traktör), yine kodla çizilir ve her parça 64 px ölçümünü geçer. *(15 Eylül, kullanıcı istedi.)* | §24.2 |
 | K-12 | İçerik **18 puzzle**: her kademeye 3 yeni resim (3 kademe × 6). Karpuz, çilek, ananas → meyveler; uçak, bisiklet → taşıtlar; ay, Satürn → doğa; kaplumbağa, koyun → hayvanlar. Kategori listesi (5 değer) değişmedi. Görseller OpenMoji, aynı kaynak ve lisans. *(15 Eylül, kullanıcı istedi; oyun kuralları sonra değişecek, kademe yerleşimi geçici olabilir.)* | §4 |
 | K-11 | Balon oyunu **10 balon** (5 çift) üretir ve hepsi **3 saniye içinde** sahneye çıkar; çiftlerin renkleri **rastgeledir**. §24'ün "en fazla 8 aktif balon" [ZORUNLU] maddesi bu yüzden 10'a çıktı. *(15 Eylül, kullanıcı istedi: giriş uzun sürüyordu, balon çoktu.)* | §2, §24 |
@@ -241,6 +242,8 @@ Kademe 2 (2×3) → banana_01 (fruits), dog_01 (animals),   bus_01 (vehicles)
 Kademe 3 (3×3) → car_01 (vehicles),  sun_01 (nature),    lion_01 (animals)
                  pineapple_01 (fruits), airplane_01 (vehicles), saturn_01 (nature)
 ```
+
+K-14/K-16 ile havuza üç resim daha: `book_01`, `microscope_01`, `binoculars_01` (objects). Havuz **21 resim**.
 
 ```dart
 enum PuzzleCategory {
@@ -1436,6 +1439,7 @@ Kullanılabilecek kaynaklar:
 * Noto Emoji — uygun lisans koşullarıyla
 * OpenMoji — lisans ve attribution koşullarıyla
 * Twemoji — lisans ve attribution koşullarıyla
+* Projenin kendi çizimi — kodla üretilir, üreten betik repoda durur (K-16)
 
 Seçilen asset setinin lisansı, attribution metni ve kaynak adresi `assets/LICENSES.md` içinde tutulur. Ses asset'leri için de aynı prensip geçerlidir.
 
@@ -1825,6 +1829,7 @@ Ortamında Flutter SDK yoksa "testler geçti" deme. Testleri yaz, çalıştırı
 | **15** | Responsive + tablet + accessibility smoke test | Farklı ekranlarda layout bozulmuyor |
 | **16** | Asset/license audit + privacy + test tamamlaması + final polish | Tüm testler yeşil, belirgin jank yok, lisanslar tamam |
 | **17** | Balon renk eşleştirme (K-5; K-11 ile 10 balon, 3 sn) | Aynı renk çifti birlikte patlıyor, yanlış renkte seçim sessizce geçiyor, eşi olmayan balon kalmıyor |
+| **20b** | Kitap, mikroskop, dürbün kodla çizildi; havuz 21 (K-16) | Üç resim Eşyalar'da, lisans kaydı tamam, §34 biçimi testle korunuyor |
 | **21** | Yeni oyun kuralları: 5 safha, 3 araba, rastgele resim, board sığdırma (K-15) | 2×2→4×4 safhalar oynanıyor, araba 5. safhada gidiyor, 3 arabada oyun sonu, 4×4 küçük telefonda 64 px |
 | **20** | Kamyon, traktör; Eşyalar kategorisi (K-13, K-14) | 5 araba modeli ölçümü geçiyor, Eşyalar'ın kendi gradyanı var |
 | **19** | 9 yeni puzzle, 18'e çıkış (K-12) | 18 puzzle 3 kademede oynanıyor, albümde doğru kategoride, lisanslar tamam |

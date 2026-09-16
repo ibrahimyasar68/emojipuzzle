@@ -40,7 +40,7 @@ Future<List<PuzzleDefinition>> _pumpAlbum(
 
 Finder _sticker(String id) => find.byKey(ValueKey('sticker-$id'));
 
-/// The album scrolls: eighteen stickers under five headings do not fit on a
+/// The album scrolls: twenty-one stickers under six headings do not fit on a
 /// phone, and a `ListView` never builds what is below the fold.
 Future<void> _scrollTo(WidgetTester tester, Finder target) =>
     tester.scrollUntilVisible(
@@ -122,7 +122,7 @@ void main() {
     final banana = tester.getTopLeft(_sticker('banana_01'));
     expect(apple.dy, banana.dy, reason: 'same row');
 
-    // Five categories in v1, each with its own symbol, in enum order.
+    // Six categories since K-14, each with its own symbol, in enum order.
     // Icons from Flutter's own font: §33 rules out emoji characters, which
     // are the platform's glyphs and differ from device to device.
     const icons = [
@@ -131,6 +131,7 @@ void main() {
       Icons.directions_car_rounded,
       Icons.wb_sunny_rounded,
       Icons.circle_rounded,
+      Icons.category_rounded,
     ];
     for (final icon in icons) {
       await _scrollTo(tester, find.byIcon(icon));

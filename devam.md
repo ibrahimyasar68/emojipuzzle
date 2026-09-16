@@ -1,7 +1,7 @@
 # Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 15 Eylül 2026, Faz 21 onaylandı.
+Son güncelleme: 17 Eylül 2026, tepsi kenar çizgisi + Eşyalar resimleri (K-16) onaylandı ve push edildi.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -31,12 +31,12 @@ Son güncelleme: 15 Eylül 2026, Faz 21 onaylandı.
 | 17 | Balon renk eşleştirme | ✅ onaylandı |
 | 18 | Boyama safhası (araba) | ✅ onaylandı |
 | 19 | 9 yeni puzzle (18'e çıkış) | ✅ onaylandı |
-| 20 | Kamyon, traktör; Eşyalar kategorisi | ✅ commit (kitap/mikroskop/dürbün görselleri bekleniyor) |
+| 20 | Kamyon, traktör; Eşyalar kategorisi | ✅ commit; görseller 17 Eylül'de kodla çizildi (K-16) — tamamlandı |
 | 21 | Yeni oyun kuralları: 5 safha, 3 araba | ✅ onaylandı |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1137 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1145 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
-On dokuz commit, **GitHub'da yayında**:
+Yirmi bir commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
 
 ---
@@ -72,6 +72,10 @@ On dokuz commit, **GitHub'da yayında**:
     biten arabaların geçidi + konfeti → Home → yeni oyun; arabalar sırayla
     devam. Board gerektiğinde küçülür (64 px ve kaymayan tepsi korunur).
     Albümden seçilen resim o safhanın ebadıyla oynanır.
+  - **K-16** — kitap, mikroskop, dürbün **kodla çizildi** (kullanıcı 17 Eylül'de
+    istedi): `python3 tool/generate_object_images.py` (Pillow), OpenMoji
+    üslubu, 1024×1024, şeffaf. §33 kaynak listesine "projenin kendi çizimi"
+    eklendi — [ZORUNLU] kural değişikliği, 17 Eylül'de **onaylandı**. Havuz 21.
   - **K-14** — yeni kategori **Eşyalar** (`objects`): kitap, mikroskop,
     dürbün. §4'ün 5 kategori kuralı 6'ya çıktı. Her kademeye bir tane
     (kitap 2×2, dürbün 2×3, mikroskop 3×3). **Görselleri kullanıcı koyacak**
@@ -120,6 +124,7 @@ flutter test
 dart format lib test tool
 dart run tool/generate_sfx.dart     # ses dosyalarını yeniden üretir
 python3 tool/generate_app_icon.py   # uygulama ikonunu yeniden üretir (Pillow)
+python3 tool/generate_object_images.py  # kitap, mikroskop, dürbün (Pillow)
 git push                            # CI'yi tetikler
 ```
 
@@ -335,6 +340,14 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   Testler rafı yalnızca `test/support/tray_shelf.dart`'ın "mümkün" dediği
   yerde ister. İlk denemede eklenen "önce raf ara" döngüsü hiçbir ekranda
   sonucu değiştirmediği için geri alındı.
+- **Tepsideki ve eldeki parça çizgilidir, board'daki değil** (16 Eylül,
+  kullanıcı istedi: açık parça açık zeminde görünmüyordu).
+  `PuzzlePiecePainter.outlineColour/outlineWidth`, renk
+  `palette.pieceOutline` (açıkta koyu kahve, koyuda açık gri; zemine ≥ 3:1),
+  kalınlık ekranda `PuzzleConfig.pieceOutlineWidth` = 1,5 px — tepsi parçayı
+  küçülterek çizdiği için ölçeğe böler. Çizgi katmanın dışında, en üstte.
+  Parça board'a oturunca çizgisiz hâle geçer. `tray_piece_outline_test.dart`
+  korur (beş mutasyonla kanıtlandı).
 - **Widget genişliğini `rect.width`'ten alma.** `sağ − sol` kayan noktada
   tam 72 vermiyor (71.99999999999999); boyut `BalloonLayout.diameterOf`
   üzerinden verilir.
@@ -655,7 +668,12 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   yakalanıp düzeltildi.
 - Albüm boş kategoriyi göstermez; Eşyalar başlığı görseller gelince çıkar.
 
-**Bekleyen — kullanıcıdan:**
+**17 Eylül'de kapandı (K-16):** görseller kodla çizildi, havuza eklendi
+(21 resim), lisans kaydı yapıldı; testler: 21 resim, Eşyalar dolu ve albümde
+ikonuyla, her resim dosyası var, her resim kare / ≤ 1024 / köşesi şeffaf.
+Beş mutasyonla kanıtlandı. Aşağıdaki liste tarihçedir.
+
+**Bekleyen — kullanıcıdan (eski):**
 
 - `assets/images/puzzles/book.png`, `microscope.png`, `binoculars.png`:
   PNG, 1:1 kare, şeffaf zemin (§34), tercihen 618×618 (en fazla 1024),
