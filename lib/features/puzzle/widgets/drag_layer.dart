@@ -322,6 +322,10 @@ class _DragLayerState extends State<DragLayer> with TickerProviderStateMixin {
           ),
           elevation: PuzzleConfig.dragElevation,
           shadowColour: context.palette.pieceShadow,
+          // Tepsideki çizgi elde de kalır; parça bırakılıp board'a
+          // oturunca çizgisiz hâline geçer.
+          outlineColour: context.palette.pieceOutline,
+          outlineWidth: PuzzleConfig.pieceOutlineWidth,
         ),
       ),
     );

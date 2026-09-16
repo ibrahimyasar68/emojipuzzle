@@ -20,6 +20,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.onButton,
     required this.selectionBorder,
     required this.slotOutline,
+    required this.pieceOutline,
     required this.pieceShadow,
     required this.balloonString,
     required this.rewardScrim,
@@ -41,6 +42,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     onButton: Color(0xFF4A4039),
     selectionBorder: Color(0xFF4A4039),
     slotOutline: Color(0x738D6E63),
+    pieceOutline: Color(0xB34A4039),
     pieceShadow: Color(0xFF6D4C41),
     balloonString: Color(0x66000000),
     rewardScrim: Color(0xE6EEE8E1),
@@ -62,6 +64,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     onButton: Color(0xFF4A4039),
     selectionBorder: Color(0xFFF2F4F8),
     slotOutline: Color(0x73FFFFFF),
+    pieceOutline: Color(0xCCF2F4F8),
     pieceShadow: Color(0xFF000000),
     balloonString: Color(0x80FFFFFF),
     rewardScrim: Color(0xE64F596E),
@@ -96,6 +99,10 @@ class AppPalette extends ThemeExtension<AppPalette> {
   /// Boş yuvanın kesikli konturu (§15).
   final Color slotOutline;
 
+  /// Tepsideki ve eldeki parçanın kenar çizgisi. Zeminin tersi tondadır:
+  /// zemine yakın renkli bir parçayı zeminden ayıran şey odur.
+  final Color pieceOutline;
+
   /// Sürüklenen parçanın gölgesi (§17).
   final Color pieceShadow;
 
@@ -118,6 +125,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? onButton,
     Color? selectionBorder,
     Color? slotOutline,
+    Color? pieceOutline,
     Color? pieceShadow,
     Color? balloonString,
     Color? rewardScrim,
@@ -133,6 +141,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       onButton: onButton ?? this.onButton,
       selectionBorder: selectionBorder ?? this.selectionBorder,
       slotOutline: slotOutline ?? this.slotOutline,
+      pieceOutline: pieceOutline ?? this.pieceOutline,
       pieceShadow: pieceShadow ?? this.pieceShadow,
       balloonString: balloonString ?? this.balloonString,
       rewardScrim: rewardScrim ?? this.rewardScrim,
@@ -159,6 +168,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       onButton: mix(onButton, other.onButton),
       selectionBorder: mix(selectionBorder, other.selectionBorder),
       slotOutline: mix(slotOutline, other.slotOutline),
+      pieceOutline: mix(pieceOutline, other.pieceOutline),
       pieceShadow: mix(pieceShadow, other.pieceShadow),
       balloonString: mix(balloonString, other.balloonString),
       rewardScrim: mix(rewardScrim, other.rewardScrim),

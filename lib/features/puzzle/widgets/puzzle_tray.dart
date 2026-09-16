@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 
 import '../../../core/constants/puzzle_config.dart';
+import '../../../core/theme/app_theme.dart';
 import '../data/puzzle_palette.dart';
 import '../engine/geometry/coordinate_mapper.dart';
 import '../engine/geometry/piece_image_mapper.dart';
@@ -92,7 +93,14 @@ class PuzzleTray extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           for (var slot = 0; slot < grid.pieceCount; slot++)
-            _slot(slot, occupant[slot], pieceSize, imageSize, scale),
+            _slot(
+              slot,
+              occupant[slot],
+              pieceSize,
+              imageSize,
+              scale,
+              context.palette.pieceOutline,
+            ),
         ],
       ),
     );
@@ -124,6 +132,7 @@ class PuzzleTray extends StatelessWidget {
     Size pieceSize,
     Size imageSize,
     double scale,
+    Color outlineColour,
   ) {
     final rect = layout.slotRect(slotIndex);
 
@@ -172,6 +181,11 @@ class PuzzleTray extends StatelessWidget {
                             image: image,
                             renderPath: paths.of(piece.id),
                             background: _backgroundFor(piece),
+                            outlineColour: outlineColour,
+                            // Parça küçültülerek çizilir; çizgi ekranda
+                            // sabit kalınlıkta kalsın.
+                            outlineWidth:
+                                PuzzleConfig.pieceOutlineWidth / scale,
                             rects: PieceImageMapper.rectsOf(
                               piece: piece,
                               grid: grid,

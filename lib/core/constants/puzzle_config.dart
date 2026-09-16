@@ -82,6 +82,13 @@ abstract final class PuzzleConfig {
   static const double slotOutlineDashLength = 7;
   static const double slotOutlineDashGap = 5;
 
+  /// Tepsideki ve eldeki parçanın kenar çizgisi, ekran pikseli olarak.
+  ///
+  /// Açık bir resim açık gradyanın üstünde zeminle neredeyse aynı tondadır;
+  /// parça tepside seçilemiyordu (kullanıcı istedi). Board'daki parça
+  /// çizgisizdir: orada komşusuyla birleşip resmi tamamlamalı.
+  static const double pieceOutlineWidth = 1.5;
+
   /// §17 — Parçayı alma: tepsi boyundan board boyuna büyürken yolda
   /// [dragEmphasisScale] kadar şişer ve yüzeyden kalkar.
   static const Duration dragLiftDuration = Duration(milliseconds: 120);

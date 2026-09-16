@@ -21,9 +21,15 @@ class PuzzlePiecePainter extends CustomPainter {
     this.elevation = 0,
     this.bleed = PuzzleConfig.renderBleedPixels,
     this.shadowColour,
-  }) : assert(
+    this.outlineColour,
+    this.outlineWidth = 0,
+  })  : assert(
           elevation == 0 || shadowColour != null,
           'a lifted piece takes its shadow colour from the theme',
+        ),
+        assert(
+          outlineWidth == 0 || outlineColour != null,
+          'an outlined piece takes its outline colour from the theme',
         );
 
   /// Puzzle başına bir kez çözülür ve bütün parçalarca paylaşılır (§14).
@@ -60,6 +66,14 @@ class PuzzlePiecePainter extends CustomPainter {
   /// §17 — kalkan parçanın gölgesi; zemine göre temadan gelir. Yalnızca
   /// [elevation] sıfırdan büyükse gerekir.
   final Color? shadowColour;
+
+  /// Parçanın kenar çizgisi; zeminden ayrılsın diye (tepsi, sürükleme).
+  /// Board'daki parça çizgisizdir, yoksa dikişler görünürdü.
+  final Color? outlineColour;
+
+  /// Çizgi kalınlığı, **parça-yerel** birimde. Parçayı ölçekleyen widget
+  /// ekranda sabit kalınlık için ölçeğe böler. Sıfırsa çizilmez.
+  final double outlineWidth;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -113,6 +127,21 @@ class PuzzlePiecePainter extends CustomPainter {
       );
     }
     canvas.restore();
+
+    final outline = outlineColour;
+    if (outline != null && outlineWidth > 0) {
+      // Katmanın dışında, en üstte: resmin koyu konturu da açık gradyanı
+      // da örtmeden kenarı izler.
+      canvas.drawPath(
+        renderPath,
+        Paint()
+          ..color = outline
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = outlineWidth
+          ..strokeJoin = StrokeJoin.round
+          ..isAntiAlias = true,
+      );
+    }
   }
 
   /// Parçanın örtüsünü katmana opak olarak basar: kontur dolgusu, üstüne
@@ -171,5 +200,7 @@ class PuzzlePiecePainter extends CustomPainter {
       oldDelegate.rects != rects ||
       oldDelegate.background != background ||
       oldDelegate.elevation != elevation ||
-      oldDelegate.bleed != bleed;
+      oldDelegate.bleed != bleed ||
+      oldDelegate.outlineColour != outlineColour ||
+      oldDelegate.outlineWidth != outlineWidth;
 }
