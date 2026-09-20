@@ -39,8 +39,9 @@ Son güncelleme: 20 Eylül 2026, giriş ekranı yenilendi (K-21) ve Play hazırl
 | 25 | Play Store hazırlığı (K-20) | ⏳ imza anahtarı kullanıcıda |
 | 26 | Giriş ekranı + yetişkin kapısı + İngilizce metin (K-21) | ⏳ onay bekliyor |
 | 27 | Mağaza metnine gelişimsel beceriler (K-22) | ⏳ onay bekliyor |
+| 28 | Sürüm notları, iki dilde (K-23) | ⏳ onay bekliyor |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1172 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1173 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
 Yirmi sekiz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
@@ -78,6 +79,11 @@ Yirmi sekiz commit, **GitHub'da yayında**:
     biten arabaların geçidi + konfeti → Home → yeni oyun; arabalar sırayla
     devam. Board gerektiğinde küçülür (64 px ve kaymayan tepsi korunur).
     Albümden seçilen resim o safhanın ebadıyla oynanır.
+  - **K-23** — 1.0.0 **sürüm notları** iki dilde yazıldı
+    (`docs/store-listing.md`). Play dil başına 500 karakterde keser ve çok
+    dilli alanda metinler `<tr-TR>…</tr-TR>`, `<en-US>…</en-US>` diye
+    sarılır. Test hem sınırı hem de notların `pubspec.yaml`'daki sürümle
+    aynı numarayı taşımasını denetler.
   - **K-22** — mağaza açıklamasına **gelişimsel beceriler** paragrafı, iki
     dilde (kullanıcı 20 Eylül'de istedi; Öğretmen Onaylı programının
     baktığı kriterlerden biri). Abartılı iddia yok: yalnızca oyunun

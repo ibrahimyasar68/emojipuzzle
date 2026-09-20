@@ -174,6 +174,34 @@ void main() {
     }
   });
 
+  test('the release notes fit, in both languages', () {
+    final listing = File('docs/store-listing.md').readAsStringSync();
+
+    final notes = RegExp(
+      // `\w` is ASCII in Dart, so "Türkçe" needs a looser class here.
+      r'### (\d+\.\d+\.\d+) — (.+)\n\n([\s\S]*?)(?=\n#{2,3} )',
+    ).allMatches(listing);
+    expect(notes.length, greaterThanOrEqualTo(2), reason: 'two languages');
+    for (final note in notes) {
+      expect(
+        note.group(3)!.trim().length,
+        lessThanOrEqualTo(500),
+        reason: 'Play cuts release notes at 500 characters: '
+            '${note.group(1)} ${note.group(2)}',
+      );
+    }
+
+    // The notes are written for the version that ships.
+    final version = RegExp(r'^version:\s*(\d+\.\d+\.\d+)', multiLine: true)
+        .firstMatch(File('pubspec.yaml').readAsStringSync())!
+        .group(1);
+    expect(
+      notes.map((n) => n.group(1)),
+      everyElement(version),
+      reason: 'the listing still shows an older version\'s notes',
+    );
+  });
+
   test('the app itself carries the maker and a way to reach them (K-21)', () {
     final about =
         File('lib/features/home/screens/about_screen.dart').readAsStringSync();

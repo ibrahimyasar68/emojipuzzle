@@ -18,9 +18,12 @@ adımlardır.
 | Mağaza görselleri | İkon, öne çıkan grafik, 5 ekran görüntüsü hazır |
 | Gizlilik metni | `docs/privacy-policy.md` |
 | Mağaza metinleri | `docs/store-listing.md` (Türkçe + İngilizce) |
+| Sürüm notları | 1.0.0, iki dilde, 500 karakter sınırının altında |
+| Yayın imzası | ✅ 20 Eylül'de kuruldu: CN=Ibrahim YASAR, 2054'e kadar geçerli |
 | İletişim adresi | ibrahimyasar68@hotmail.com — uygulamada, gizlilik metninde ve mağaza sayfasında |
 
-Tek teknik engel imzadır (aşağıda).
+İmza 20 Eylül'de kuruldu (aşağıdaki adım tamamlandı); paket artık kendi
+anahtarınızla imzalanıyor ve Play'e yüklenmeye hazır.
 
 ## 2. Yayın anahtarı — sizin yapmanız gerekiyor
 
@@ -77,6 +80,8 @@ görüyorsanız paketi yüklemeyin.
 8. **Reklamlar**: "Uygulamam reklam içermiyor".
 9. **Uygulama erişimi**: tüm içerik girişsiz erişilebilir.
 10. `app-release.aab` dosyasını yükleyin (önce kapalı test, sonra üretim).
+11. **Sürüm notları**: `docs/store-listing.md` içindeki 1.0.0 metinleri; çok
+    dilli alana `<tr-TR>` ve `<en-US>` etiketleriyle yapıştırılır.
 
 ## 4. Yayından önce bakılması iyi olacaklar
 

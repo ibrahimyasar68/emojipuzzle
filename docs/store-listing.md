@@ -152,6 +152,45 @@ For parents:
 Emoji artwork: OpenMoji — the open-source emoji and icon project.
 Licence: CC BY-SA 4.0 · https://openmoji.org
 
+## Sürüm notları (What's new)
+
+Play Console her dil için ayrı ister ve **500 karakterde** keser (etiketler
+bu sayıya girmez). Sürüm notu neyin değiştiğini söyler; mağaza
+açıklamasının kısaltması değildir.
+
+Çok dilli alana yapıştırırken metinler BCP-47 dil etiketleriyle sarılır:
+Türkçe `<tr-TR>…</tr-TR>`, İngilizce (ABD) `<en-US>…</en-US>`. Etiket,
+mağaza sayfasına **eklenmiş** dille birebir aynı olmalıdır — İngilizce
+(Birleşik Krallık) eklendiyse `<en-GB>` — yoksa Play kabul etmez. Etiketler
+büyük-küçük harfe duyarlıdır.
+
+```text
+<tr-TR>
+… aşağıdaki Türkçe metin …
+</tr-TR>
+<en-US>
+… aşağıdaki İngilizce metin …
+</en-US>
+```
+
+### 1.0.0 — Türkçe
+
+İlk sürüm. 3-5 yaş için sakin bir yapboz oyunu: 21 resim ve dört parçadan
+on altı parçaya büyüyen yapbozlar. Her biten resimden sonra konfeti, balon
+eşleştirme oyunu, albüme giren bir çıkartma ve bir boyama sayfası gelir.
+Yanlış konan parça yumuşakça yerine döner; süre, puan ve kaybetmek yoktur.
+Reklam yok, satın alma yok, internet izni yok; ilerleme yalnızca cihazda
+saklanır.
+
+### 1.0.0 — English
+
+First release. A calm jigsaw game for ages 3-5: 21 pictures and puzzles
+that grow from four pieces to sixteen. Every finished picture brings
+confetti, a balloon-matching game, a sticker for the album and a colouring
+page. A piece dropped in the wrong place drifts softly back; there is no
+timer, no score and nothing to lose. No ads, no purchases, no internet
+permission; progress stays on the device.
+
 ## Kategori ve hedef kitle
 
 - Google Play: Eğitim (ya da Oyun → Bulmaca) / Designed for Families,
