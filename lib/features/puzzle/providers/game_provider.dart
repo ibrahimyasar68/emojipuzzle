@@ -273,17 +273,27 @@ class GameProvider extends ChangeNotifier {
   }
 
   /// Bir safhanın dizisi bitti — kutlama, balon, çıkartma, boyama — ya da
-  /// çocuk dizinin ortasında çıktı (§30). Oyun bir safha ilerler (K-15).
+  /// çocuk dizinin ortasında çıktı (§30).
   ///
-  /// Beşinci safhadan sonra araba biter: boyama defteri sıradaki arabaya
-  /// geçer, safha 2 × 2'ye döner. Üçüncü araba oyunu bitirir ([isGameOver]).
+  /// **Safhayı ilerleten şey boyamadır (K-18).** Boyama atlandıysa oyun
+  /// aynı safhada kalır: sıradaki puzzle başka bir resimle ama aynı ebatla
+  /// gelir. Böylece araba, parçaları beyaz kalmadan biter — eski kural
+  /// safhayı her durumda ilerlettiği için oyun sonunda boyanmamış parça
+  /// kalabiliyordu (kullanıcı istedi).
   ///
-  /// Yalnızca çözülmüş bir puzzle'dan sonra bir şey yapar; iki kez
-  /// çağrılması bir safhayı iki kez ilerletmez.
+  /// Safha sayacı türetilir, artırılmaz: **safha = bu arabanın boyanmış
+  /// parça sayısı.** Diziyi yarıda bırakıp çıkmak, uygulamayı kapatmak ya
+  /// da bu çağrının iki kez gelmesi sonucu değiştirmez; eski kuralla
+  /// kaydedilmiş bir oyun da ilk safha sonunda bu bağıntıya oturur.
+  ///
+  /// Beşinci parça boyanınca araba biter: defter sıradaki arabaya geçer,
+  /// safha 2 × 2'ye döner. Üçüncü araba oyunu bitirir ([isGameOver]).
+  ///
+  /// Yalnızca çözülmüş bir puzzle'dan sonra bir şey yapar.
   Future<void> finishStage() async {
     if (!_progress.currentSolved) return;
 
-    var stage = _progress.stage + 1;
+    var stage = _colouring.fills.length;
     var cars = _progress.carsFinished;
     if (stage >= GameRules.stagesPerCar) {
       stage = 0;

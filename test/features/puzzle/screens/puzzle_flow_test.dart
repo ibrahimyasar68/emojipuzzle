@@ -102,11 +102,27 @@ Future<void> _watchSticker(WidgetTester tester) async {
 }
 
 /// After the sticker — or straight after the balloons when there is none —
-/// the colouring page (§24.2). A test can skip it, as a child may.
+/// the colouring page (§24.2). A test can skip it, as a child may; since
+/// K-18 a skipped page leaves the stage where it was.
 Future<void> _skipColouring(WidgetTester tester) async {
   expect(find.byKey(const ValueKey('colouring-overlay')), findsOneWidget);
   await tester.tap(find.byKey(const ValueKey('colouring-skip')));
   await tester.pump();
+}
+
+/// Paints a part instead: the sedan's body, with the colour that is ready
+/// from the start. This is what moves the stage on (K-18).
+Future<void> _paintColouring(WidgetTester tester) async {
+  expect(find.byKey(const ValueKey('colouring-overlay')), findsOneWidget);
+  final card = tester.getRect(find.byKey(const ValueKey('colouring-card')));
+  await tester.tapAt(
+    card.topLeft +
+        const Offset(50, 50) * (card.width / CarModel.designSize.width),
+  );
+  await tester.pump();
+  await tester.pump(PuzzleConfig.colouringSettleDuration);
+  // Done only once the duration is passed, not merely reached.
+  await tester.pump(const Duration(milliseconds: 20));
 }
 
 /// Lets the real work behind `startPuzzle` (painting the picture) finish.
@@ -133,11 +149,11 @@ void main() {
     await _watchCelebration(tester);
     await _watchBalloons(tester);
     await _watchSticker(tester);
-    await _skipColouring(tester);
+    await _paintColouring(tester);
     await _settleAsync(tester);
 
     expect(game.puzzle.id, isNot('apple_01'), reason: 'a new picture');
-    expect(game.stage, 1, reason: 'one stage on (K-15)');
+    expect(game.stage, 1, reason: 'one stage on (K-18: a part was painted)');
     expect(game.placedCount, 0);
     expect(game.isPuzzleCompleted('apple_01'), isTrue);
     for (final piece in game.pieces) {
@@ -174,11 +190,11 @@ void main() {
 
     // And then the sticker, which is what the balloons were leading to.
     await _watchSticker(tester);
-    await _skipColouring(tester);
+    await _paintColouring(tester);
     await _settleAsync(tester);
 
     expect(game.puzzle.id, isNot('apple_01'), reason: 'a new picture');
-    expect(game.stage, 1, reason: 'one stage on (K-15)');
+    expect(game.stage, 1, reason: 'one stage on (K-18: a part was painted)');
     expect(tester.takeException(), isNull);
   });
 
@@ -202,10 +218,10 @@ void main() {
     }
 
     await _watchSticker(tester);
-    await _skipColouring(tester);
+    await _paintColouring(tester);
     await _settleAsync(tester);
     expect(game.puzzle.id, isNot('apple_01'), reason: 'a new picture');
-    expect(game.stage, 1, reason: 'one stage on (K-15)');
+    expect(game.stage, 1, reason: 'one stage on (K-18)');
     expect(tester.takeException(), isNull);
   });
 
@@ -346,13 +362,13 @@ void main() {
     await _watchCelebration(tester);
     await _watchBalloons(tester);
     await _watchSticker(tester);
-    await _skipColouring(tester);
+    await _paintColouring(tester);
     await _settleAsync(tester);
 
     // A stale path cache would show the previous puzzle's pieces here; a
     // wrong-sized one would throw the board's assert.
     expect(game.puzzle.id, isNot('apple_01'), reason: 'a new picture');
-    expect(game.stage, 1, reason: 'one stage on (K-15)');
+    expect(game.stage, 1, reason: 'one stage on (K-18)');
     expect(find.byKey(const ValueKey('puzzle-board')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

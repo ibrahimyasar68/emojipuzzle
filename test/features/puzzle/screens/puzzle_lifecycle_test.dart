@@ -312,7 +312,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(game.puzzle.id, isNot('apple_01'),
           reason: 'not left on a solved board');
-      expect(game.stage, 1, reason: 'the stage moved on (K-15)');
+      expect(
+        game.stage,
+        1,
+        reason: 'the part was painted before Back, so the stage moved on '
+            '(K-18)',
+      );
       expect(tester.takeException(), isNull);
     });
 
@@ -357,7 +362,13 @@ void main() {
       await tester.pumpAndSettle();
       expect(game.puzzle.id, isNot('apple_01'),
           reason: 'not left on a solved board');
-      expect(game.stage, 1, reason: 'the stage moved on (K-15)');
+      expect(
+        game.stage,
+        0,
+        reason: 'the child left before the colouring page, so nothing was '
+            'painted and the stage waits where it was (K-18)',
+      );
+      expect(game.colouring.fills, isEmpty);
       expect(tester.takeException(), isNull);
     });
 
