@@ -1,3 +1,5 @@
+import 'dart:ui' show Color;
+
 /// Ayarlanabilir puzzle sabitleri.
 ///
 /// Her sabit, hangi spec bölümünden geldiğini belirtir (§46). Sabitler onları
@@ -54,6 +56,24 @@ abstract final class PuzzleConfig {
   static const double homeReferenceShortSide = 360;
   static const double homeMaxScale = 2;
   static const double homePlayButtonSize = 160;
+
+  /// K-21 — bilgi düğmesi bir yetişkin kapısıdır: iki saniye basılı
+  /// tutmak gerekir (kullanıcı istedi). Çocuk kazara açmasın diye.
+  static const Duration homeAboutHoldDuration = Duration(seconds: 2);
+
+  /// K-21 — oyna düğmesi dört parçalı bitmiş bir yapbozdur: gülen surat.
+  /// Köşedeki kırmızı oynat işareti düğmenin kenarının bu kadarıdır.
+  static const double homePlayBadgeFraction = 0.34;
+  static const Color homePlayBadgeColour = Color(0xFFD22F27);
+
+  /// Parçaların altındaki zemin: yüzün sarısının açık tonları, board'un
+  /// gradyanı gibi. Yüz şeffaf köşeli olduğu için parçaların karesi ancak
+  /// bununla görünür.
+  static const Color homePlayBackgroundFrom = Color(0xFFFFF6D6);
+  static const Color homePlayBackgroundTo = Color(0xFFFFD98A);
+
+  /// Görsel yüklenene kadar duran kare.
+  static const Color homePlayFallbackColour = Color(0xFFFFE9A8);
   static const double homeButtonSize = 96;
   static const double homePlayButtonGap = 40;
   static const double homeButtonGap = 28;

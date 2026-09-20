@@ -76,6 +76,44 @@ kategorisindeki üç resim (kitap, mikroskop, dürbün) projenin kendi
 Metin `docs/privacy-policy.md` dosyasındadır; GitHub Pages ayarı açıldığında
 yukarıdaki adresten yayımlanır.
 
+## English listing (second language)
+
+Play Console → Main store listing → Add translation → English (United
+States). Use the same graphics.
+
+### App name
+
+EmojiPuzzle
+
+### Short description (80 characters)
+
+Gentle emoji jigsaws for ages 3-5. No ads, offline, nothing to lose.
+
+### Full description
+
+EmojiPuzzle is a calm jigsaw game made for children who cannot read yet.
+
+- **Nothing to lose.** A piece dropped in the wrong place drifts softly back
+  to the tray. No red crosses, no buzzers, no timer, no score.
+- **Help arrives without being asked.** If the child hesitates, the game
+  first highlights a piece, then shows where it goes, and finally places it.
+- **Every picture is a reward.** A finished puzzle brings confetti, a
+  balloon-matching game and a sticker for the album.
+- **A colouring page.** After each puzzle the child paints one part of a
+  car, in any colour from a free palette. Five parts and the car drives off.
+- **It grows with the child.** Puzzles start at 4 pieces and grow to 16.
+  Pictures come at random from a pool of 21, in six categories.
+- **The album.** Tapping any sticker plays that picture again.
+
+For parents:
+
+- No ads, no in-app purchases, no accounts.
+- No internet permission; the game collects and sends nothing.
+- Progress is kept on the device only, and can be reset from the app.
+
+Emoji artwork: OpenMoji — the open-source emoji and icon project.
+Licence: CC BY-SA 4.0 · https://openmoji.org
+
 ## Kategori ve hedef kitle
 
 - Google Play: Eğitim (ya da Oyun → Bulmaca) / Designed for Families,

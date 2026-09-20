@@ -1,11 +1,13 @@
-"""Eşyalar kategorisinin resimlerini (kitap, mikroskop, dürbün) kodla çizer.
+"""Kodla çizilen görseller: Eşyalar kategorisi ve giriş ekranının yüzü.
 
 Kullanım:
     python3 tool/generate_object_images.py
 
-Pillow gerekir. `assets/images/puzzles/` altına `book.png`,
-`microscope.png` ve `binoculars.png` yazar (§34: 1024×1024, 1:1, şeffaf
-zemin).
+Pillow gerekir. `assets/images/puzzles/` altına `book.png`, `microscope.png` ve
+`binoculars.png`, `assets/images/ui/` altına da `smile.png` yazar
+(§34: 1024×1024, 1:1, şeffaf zemin). `smile.png` bir puzzle değildir:
+giriş ekranındaki oyna düğmesi onu dört parçalı bitmiş bir yapboz olarak
+gösterir (K-21).
 
 Üslup havuzdaki OpenMoji resimlerine uyar: 72 birimlik ızgara, 2 birim
 kalınlıkta yuvarlak uçlu siyah çizgi, düz renkler (OpenMoji paletinden).
@@ -23,6 +25,7 @@ from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets/images/puzzles"
+UI_OUT = ROOT / "assets/images/ui"
 
 SIZE = 1024
 SUPER = 4
@@ -102,9 +105,11 @@ class Pen:
             fill=fill,
         )
 
-    def save(self, name):
+    def save(self, name, directory=None):
         small = self.image.resize((SIZE, SIZE), Image.LANCZOS)
-        small.save(OUT / name, optimize=True)
+        folder = directory or OUT
+        folder.mkdir(parents=True, exist_ok=True)
+        small.save(folder / name, optimize=True)
 
 
 def _strip(p0, p1, half):
@@ -211,9 +216,60 @@ def binoculars():
     pen.save("binoculars.png")
 
 
+def _arc(cx, cy, r, start, end, steps=64):
+    """Yay üzerinde noktalar; açılar derece, ekranda y aşağı."""
+    return [
+        (
+            cx + r * math.cos(math.radians(start + (end - start) * i / steps)),
+            cy + r * math.sin(math.radians(start + (end - start) * i / steps)),
+        )
+        for i in range(steps + 1)
+    ]
+
+
+def smile():
+    """Gülen surat: oyna düğmesinin yüzü (K-21).
+
+    Dört parçaya bölünüp gösterilecek, bu yüzden ayrıntılar ızgaranın
+    ortasındaki dikişlerden uzak durur: gözler üst yarıda, ağız alt yarıda,
+    ikisi de orta çizgiyi kesmez.
+    """
+    pen = Pen()
+    pen.circle(36, 36, 31, YELLOW)
+    for cx in (26, 46):
+        pen.circle(cx, 28, 4.4, DARK_GREY)
+    # Ağız: aşağı doğru şişen bir yay, üstünde düz kenar; dişler beyaz bir
+    # şerit olarak üst kenarı izler.
+    mouth = _arc(36, 41, 17, 10, 170)
+    pen.polygon(mouth[::-1], DARK_GREY)
+    teeth = [
+        (mouth[-1][0] + 1.5, mouth[-1][1] + 1.2),
+        (mouth[0][0] - 1.5, mouth[0][1] + 1.2),
+    ]
+    pen.polygon(
+        [teeth[0], teeth[1]] + _arc(36, 41, 12.5, 160, 20)[:1] + [
+            (36 + 12.5 * math.cos(math.radians(160)), 41 + 12.5 * math.sin(math.radians(160))),
+        ],
+        WHITE,
+        width=0,
+    )
+    pen.polygon(
+        [teeth[0], teeth[1]]
+        + _arc(36, 41, 12.5, 20, 160)[::-1],
+        WHITE,
+        width=0,
+    )
+    # Dişlerin altındaki koyu ağız boşluğu yeniden çizilmez; yay zaten
+    # orada. Dudak çizgisini en üste al.
+    pen.polyline([mouth[0], mouth[-1]])
+    pen.save("smile.png", UI_OUT)
+
+
 if __name__ == "__main__":
     book()
     microscope()
     binoculars()
+    smile()
     for name in ("book.png", "microscope.png", "binoculars.png"):
         print(OUT / name)
+    print(UI_OUT / "smile.png")

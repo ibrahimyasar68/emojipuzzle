@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math' show Random;
 
 import 'package:emoji_puzzle_kids/app/themed_app.dart';
@@ -7,7 +8,9 @@ import 'package:emoji_puzzle_kids/core/theme/theme_settings.dart';
 import 'package:emoji_puzzle_kids/features/album/screens/album_screen.dart';
 import 'package:emoji_puzzle_kids/features/home/screens/about_screen.dart';
 import 'package:emoji_puzzle_kids/features/home/screens/home_screen.dart';
+import 'package:emoji_puzzle_kids/core/constants/puzzle_config.dart';
 import 'package:emoji_puzzle_kids/features/home/widgets/home_button.dart';
+import 'package:emoji_puzzle_kids/features/home/widgets/play_puzzle_button.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/geometry/puzzle_generator.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/engine/tray_shuffler.dart';
 import 'package:emoji_puzzle_kids/features/puzzle/providers/game_provider.dart';
@@ -61,6 +64,23 @@ Future<_Harness> _pumpHome(
   return _Harness(game, audio, theme);
 }
 
+/// The grown-ups' door is a hold, not a tap (K-21): two seconds with a
+/// finger on the ⓘ. A child does not do that by accident.
+Future<void> _openAbout(WidgetTester tester) async {
+  final gesture = await tester.startGesture(
+    tester.getCenter(find.byKey(const ValueKey('home-about'))),
+  );
+  // The tap recognizer reports the press only once it has won the arena,
+  // so the hold starts on the *next* frame, not on this one.
+  await tester.pump(const Duration(milliseconds: 150));
+  await tester.pump(PuzzleConfig.homeAboutHoldDuration);
+  // An AnimationController is done once its duration is passed, not when
+  // it is reached.
+  await tester.pump(const Duration(milliseconds: 20));
+  await gesture.up();
+  await tester.pumpAndSettle();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -77,7 +97,10 @@ void main() {
     }
 
     // §2 allows five; a fifth would be one too many to add without thought.
-    expect(find.byType(HomeButton), findsNWidgets(keys.length));
+    // Play is its own widget since K-21 — a finished four-piece puzzle of a
+    // smiling face — so the count is three round buttons plus that one.
+    expect(find.byType(HomeButton), findsNWidgets(keys.length - 1));
+    expect(find.byType(PlayPuzzleButton), findsOneWidget);
     expect(keys.length, lessThanOrEqualTo(5));
   });
 
@@ -128,6 +151,75 @@ void main() {
     }
   });
 
+  testWidgets('a tap on the grown-ups door does nothing (K-21)', (
+    tester,
+  ) async {
+    await _pumpHome(tester);
+
+    await tester.tap(find.byKey(const ValueKey('home-about')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AboutScreen), findsNothing);
+
+    // And it does not open a moment later either: a tap that only *starts*
+    // the hold would open the door two seconds after the child let go.
+    await tester.pump(PuzzleConfig.homeAboutHoldDuration * 2);
+    await tester.pumpAndSettle();
+    expect(find.byType(AboutScreen), findsNothing);
+  });
+
+  testWidgets('letting go too early keeps the door shut (K-21)', (
+    tester,
+  ) async {
+    await _pumpHome(tester);
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey('home-about'))),
+    );
+    await tester.pump(const Duration(milliseconds: 150));
+    await tester.pump(PuzzleConfig.homeAboutHoldDuration ~/ 2);
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AboutScreen), findsNothing);
+  });
+
+  testWidgets('the door says what it is for, and how long (K-21)', (
+    tester,
+  ) async {
+    await _pumpHome(tester);
+
+    // Two seconds is the promise the config makes; the screen must use it.
+    final button = tester.widget<HomeButton>(
+      find.byKey(const ValueKey('home-about')),
+    );
+    expect(button.holdDuration, PuzzleConfig.homeAboutHoldDuration);
+    expect(PuzzleConfig.homeAboutHoldDuration, const Duration(seconds: 2));
+  });
+
+  testWidgets('the play button is a finished four-piece puzzle (K-21)', (
+    tester,
+  ) async {
+    await _pumpHome(tester);
+
+    final play = tester.widget<PlayPuzzleButton>(
+      find.byKey(const ValueKey('home-play')),
+    );
+    expect(PlayPuzzleButton.grid.pieceCount, 4);
+    expect(play.size, greaterThanOrEqualTo(64), reason: '§2');
+    expect(
+      File(PlayPuzzleButton.facePath).existsSync(),
+      isTrue,
+      reason: 'the face ships with the app',
+    );
+
+    // The red play badge sits on it, and it is big enough to see.
+    final badge = find.descendant(
+      of: find.byKey(const ValueKey('home-play')),
+      matching: find.byIcon(Icons.play_arrow_rounded),
+    );
+    expect(badge, findsOneWidget);
+  });
+
   testWidgets('the album opens and closes again (§25)', (tester) async {
     await _pumpHome(tester);
 
@@ -167,13 +259,41 @@ void main() {
   ) async {
     await _pumpHome(tester);
 
-    await tester.tap(find.byKey(const ValueKey('home-about')));
-    await tester.pumpAndSettle();
+    await _openAbout(tester);
 
     expect(find.byType(AboutScreen), findsOneWidget);
+
+    // The screen is a ListView and K-21 put a description above the
+    // attribution, so it starts below the fold; a ListView never builds
+    // what is not on screen.
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('about-attribution')),
+      120,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.byKey(const ValueKey('about-attribution')), findsOneWidget);
     expect(find.textContaining('OpenMoji'), findsOneWidget);
     expect(find.textContaining('CC BY-SA 4.0'), findsOneWidget);
+  });
+
+  testWidgets(
+      'the grown-ups corner says what the game is, who made it '
+      'and how to reach them (K-21)', (tester) async {
+    await _pumpHome(tester);
+    await _openAbout(tester);
+
+    expect(find.byKey(const ValueKey('about-summary')), findsOneWidget);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('about-summary')))
+          .data!
+          .length,
+      greaterThan(80),
+      reason: 'a real description, not a label',
+    );
+    expect(find.text(AboutScreen.maker), findsOneWidget);
+    expect(find.text(AboutScreen.contactEmail), findsOneWidget);
+    expect(AboutScreen.contactEmail, contains('@'));
   });
 
   testWidgets('the grown-ups pick the phone\'s look, light or dark', (
@@ -198,8 +318,7 @@ void main() {
       return (box.decoration! as BoxDecoration).border != null;
     }
 
-    await tester.tap(find.byKey(const ValueKey('home-about')));
-    await tester.pumpAndSettle();
+    await _openAbout(tester);
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('about-theme-dark')),
       120,
@@ -246,8 +365,7 @@ void main() {
     await harness.game.colouring.startNextCar();
     await harness.game.colouring.paint('cab', 0xFF43A047);
 
-    await tester.tap(find.byKey(const ValueKey('home-about')));
-    await tester.pumpAndSettle();
+    await _openAbout(tester);
 
     // Deliberately the last thing on a page of grown-ups' text: a child who
     // gets this far has scrolled past three paragraphs to reach it.

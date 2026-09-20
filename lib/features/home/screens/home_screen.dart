@@ -9,6 +9,7 @@ import '../../puzzle/models/puzzle_definition.dart';
 import '../../puzzle/providers/game_provider.dart';
 import '../../puzzle/screens/puzzle_screen.dart';
 import '../widgets/home_button.dart';
+import '../widgets/play_puzzle_button.dart';
 import 'about_screen.dart';
 
 /// Oyunun başladığı yer (§29).
@@ -40,6 +41,11 @@ class HomeScreen extends StatelessWidget {
                   background: palette.subtleSurface,
                   foreground: palette.onSubtleSurface,
                   semanticLabel: 'Ebeveynler için bilgi',
+                  // Yetişkin kapısı (K-21, kullanıcı istedi): iki saniye
+                  // basılı tutmak gerekir. Üç yaşındaki bir çocuk bunu
+                  // kazara yapmaz; tutarken dolan halka yetişkine ne kadar
+                  // kaldığını söyler.
+                  holdDuration: PuzzleConfig.homeAboutHoldDuration,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => const AboutScreen(),
@@ -60,12 +66,9 @@ class HomeScreen extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      HomeButton(
+                      PlayPuzzleButton(
                         key: const ValueKey('home-play'),
-                        icon: Icons.play_arrow_rounded,
                         size: PuzzleConfig.homePlayButtonSize * scale,
-                        background: const Color(0xFFFFC43D),
-                        semanticLabel: 'Oyna',
                         onTap: () => _openPuzzle(context),
                       ),
                       SizedBox(height: PuzzleConfig.homePlayButtonGap * scale),

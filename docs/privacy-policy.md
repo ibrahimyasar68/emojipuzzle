@@ -59,7 +59,36 @@ uygulamanın mağaza sayfasında duyurulur. v1 için böyle bir plan yoktur.
 
 ### İletişim
 
-Sorular için: _(mağaza yayınından önce buraya bir iletişim adresi yazılmalı)_
+Sorular için: ibrahimyasar68@hotmail.com (IY Labs). Aynı adres uygulamanın
+içinde de yazılıdır: ⓘ düğmesini iki saniye basılı tutun.
+
+---
+
+## Privacy policy (English)
+
+**Last updated:** 20 September 2026
+
+EmojiPuzzle collects no data, sends no data and does not connect to the
+internet.
+
+- **Data collected:** none. The app never asks for or reads a name, an
+  e-mail address, a phone number, a location, a device identifier or an
+  advertising identifier.
+- **Stored on the device:** the game's progress and two settings (sound on
+  or off, and the chosen light/dark look). They stay in the app's own
+  storage on the device, are never sent anywhere, are deleted with the app
+  and can be reset from inside the app.
+- **Network:** none. The Android release asks for no permissions at all,
+  not even internet access. The game works fully offline.
+- **Third parties:** no ad networks, no analytics, no crash reporting, no
+  social plugins, no in-app purchases, no outbound links.
+- **Children:** the app is made for 3-5 year olds and follows the Google
+  Play "Designed for Families" and Apple "Kids" rules. Since nothing is
+  collected from anyone, no parental consent for data processing is needed.
+- **Artwork and sound:** most puzzle pictures come from OpenMoji
+  (CC BY-SA 4.0); the Objects category, the colouring cars and the sound
+  effects are the project's own work.
+- **Contact:** ibrahimyasar68@hotmail.com (IY Labs)
 
 > Not: Depo herkese açık olduğu için buraya gerçek bir adres yazmak, o
 > adresin taranmasına açık olması demektir. Yayın öncesi uygulamaya özel

@@ -75,11 +75,15 @@ artwork, so the share-alike condition does not reach these files.
 `python3 tool/generate_object_images.py` reproduces them. They are 1024×1024
 with a transparent background, as §34 asks.
 
-| File             | Picture     |
-| ---------------- | ----------- |
-| `book.png`       | an open book |
-| `microscope.png` | a microscope |
-| `binoculars.png` | binoculars  |
+| File                      | Picture       |
+| ------------------------- | ------------- |
+| `puzzles/book.png`        | an open book  |
+| `puzzles/microscope.png`  | a microscope  |
+| `puzzles/binoculars.png`  | binoculars    |
+| `ui/smile.png`            | a smiling face |
+
+`ui/smile.png` is not a puzzle picture: it is the face on the home screen's
+play button, which the app cuts into four pieces at run time (K-21).
 
 ## Audio — sound effects
 

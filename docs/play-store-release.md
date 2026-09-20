@@ -17,7 +17,8 @@ adımlardır.
 | App Bundle | `flutter build appbundle --release` → 41 MB |
 | Mağaza görselleri | İkon, öne çıkan grafik, 5 ekran görüntüsü hazır |
 | Gizlilik metni | `docs/privacy-policy.md` |
-| Mağaza metinleri | `docs/store-listing.md` |
+| Mağaza metinleri | `docs/store-listing.md` (Türkçe + İngilizce) |
+| İletişim adresi | ibrahimyasar68@hotmail.com — uygulamada, gizlilik metninde ve mağaza sayfasında |
 
 Tek teknik engel imzadır (aşağıda).
 
@@ -59,7 +60,8 @@ görüyorsanız paketi yüklemeyin.
 2. Uygulama oluştur: ad **EmojiPuzzle**, dil Türkçe, tür Uygulama/Oyun,
    ücretsiz.
 3. **Mağaza sayfası**: kısa/uzun açıklama, ikon, öne çıkan grafik, ekran
-   görüntüleri (`docs/store/`), kategori, iletişim e-postası.
+   görüntüleri (`docs/store/`), kategori, iletişim e-postası. İngilizce
+   çeviriyi de ekleyin (metin hazır).
 4. **Gizlilik politikası adresi**: GitHub Pages'i açın (depo → Settings →
    Pages → Source: `main` / `docs`), sonra adresi yapıştırın:
    <https://ibrahimyasar68.github.io/emojipuzzle/privacy-policy.html>
@@ -78,6 +80,5 @@ görüyorsanız paketi yüklemeyin.
   emülatörde en son Faz 16 oynandı.
 - **Yatay ekran.** Kilit yeni kalktı; yatay yerleşimler testlerde geçiyor ama
   cihazda görülmedi.
-- **Gizlilik metnindeki iletişim adresi** boş: mağaza sayfasında da zorunlu.
-- **İkinci dil.** Uygulama Türkçe; mağaza sayfasına İngilizce açıklama da
-  eklenirse erişim artar.
+- **İkinci dil.** Mağaza metni Türkçe ve İngilizce hazır; uygulamanın
+  kendi arayüzü yalnızca Türkçe (yazı zaten neredeyse yok).

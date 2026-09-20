@@ -1,7 +1,7 @@
 # Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 20 Eylül 2026, Play Store hazırlığı (paket adı, imza, mağaza görselleri) yapıldı.
+Son güncelleme: 20 Eylül 2026, giriş ekranı yenilendi (K-21) ve Play hazırlığı gözden geçirildi.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -37,8 +37,9 @@ Son güncelleme: 20 Eylül 2026, Play Store hazırlığı (paket adı, imza, ma�
 | 23 | Safhayı boyama ilerletir (K-18) | ✅ onaylandı |
 | 24 | Puzzle parçalarında kabartma (K-19) | ✅ onaylandı |
 | 25 | Play Store hazırlığı (K-20) | ⏳ imza anahtarı kullanıcıda |
+| 26 | Giriş ekranı + yetişkin kapısı + İngilizce metin (K-21) | ⏳ onay bekliyor |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1164 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1171 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
 Yirmi sekiz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
@@ -76,6 +77,11 @@ Yirmi sekiz commit, **GitHub'da yayında**:
     biten arabaların geçidi + konfeti → Home → yeni oyun; arabalar sırayla
     devam. Board gerektiğinde küçülür (64 px ve kaymayan tepsi korunur).
     Albümden seçilen resim o safhanın ebadıyla oynanır.
+  - **K-21** — **giriş ekranı** (kullanıcı 20 Eylül'de istedi): oyna düğmesi
+    gülen suratın dört parçalı bitmiş yapbozu + sağ altta kırmızı oynat
+    işareti; ⓘ iki saniye basılı tutunca açılır (dolan halka); Hakkında'da
+    oyunun kısa tarifi, IY Labs ve ibrahimyasar68@hotmail.com; mağaza
+    metni ikinci dil olarak İngilizce.
   - **K-20** — **Play Store yayını** (kullanıcı 20 Eylül'de istedi):
     paket kimliği `com.iylabs.emojipuzzle` (eskisi
     `com.emojipuzzlekids.emoji_puzzle_kids`; ilerleme sıfırlanır, kullanıcı
@@ -379,6 +385,11 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   defter oyun ilerlemesiyle **aynı depoyu** görmeli; testlerde de
   `ColouringBook(storage: storage)..load()` verilir, yoksa her oturum
   2×2'den başlar.
+- **Basılı tutma iptali sayaç sıfırken de durdurulmalı** (K-21). Kısa bir
+  dokunuşta basma ve kalkma aynı karededir; `value == 0` diye erken dönen
+  bir iptal sayacı çalışır bırakır ve kapı iki saniye sonra kendiliğinden
+  açılır (testte yaşandı). Testte de sıra önemli: parmak indikten **sonra
+  bir kare** geçmeden sayaç başlamaz.
 - **Perde çizginin altında, dolgunun üstünde** (K-17). Sıra bozulursa siyah
   kontur solar — ama yalnızca parçanın **üst** kenarında (perde orada beyaz),
   alt kenarda siyah üstüne siyah gelir ve fark edilmez. Testin ölçtüğü nokta

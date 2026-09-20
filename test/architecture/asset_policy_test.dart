@@ -58,7 +58,11 @@ void main() {
     final licences = File('assets/LICENSES.md').readAsStringSync();
 
     final shipped = <String>[
-      for (final directory in ['assets/images/puzzles', 'assets/audio/sfx'])
+      for (final directory in [
+        'assets/images/puzzles',
+        'assets/images/ui',
+        'assets/audio/sfx',
+      ])
         ...Directory(directory)
             .listSync()
             .whereType<File>()

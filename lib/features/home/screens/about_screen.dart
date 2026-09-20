@@ -17,6 +17,12 @@ import '../widgets/home_button.dart';
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
+  /// Yapımcı ve iletişim (K-21, kullanıcı istedi). Mağaza sayfasındaki
+  /// adresle aynıdır; uygulamadan dışarı bir bağlantı açılmaz (§35), yazı
+  /// olarak durur.
+  static const String maker = 'IY Labs';
+  static const String contactEmail = 'ibrahimyasar68@hotmail.com';
+
   /// OpenMoji lisansının gerektirdiği attribution (§33, assets/LICENSES.md).
   static const String openMojiAttribution =
       'Emoji artwork: OpenMoji — the open-source emoji and icon project.\n'
@@ -50,6 +56,39 @@ class AboutScreen extends StatelessWidget {
             const Text(
               'EmojiPuzzle',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'IY Labs',
+              key: const ValueKey('about-maker'),
+              style: TextStyle(
+                fontSize: 14,
+                color: palette.onBackgroundMuted,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              // K-21 — kullanıcı bu köşede oyunun kısa bir tarifini istedi.
+              'Okuma yazma bilmeyen çocuklar için sakin bir yapboz oyunu. '
+              'Yapbozlar dört parçadan başlar, on altı parçaya kadar büyür; '
+              'resimler her oyunda havuzdan rastgele gelir. Yanlış konan '
+              'parça yumuşakça yerine döner: kaybedilmez, süre ve puan '
+              'yoktur. Her biten resim konfeti, balon oyunu ve albüme giren '
+              'bir çıkartma demektir; ardından bir arabanın bir parçası '
+              'boyanır.',
+              key: ValueKey('about-summary'),
+              style: TextStyle(fontSize: 14, height: 1.4),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'İletişim',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              AboutScreen.contactEmail,
+              key: ValueKey('about-contact'),
+              style: TextStyle(fontSize: 14, height: 1.4),
             ),
             const SizedBox(height: 20),
             const Text(

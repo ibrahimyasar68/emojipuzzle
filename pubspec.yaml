@@ -30,4 +30,5 @@ flutter:
   # §33, §34 — licences and attribution live in assets/LICENSES.md.
   assets:
     - assets/images/puzzles/
+    - assets/images/ui/
     - assets/audio/sfx/

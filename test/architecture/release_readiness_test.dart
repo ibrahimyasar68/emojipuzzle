@@ -123,6 +123,35 @@ void main() {
     );
   });
 
+  test('the listing is written in both languages (K-21)', () {
+    final listing = File('docs/store-listing.md').readAsStringSync();
+
+    // Play takes one listing per language; English is the second one.
+    final english = RegExp(
+      r'### Short description[^\n]*\n\n(.+)',
+    ).firstMatch(listing)?.group(1);
+    expect(english, isNotNull, reason: 'an English listing is expected');
+    expect(
+      english!.trim().length,
+      lessThanOrEqualTo(80),
+      reason: 'the English short description has the same 80-character limit',
+    );
+    expect(listing, contains('English'));
+
+    // The privacy policy is public in both languages too: the store page
+    // links one URL for every language.
+    final policy = File('docs/privacy-policy.md').readAsStringSync();
+    expect(policy, contains('Privacy policy (English)'));
+    expect(policy, contains('@'), reason: 'a contact address is required');
+  });
+
+  test('the app itself carries the maker and a way to reach them (K-21)', () {
+    final about =
+        File('lib/features/home/screens/about_screen.dart').readAsStringSync();
+    expect(about, contains("maker = 'IY Labs'"));
+    expect(about, contains('@'));
+  });
+
   test('nothing in the shipped app asks to be seen only in debug', () {
     final manifest =
         File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
