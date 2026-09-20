@@ -89,6 +89,18 @@ abstract final class PuzzleConfig {
   /// çizgisizdir: orada komşusuyla birleşip resmi tamamlamalı.
   static const double pieceOutlineWidth = 1.5;
 
+  /// K-19 — parçanın kabartması: konturun içine sol üstten ışık, sağ alttan
+  /// gölge. Kalınlık board ölçeğinde piksel; tepsi kendi ölçeğine böler.
+  /// Işık yukarıdan gelir, bu yüzden bütün parçalar aynı yönde kabarık
+  /// görünür ve tamamlanan resimde dikişler bir yapbozunki gibi okunur.
+  static const double pieceBevelDepth = 2.5;
+  static const int pieceBevelLightAlpha = 0x4D;
+  static const int pieceBevelShadowAlpha = 0x38;
+
+  /// K-19 — board'a oturmuş parçanın yüzeyden yüksekliği: dikişin altına
+  /// düşen ince gölge. Sürüklenen parçanınki ([dragElevation]) değildir.
+  static const double placedElevation = 1.5;
+
   /// §17 — Parçayı alma: tepsi boyundan board boyuna büyürken yolda
   /// [dragEmphasisScale] kadar şişer ve yüzeyden kalkar.
   static const Duration dragLiftDuration = Duration(milliseconds: 120);
@@ -245,6 +257,22 @@ abstract final class PuzzleConfig {
   /// §24.2 — çizgi kalınlıkları, çizim biriminde (100 × 80'lik tuval).
   static const double colouringOutlineWidth = 1.3;
   static const double colouringDetailWidth = 0.9;
+
+  /// §24.2, K-17 — hacim gölgesi: her parçanın içine yukarıdan aşağı
+  /// açıktan koyuya bir perde çekilir, araba düz değil yuvarlak görünsün
+  /// diye. Işık yukarıdan gelir. Değerler çizgiyi ve seçilen rengi
+  /// tanınmaz hale getirmeyecek kadar yumuşaktır.
+  static const List<double> colouringShadeStops = [0, 0.38, 0.72, 1];
+  static const int colouringShadeHighlightAlpha = 0x4D;
+  static const int colouringShadeMidShadowAlpha = 0x1A;
+  static const int colouringShadeShadowAlpha = 0x4D;
+
+  /// §24.2, K-17 — arabanın yere düşen gölgesi: tekerlerin altında, çizim
+  /// biriminde bu yükseklikte bir elips.
+  static const double colouringGroundShadowHeight = 5;
+  static const double colouringGroundShadowInset = 4;
+  static const double colouringGroundShadowBlur = 2;
+  static const int colouringGroundShadowAlpha = 0x33;
 
   /// §24.2, K-9 — serbest renk paleti. Dikey ekranda altta bu yükseklikte
   /// bir şerit, yatay ekranda sağda bu genişlikte bir sütun; ikisinde de
