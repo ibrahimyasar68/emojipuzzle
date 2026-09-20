@@ -1,7 +1,7 @@
 # Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 20 Eylül 2026, Faz 22–24 onaylandı ve push edildi; sırada Play Store yayını.
+Son güncelleme: 20 Eylül 2026, Play Store hazırlığı (paket adı, imza, mağaza görselleri) yapıldı.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -36,8 +36,9 @@ Son güncelleme: 20 Eylül 2026, Faz 22–24 onaylandı ve push edildi; sırada 
 | 22 | Boyamada hacim gölgesi + yere gölge (K-17) | ✅ onaylandı |
 | 23 | Safhayı boyama ilerletir (K-18) | ✅ onaylandı |
 | 24 | Puzzle parçalarında kabartma (K-19) | ✅ onaylandı |
+| 25 | Play Store hazırlığı (K-20) | ⏳ imza anahtarı kullanıcıda |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1158 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1164 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
 Yirmi sekiz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
@@ -75,6 +76,12 @@ Yirmi sekiz commit, **GitHub'da yayında**:
     biten arabaların geçidi + konfeti → Home → yeni oyun; arabalar sırayla
     devam. Board gerektiğinde küçülür (64 px ve kaymayan tepsi korunur).
     Albümden seçilen resim o safhanın ebadıyla oynanır.
+  - **K-20** — **Play Store yayını** (kullanıcı 20 Eylül'de istedi):
+    paket kimliği `com.iylabs.emojipuzzle` (eskisi
+    `com.emojipuzzlekids.emoji_puzzle_kids`; ilerleme sıfırlanır, kullanıcı
+    kabul etti), sürüm 1.0.0+1, ekran yönü kilidi kaldırıldı (yatay da
+    açılır), yayın imzası `android/key.properties`'ten okunur — **anahtar
+    kullanıcıda, henüz yok**. Adımlar: `docs/play-store-release.md`.
   - **K-19** — puzzle parçaları **kabartmalı** (kullanıcı 20 Eylül'de istedi):
     konturun içinde sol üstte ışık, sağ altta gölge; board'daki parça ayrıca
     ince gölge düşürür. **Tamamlanan resimde dikişler görünür** — §14'ün
@@ -141,6 +148,8 @@ dart format lib test tool
 dart run tool/generate_sfx.dart     # ses dosyalarını yeniden üretir
 python3 tool/generate_app_icon.py   # uygulama ikonunu yeniden üretir (Pillow)
 python3 tool/generate_object_images.py  # kitap, mikroskop, dürbün (Pillow)
+python3 tool/generate_store_graphics.py # Play öne çıkan grafiği (Pillow)
+flutter build appbundle --release   # Play'e yüklenecek paket
 git push                            # CI'yi tetikler
 ```
 
@@ -156,6 +165,8 @@ Testler `build/` altına kanıt görselleri bırakır: `preview_2x2.png`,
 
 ```text
 docs/spec-v2.2.md                   # EMOJI PUZZLE KIDS v2.2 — tek kaynak (§0–§51)
+docs/play-store-release.md          # yayın kontrol listesi (K-20)
+docs/store/                         # öne çıkan grafik + 5 ekran görüntüsü
 docs/privacy-policy.md              # §35 — yayımlanacak metin
 docs/store-listing.md               # §33 attribution + mağaza açıklaması
 docs/branding/                      # ikon kaynağı, 1024 ana görsel, Play 512

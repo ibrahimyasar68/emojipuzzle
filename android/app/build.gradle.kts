@@ -1,3 +1,11 @@
+import java.util.Properties
+
+/** Yayın imzası; dosya yoksa null (bkz. buildTypes.release). */
+val keystoreProperties: Properties? =
+    rootProject.file("key.properties").takeIf { it.exists() }?.let { file ->
+        Properties().apply { file.inputStream().use { load(it) } }
+    }
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -6,7 +14,7 @@ plugins {
 }
 
 android {
-    namespace = "com.emojipuzzlekids.emoji_puzzle_kids"
+    namespace = "com.iylabs.emojipuzzle"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,8 +28,9 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.emojipuzzlekids.emoji_puzzle_kids"
+        // Mağazada bu kimlikle yayımlanır ve yayımlandıktan sonra bir daha
+        // değiştirilemez (20 Eylül, kullanıcı seçti).
+        applicationId = "com.iylabs.emojipuzzle"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // §0 — Min Android API 24.
@@ -31,11 +40,34 @@ android {
         versionName = flutter.versionName
     }
 
+    // Yayın imzası `android/key.properties` dosyasından okunur. Dosya
+    // depoya girmez (bkz. android/.gitignore) ve bu makinede yoksa yayın
+    // derlemesi debug anahtarıyla imzalanır — `flutter run --release`
+    // çalışmaya devam etsin diye. Mağazaya yüklenecek paket **mutlaka**
+    // gerçek anahtarla imzalanmış olmalıdır.
+    signingConfigs {
+        create("release") {
+            if (keystoreProperties != null) {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = keystoreProperties.getProperty("storeFile")
+                    ?.let { rootProject.file(it) }
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (keystoreProperties != null) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn(
+                    "android/key.properties yok: yayın derlemesi DEBUG " +
+                        "anahtarıyla imzalanıyor. Play bu paketi kabul etmez."
+                )
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }

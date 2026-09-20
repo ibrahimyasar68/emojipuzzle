@@ -1,6 +1,6 @@
 # Gizlilik Politikası — EmojiPuzzle
 
-**Son güncelleme:** 13 Eylül 2026
+**Son güncelleme:** 20 Eylül 2026
 
 ## Kısa cevap
 
@@ -18,8 +18,8 @@ saklamaz.
 ### Cihazda saklananlar
 
 Yalnızca oyunun ilerlemesi ve iki ayar: hangi yapbozların tamamlandığı,
-hangi kademenin açıldığı, en son oynanan yapboz, sesin açık mı kapalı mı
-olduğu ve görünüm seçimi (telefonun ayarı, açık ya da koyu). Bunlar
+oyunun hangi safhasında olunduğu, boyama defterindeki renkler, en son
+oynanan yapboz, sesin açık mı kapalı mı olduğu ve görünüm seçimi (telefonun ayarı, açık ya da koyu). Bunlar
 cihazın kendi uygulama deposunda (`SharedPreferences`) tutulur, cihazdan
 çıkmaz ve hiçbir sunucuya gönderilmez. Uygulama silindiğinde bu veri de
 silinir. Uygulamanın içindeki ebeveyn bölümünden istendiği zaman sıfırlanır.
@@ -46,8 +46,10 @@ veri işleme de yoktur.
 
 ### Görsel ve ses içerikleri
 
-Yapbozlardaki görseller OpenMoji projesinden alınmıştır ve CC BY-SA 4.0
-lisansıyla kullanılmaktadır. Ses efektleri uygulamanın kendi üretimidir.
+Yapbozlardaki görsellerin çoğu OpenMoji projesinden alınmıştır ve
+CC BY-SA 4.0 lisansıyla kullanılmaktadır; Eşyalar kategorisindeki üç resim
+ile boyama sayfasındaki arabalar uygulamanın kendi çizimidir. Ses efektleri
+de uygulamanın kendi üretimidir.
 Ayrıntılar `assets/LICENSES.md` dosyasındadır.
 
 ### Bu politikadaki değişiklikler

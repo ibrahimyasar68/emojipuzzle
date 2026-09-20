@@ -1,4 +1,4 @@
-package com.emojipuzzlekids.emoji_puzzle_kids
+package com.iylabs.emojipuzzle
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,0 +1,9 @@
+# GitHub Pages: depo ayarlarında kaynak "main / docs" seçilince bu klasör
+# yayımlanır. Tema, metinleri okunur kılmak için.
+title: EmojiPuzzle
+description: 3-5 yaş için çevrimdışı yapboz oyunu
+theme: jekyll-theme-minimal
+exclude:
+  - store/
+  - branding/
+  - spec-v2.2.md

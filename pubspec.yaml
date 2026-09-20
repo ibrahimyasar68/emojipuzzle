@@ -1,7 +1,7 @@
 name: emoji_puzzle_kids
 description: "Offline jigsaw puzzle game for 3–5 year olds."
 publish_to: 'none'
-version: 0.1.0
+version: 1.0.0+1
 
 environment:
   # §0 — Flutter stable 3.24+, Dart 3.5+.
