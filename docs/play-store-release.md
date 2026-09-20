@@ -70,6 +70,10 @@ görüyorsanız paketi yüklemeyin.
    arası iletişim yok, konum yok, satın alma yok.
 7. **Hedef kitle ve içerik**: hedef yaş **5 ve altı** → uygulama
    "Designed for Families" kurallarına girer; reklam yok seçeneğini işaretle.
+   Aynı yerden **Öğretmen Onaylı** (Teacher Approved) değerlendirmesine de
+   katılın: ücretsizdir, seçilmek garanti değildir, seçilirse Çocuklar
+   sekmesinde görünürlük kazandırır. Açıklamadaki gelişimsel beceriler
+   bölümü (K-22) bu değerlendirmenin baktığı kriterlerden biridir.
 8. **Reklamlar**: "Uygulamam reklam içermiyor".
 9. **Uygulama erişimi**: tüm içerik girişsiz erişilebilir.
 10. `app-release.aab` dosyasını yükleyin (önce kapalı test, sonra üretim).

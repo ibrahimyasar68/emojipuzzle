@@ -145,6 +145,35 @@ void main() {
     expect(policy, contains('@'), reason: 'a contact address is required');
   });
 
+  test('both full descriptions fit what Play accepts', () {
+    final listing = File('docs/store-listing.md').readAsStringSync();
+
+    /// A section's body: everything up to the next heading of any level.
+    String section(String heading) {
+      final start = listing.indexOf(heading);
+      expect(start, isNot(-1), reason: heading);
+      final body = listing.substring(start + heading.length);
+      final end = RegExp(r'\n#{2,3} ').firstMatch(body)?.start ?? body.length;
+      return body.substring(0, end);
+    }
+
+    for (final heading in ['## Uzun açıklama', '### Full description']) {
+      final text = section(heading).trim();
+      expect(
+        text.length,
+        lessThanOrEqualTo(4000),
+        reason: 'Play cuts a full description at 4000 characters: $heading',
+      );
+      // K-22 — the listing says what the game exercises; teachers rating a
+      // children's app look for it, and it is the honest part to write.
+      expect(
+        text,
+        anyOf(contains('göz koordinasyonu'), contains('Hand-eye')),
+        reason: 'the developmental paragraph belongs in $heading',
+      );
+    }
+  });
+
   test('the app itself carries the maker and a way to reach them (K-21)', () {
     final about =
         File('lib/features/home/screens/about_screen.dart').readAsStringSync();

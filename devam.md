@@ -38,8 +38,9 @@ Son güncelleme: 20 Eylül 2026, giriş ekranı yenilendi (K-21) ve Play hazırl
 | 24 | Puzzle parçalarında kabartma (K-19) | ✅ onaylandı |
 | 25 | Play Store hazırlığı (K-20) | ⏳ imza anahtarı kullanıcıda |
 | 26 | Giriş ekranı + yetişkin kapısı + İngilizce metin (K-21) | ⏳ onay bekliyor |
+| 27 | Mağaza metnine gelişimsel beceriler (K-22) | ⏳ onay bekliyor |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1171 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1172 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
 Yirmi sekiz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
@@ -77,6 +78,11 @@ Yirmi sekiz commit, **GitHub'da yayında**:
     biten arabaların geçidi + konfeti → Home → yeni oyun; arabalar sırayla
     devam. Board gerektiğinde küçülür (64 px ve kaymayan tepsi korunur).
     Albümden seçilen resim o safhanın ebadıyla oynanır.
+  - **K-22** — mağaza açıklamasına **gelişimsel beceriler** paragrafı, iki
+    dilde (kullanıcı 20 Eylül'de istedi; Öğretmen Onaylı programının
+    baktığı kriterlerden biri). Abartılı iddia yok: yalnızca oyunun
+    gerçekten yaptırdığı şeyler. Uzunluk 4000 sınırının altında, testle
+    korunuyor.
   - **K-21** — **giriş ekranı** (kullanıcı 20 Eylül'de istedi): oyna düğmesi
     gülen suratın dört parçalı bitmiş yapbozu + sağ altta kırmızı oynat
     işareti; ⓘ iki saniye basılı tutunca açılır (dolan halka); Hakkında'da

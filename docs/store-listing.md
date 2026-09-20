@@ -53,6 +53,25 @@ oyunudur.
   büyür. Resimler her oyunda havuzdan rastgele gelir: 21 resim, altı kategori.
 - **Albüm.** Kazanılan her çıkartmaya dokunup o resmi yeniden oynayabilir.
 
+Çocuk oynarken neyi çalıştırır:
+
+- **Parça–bütün ilişkisi.** Bir resmin parçalardan oluştuğunu görmek ve
+  eksik parçanın nereye ait olduğunu kestirmek.
+- **Görsel ayırt etme.** Şekilleri, renkleri ve kenarları karşılaştırmak;
+  balon oyununda aynı renkten iki balonu eşleştirmek.
+- **El–göz koordinasyonu.** Parçayı tutmak, taşımak ve yerine bırakmak —
+  parmak izleri her seferinde biraz daha isabetli olur.
+- **Sabır ve deneme cesareti.** Yanlış bırakmanın bir cezası olmadığı için
+  çocuk kendi hızında deneyebilir; oyun ancak duraksadığında yardım eder.
+- **Renk seçimi ve karar verme.** Boyama sayfasında rengi serbest bir
+  paletten kendisi seçer; doğrusu yanlışı yoktur.
+- **Sınıflandırma ve sözcük dağarcığı.** Albüm resimleri meyveler,
+  hayvanlar, taşıtlar, doğa, şekiller ve eşyalar diye ayırır; yetişkinle
+  birlikte adlandırmak için iyi bir vesiledir.
+
+Yapboz 4 parçadan başlar, 16 parçaya kadar büyür: zorluk çocuğun
+ilerleyişiyle birlikte artar.
+
 Ebeveynler için:
 
 - Reklam yok, uygulama içi satın alma yok, hesap yok.
@@ -104,6 +123,25 @@ EmojiPuzzle is a calm jigsaw game made for children who cannot read yet.
 - **It grows with the child.** Puzzles start at 4 pieces and grow to 16.
   Pictures come at random from a pool of 21, in six categories.
 - **The album.** Tapping any sticker plays that picture again.
+
+What the child practises while playing:
+
+- **Part and whole.** Seeing that a picture is made of pieces, and working
+  out where a missing piece belongs.
+- **Visual discrimination.** Comparing shapes, colours and edges; matching
+  two balloons of the same colour in the balloon game.
+- **Hand-eye coordination.** Picking a piece up, carrying it and letting it
+  go — the aim gets steadier with every puzzle.
+- **Patience and willingness to try.** A wrong drop costs nothing, so the
+  child can experiment at their own pace; the game only helps after a pause.
+- **Choosing colours, making decisions.** On the colouring page the colour
+  comes from a free palette, and no choice is wrong.
+- **Sorting and vocabulary.** The album groups pictures into fruit, animals,
+  vehicles, nature, shapes and objects — a good excuse to name things
+  together with a grown-up.
+
+Puzzles start at 4 pieces and grow to 16, so the challenge grows with the
+child.
 
 For parents:
 
