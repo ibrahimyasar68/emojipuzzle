@@ -28,7 +28,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// lion's black outline, 75 at worst.
 ///
 /// So this compares every pixel near a border against the same picture
-/// drawn straight onto the same gradient.
+/// drawn straight onto the same gradient — with the piece's bevel turned
+/// off, since that is light on the surface, not the picture (K-19).
 
 const _board = Size(344, 344);
 
@@ -80,6 +81,11 @@ void main() {
                 placedPieces: pieces,
                 boardSize: _board,
                 backgroundCategory: puzzle.category,
+                // The surface light of K-19 is deliberately off here: this
+                // test is about how a piece composes the gradient and the
+                // picture (§14), and the bevel would darken and lighten
+                // exactly the band it measures. The bevel has its own test.
+                bevelled: false,
               ),
             ),
           ),

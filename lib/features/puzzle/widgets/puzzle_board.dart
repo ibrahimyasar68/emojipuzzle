@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 
+import '../../../core/constants/puzzle_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/puzzle_palette.dart';
 import '../engine/geometry/coordinate_mapper.dart';
@@ -23,6 +24,7 @@ class PuzzleBoard extends StatelessWidget {
     required this.placedPieces,
     required this.boardSize,
     this.backgroundCategory,
+    this.bevelled = true,
   });
 
   final ui.Image image;
@@ -33,6 +35,12 @@ class PuzzleBoard extends StatelessWidget {
 
   /// Şeffaf görselin altına boyanacak yüzeyi seçer (§34).
   final PuzzleCategory? backgroundCategory;
+
+  /// K-19 — parçalar kabartmalı çizilir: tamamlanan resim düz bir görsel
+  /// değil, birleşmiş bir yapboz gibi görünür. Kapatılabilir, çünkü
+  /// parçanın dolgusunu ölçen testler (§14 dikiş tonu) yüzeydeki ışığı
+  /// değil, resmin kendisini ölçer.
+  final bool bevelled;
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +75,12 @@ class PuzzleBoard extends StatelessWidget {
             ),
           ),
           for (final piece in placedPieces)
-            _placed(piece, pieceSize, imageSize),
+            _placed(
+              piece,
+              pieceSize,
+              imageSize,
+              context.palette.pieceShadow,
+            ),
         ],
       ),
     );
@@ -90,7 +103,12 @@ class PuzzleBoard extends StatelessWidget {
     );
   }
 
-  Widget _placed(PuzzlePiece piece, Size pieceSize, Size imageSize) {
+  Widget _placed(
+    PuzzlePiece piece,
+    Size pieceSize,
+    Size imageSize,
+    Color shadowColour,
+  ) {
     final origin = CoordinateMapper.pieceOriginOf(
       normalizedPosition: piece.normalizedPosition,
       grid: grid,
@@ -115,6 +133,9 @@ class PuzzleBoard extends StatelessWidget {
             boardSize: boardSize,
             imageSize: imageSize,
           ),
+          bevelDepth: bevelled ? PuzzleConfig.pieceBevelDepth : 0,
+          elevation: bevelled ? PuzzleConfig.placedElevation : 0,
+          shadowColour: bevelled ? shadowColour : null,
         ),
       ),
     );

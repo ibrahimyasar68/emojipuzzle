@@ -1,7 +1,7 @@
 # Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 17 Eylül 2026, tepsi kenar çizgisi + Eşyalar resimleri (K-16) onaylandı ve push edildi.
+Son güncelleme: 20 Eylül 2026, Faz 22–24 onaylandı ve push edildi; sırada Play Store yayını.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -33,8 +33,11 @@ Son güncelleme: 17 Eylül 2026, tepsi kenar çizgisi + Eşyalar resimleri (K-16
 | 19 | 9 yeni puzzle (18'e çıkış) | ✅ onaylandı |
 | 20 | Kamyon, traktör; Eşyalar kategorisi | ✅ commit; görseller 17 Eylül'de kodla çizildi (K-16) — tamamlandı |
 | 21 | Yeni oyun kuralları: 5 safha, 3 araba | ✅ onaylandı |
+| 22 | Boyamada hacim gölgesi + yere gölge (K-17) | ✅ onaylandı |
+| 23 | Safhayı boyama ilerletir (K-18) | ✅ onaylandı |
+| 24 | Puzzle parçalarında kabartma (K-19) | ✅ onaylandı |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1145 test**.
+**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1158 test**.
 `lib/` altındaki bütün kod yorumları Türkçe.
 Yirmi sekiz commit, **GitHub'da yayında**:
 <https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
@@ -72,6 +75,19 @@ Yirmi sekiz commit, **GitHub'da yayında**:
     biten arabaların geçidi + konfeti → Home → yeni oyun; arabalar sırayla
     devam. Board gerektiğinde küçülür (64 px ve kaymayan tepsi korunur).
     Albümden seçilen resim o safhanın ebadıyla oynanır.
+  - **K-19** — puzzle parçaları **kabartmalı** (kullanıcı 20 Eylül'de istedi):
+    konturun içinde sol üstte ışık, sağ altta gölge; board'daki parça ayrıca
+    ince gölge düşürür. **Tamamlanan resimde dikişler görünür** — §14'ün
+    pürüzsüzlük hedefinden bilerek vazgeçildi.
+  - **K-18** — **safhayı boyama ilerletir** (kullanıcı 20 Eylül'de istedi):
+    sayfa atlanırsa safha yerinde kalır, resim değişir. Safha = o arabanın
+    boyanmış parça sayısı (türetilir). Amaç: oyun sonunda boyanmamış parça
+    kalmasın.
+  - **K-17** — boyama arabaları **hacimli** (kullanıcı 17 Eylül'de istedi):
+    her parçaya kendi sınırına kırpılmış açıktan koyuya perde, arabanın
+    altına elips gölge. Perde **dolgudan sonra, çizgiden önce** çizilir.
+    Perdenin ortası saydam: seçilen renk orta bantta birebir görünür
+    (K-9 korunur). Sırada: puzzle parçalarında kabartma.
   - **K-16** — kitap, mikroskop, dürbün **kodla çizildi** (kullanıcı 17 Eylül'de
     istedi): `python3 tool/generate_object_images.py` (Pillow), OpenMoji
     üslubu, 1024×1024, şeffaf. §33 kaynak listesine "projenin kendi çizimi"
@@ -340,6 +356,23 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   Testler rafı yalnızca `test/support/tray_shelf.dart`'ın "mümkün" dediği
   yerde ister. İlk denemede eklenen "önce raf ara" döngüsü hiçbir ekranda
   sonucu değiştirmediği için geri alındı.
+- **Kabartmanın kaydırması çizgi kalınlığı kadardır** (K-19). Daha azı
+  olursa ışık ve gölge kenarda üst üste biner, koyu olan kazanır ve üst
+  kenar da gölgeli çıkar (ölçüldü). Yönler sezgiye ters: ışık **sağ alta**
+  kaydırılır, çünkü kırpmadan sonra yalnızca üst/sol kenarın içinde kalır.
+  Kırpma zorunludur; yoksa kabartma komşu parçanın üstüne taşar
+  (`piece_bevel_test.dart` bunu tek parçayı beyaz zeminde ölçerek korur —
+  board'da komşu zaten örtüyor ve kaçıyordu).
+- **Safha sayacı türetilmiştir** (K-18): `finishStage` artırmaz,
+  `colouring.fills.length`'i yazar. Bu yüzden `GameProvider`'a verilen
+  defter oyun ilerlemesiyle **aynı depoyu** görmeli; testlerde de
+  `ColouringBook(storage: storage)..load()` verilir, yoksa her oturum
+  2×2'den başlar.
+- **Perde çizginin altında, dolgunun üstünde** (K-17). Sıra bozulursa siyah
+  kontur solar — ama yalnızca parçanın **üst** kenarında (perde orada beyaz),
+  alt kenarda siyah üstüne siyah gelir ve fark edilmez. Testin ölçtüğü nokta
+  bu yüzden bir parçanın üst kenarının **iç** yarısıdır; ilk iki deneme
+  (alt kenar, sonra çizginin dış yarısı) mutasyonu yakalamadı.
 - **Tepsideki ve eldeki parça çizgilidir, board'daki değil** (16 Eylül,
   kullanıcı istedi: açık parça açık zeminde görünmüyordu).
   `PuzzlePiecePainter.outlineColour/outlineWidth`, renk

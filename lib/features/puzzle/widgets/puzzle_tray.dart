@@ -186,6 +186,8 @@ class PuzzleTray extends StatelessWidget {
                             // sabit kalınlıkta kalsın.
                             outlineWidth:
                                 PuzzleConfig.pieceOutlineWidth / scale,
+                            // Kabartma da ekranda sabit derinlikte (K-19).
+                            bevelDepth: PuzzleConfig.pieceBevelDepth / scale,
                             rects: PieceImageMapper.rectsOf(
                               piece: piece,
                               grid: grid,

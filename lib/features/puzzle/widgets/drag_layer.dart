@@ -326,6 +326,7 @@ class _DragLayerState extends State<DragLayer> with TickerProviderStateMixin {
           // oturunca çizgisiz hâline geçer.
           outlineColour: context.palette.pieceOutline,
           outlineWidth: PuzzleConfig.pieceOutlineWidth,
+          bevelDepth: PuzzleConfig.pieceBevelDepth,
         ),
       ),
     );

@@ -23,6 +23,7 @@ class PuzzlePiecePainter extends CustomPainter {
     this.shadowColour,
     this.outlineColour,
     this.outlineWidth = 0,
+    this.bevelDepth = 0,
   })  : assert(
           elevation == 0 || shadowColour != null,
           'a lifted piece takes its shadow colour from the theme',
@@ -70,6 +71,15 @@ class PuzzlePiecePainter extends CustomPainter {
   /// Parçanın kenar çizgisi; zeminden ayrılsın diye (tepsi, sürükleme).
   /// Board'daki parça çizgisizdir, yoksa dikişler görünürdü.
   final Color? outlineColour;
+
+  /// K-19 — kabartma derinliği, parça-yerel birimde; sıfırsa parça düz
+  /// boyanır. Parçayı ölçekleyen widget ekranda sabit derinlik için ölçeğe
+  /// böler.
+  ///
+  /// Kabartma konturun **içine** çizilir: yumuşatılmış iki çizgi, biri sol
+  /// üste kaydırılmış ışık, diğeri sağ alta kaydırılmış gölge. Parçanın
+  /// dışına taşmaz, böylece komşusunun üstüne binmez.
+  final double bevelDepth;
 
   /// Çizgi kalınlığı, **parça-yerel** birimde. Parçayı ölçekleyen widget
   /// ekranda sabit kalınlık için ölçeğe böler. Sıfırsa çizilmez.
@@ -128,6 +138,8 @@ class PuzzlePiecePainter extends CustomPainter {
     }
     canvas.restore();
 
+    if (bevelDepth > 0) _drawBevel(canvas);
+
     final outline = outlineColour;
     if (outline != null && outlineWidth > 0) {
       // Katmanın dışında, en üstte: resmin koyu konturu da açık gradyanı
@@ -142,6 +154,49 @@ class PuzzlePiecePainter extends CustomPainter {
           ..isAntiAlias = true,
       );
     }
+  }
+
+  /// K-19 — parçaya kalınlık hissi veren ışık ve gölge.
+  ///
+  /// Kırpma konturun kendisidir: çizginin yalnızca içeride kalan yarısı
+  /// görünür, dışarıdaki yarısı komşunun alanına girmez.
+  ///
+  /// Kaydırma yönleri sezgiye terstir ve ölçülerek bulundu: ışık **sağ
+  /// alta** kaydırılır, çünkü kırpıldıktan sonra yalnızca üst ve sol
+  /// kenarların iç tarafında kalır; gölge sol üste kaydırılınca alt ve sağ
+  /// kenarların içinde kalır. Ters yazılınca parçanın üst kenarı koyulaşıp
+  /// alt kenarı açılıyordu — ışık yukarıdan gelmiyormuş gibi.
+  void _drawBevel(Canvas canvas) {
+    // Kaydırma çizgi kalınlığı kadardır, daha azı değil: ölçüldü, 0,35
+    // kalınlıkta iki çizgi kenarda üst üste biniyor ve koyu olan kazanıyor
+    // — üst kenar da gölgeli çıkıyordu. Bu kaydırmayla ışığın çizgisi tam
+    // olarak konturun içine, gölgeninki dışına (kırpılacak yere) düşer.
+    final blur = ui.MaskFilter.blur(ui.BlurStyle.normal, bevelDepth * 0.4);
+    final offset = bevelDepth;
+    canvas
+      ..save()
+      ..clipPath(renderPath)
+      ..translate(offset, offset)
+      ..drawPath(
+        renderPath,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = bevelDepth
+          ..color = const Color(0xFFFFFFFF)
+              .withAlpha(PuzzleConfig.pieceBevelLightAlpha)
+          ..maskFilter = blur,
+      )
+      ..translate(-offset * 2, -offset * 2)
+      ..drawPath(
+        renderPath,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = bevelDepth
+          ..color = const Color(0xFF000000)
+              .withAlpha(PuzzleConfig.pieceBevelShadowAlpha)
+          ..maskFilter = blur,
+      )
+      ..restore();
   }
 
   /// Parçanın örtüsünü katmana opak olarak basar: kontur dolgusu, üstüne
@@ -202,5 +257,6 @@ class PuzzlePiecePainter extends CustomPainter {
       oldDelegate.elevation != elevation ||
       oldDelegate.bleed != bleed ||
       oldDelegate.outlineColour != outlineColour ||
-      oldDelegate.outlineWidth != outlineWidth;
+      oldDelegate.outlineWidth != outlineWidth ||
+      oldDelegate.bevelDepth != bevelDepth;
 }
