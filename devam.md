@@ -1,7 +1,8 @@
 # Devam Notu — EmojiPuzzle
 
 Bu dosya, yeni bir sohbette kaldığı yerden devam edebilmek için yazıldı.
-Son güncelleme: 20 Eylül 2026, giriş ekranı yenilendi (K-21) ve Play hazırlığı gözden geçirildi.
+Son güncelleme: 21 Eylül 2026 — proje dosyaları güncellik için tarandı;
+Faz 1–28 bitti, paket kendi anahtarıyla imzalı ve Play'e yüklenmeye hazır.
 
 > **Yeni sohbete başlarken:** `docs/spec-v2.2.md` ile bu dosyayı okut.
 > Spec artık repoda — yapıştırmaya gerek yok.
@@ -24,7 +25,7 @@ Son güncelleme: 20 Eylül 2026, giriş ekranı yenilendi (K-21) ve Play hazırl
 | 10 | HintController, 4 aşamalı idle hint | ✅ onaylandı |
 | 11 | Kutlama + konfeti (atlanabilir) | ✅ onaylandı |
 | 12 | Balon mini oyunu | ✅ onaylandı |
-| 13 | Album, Home, Serbest Mod, progress reset | ✅ onaylandı |
+| 13 | Album, Home, Serbest Mod (K-15 ile kalktı), progress reset | ✅ onaylandı |
 | 14 | Navigation, Android Back, lifecycle | ✅ onaylandı |
 | 15 | Responsive, tablet, accessibility | ✅ onaylandı |
 | 16 | Asset/lisans denetimi, privacy, final cila | ✅ onaylandı |
@@ -36,30 +37,35 @@ Son güncelleme: 20 Eylül 2026, giriş ekranı yenilendi (K-21) ve Play hazırl
 | 22 | Boyamada hacim gölgesi + yere gölge (K-17) | ✅ onaylandı |
 | 23 | Safhayı boyama ilerletir (K-18) | ✅ onaylandı |
 | 24 | Puzzle parçalarında kabartma (K-19) | ✅ onaylandı |
-| 25 | Play Store hazırlığı (K-20) | ⏳ imza anahtarı kullanıcıda |
-| 26 | Giriş ekranı + yetişkin kapısı + İngilizce metin (K-21) | ⏳ onay bekliyor |
-| 27 | Mağaza metnine gelişimsel beceriler (K-22) | ⏳ onay bekliyor |
-| 28 | Sürüm notları, iki dilde (K-23) | ⏳ onay bekliyor |
+| 25 | Play Store hazırlığı (K-20) | ✅ tamamlandı — imza 20 Eylül'de kuruldu |
+| 26 | Giriş ekranı + yetişkin kapısı + İngilizce metin (K-21) | ✅ push edildi |
+| 27 | Mağaza metnine gelişimsel beceriler (K-22) | ✅ push edildi |
+| 28 | Sürüm notları, iki dilde (K-23) | ✅ push edildi |
 
-**Durum:** `flutter analyze` temiz, `flutter test` yeşil — **1173 test**.
-`lib/` altındaki bütün kod yorumları Türkçe.
-Yirmi sekiz commit, **GitHub'da yayında**:
-<https://github.com/ibrahimyasar68/emojipuzzle> (public). CI push'ta çalışıyor.
+**Durum (21 Eylül):** `flutter analyze` temiz, `flutter test` yeşil —
+**1173 test**. `lib/` altındaki bütün kod yorumları Türkçe. Depo
+<https://github.com/ibrahimyasar68/emojipuzzle> (public); CI her push'ta
+çalışıyor ve son sekiz çalışmanın hepsi yeşil (GitHub API'den kontrol
+edildi).
+
+**Yayın paketi:** `com.iylabs.emojipuzzle` 1.0.0 (versionCode 1), kendi
+yükleme anahtarıyla imzalı (CN=Ibrahim YASAR, 2054'e kadar geçerli),
+`flutter build appbundle --release` → 41,1 MB. Kalan işler Play
+Console'da ve kullanıcıda — bkz. §8 ve `docs/play-store-release.md`.
 
 ---
 
 ## 2. Verilmiş kararlar (tekrar sorma)
 
-- **K-1 = A** — 3 kademe: 2×2, 2×3, 3×3. Engine 1×3 ve 3×4'ü
-  desteklemeye devam ediyor ama içerikte yoklar. **K-12** (15 Eylül) ile
-  her kademede **6 puzzle, toplam 18**.
+- **K-1 = A** — 3 kademe: 2×2, 2×3, 3×3. *(Tarihçe: K-15 kademeleri
+  kaldırdı; bugün 5 safha, 2×2 → 4×4.)* Engine 1×3 ve 3×4'ü de destekler.
 - **K-2 = evet** — mute `AudioService` içinde ve kalıcı. Home'daki düğme Faz 13'te.
 - **K-3 = evet** — `.github/workflows/ci.yml` hazır (format + analyze + test).
 - **K-4 = evet** — debug overlay yapıldı, `debugShowPuzzleOverlay` bayrağıyla.
 - **Görseller = OpenMoji**, CC BY-SA 4.0, **618×618** (kullanıcı §34'ün 1024
   hedefinden sapmayı onayladı; SVG'den render için `librsvg` kurulu değil).
 - **Sesler = sentezlenmiş**, indirilmedi: `dart run tool/generate_sfx.dart`.
-- **16 fazdan sonra iki yeni safha** (15 Eylül, spec §0.3):
+- **16 fazdan sonraki kararlar** (15–20 Eylül, spec §0.3), sırayla:
   - **K-5** — balon oyunu renk eşleştirmedir; farklı renkte ikinci dokunuşta
     seçim sessizce yeni balona geçer.
   - **K-6** — sticker'dan sonra **atlanabilir** boyama safhası: kutlama →
@@ -68,68 +74,69 @@ Yirmi sekiz commit, **GitHub'da yayında**:
   - **K-8** — boyama ekranında §2'nin 5 öğe sınırı esner: renk seçimi + ~6 parça.
   - **K-9** — renk **serbest paletten** seçilir (kullanıcı Faz 18 sırasında
     istedi, K-8'in "6 renk"ini değiştirdi): ton×açıklık şeridi + gri şerit.
+  - **K-10** — seçilen renk sol üst köşedeki çerçeveli bir karede de
+    görünür (kullanıcı istedi). Yatay ekranda "geç" oku karenin altına iner.
   - **K-11** — balon oyunu **10 balon** (5 çift), hepsi **3 sn'de** sahnede,
     çift renkleri **rastgele** (kullanıcı istedi: giriş uzun, balon çoktu).
     §24'ün [ZORUNLU] "en fazla 8 aktif balon"u 10'a çıktı.
+  - **K-12** — 9 yeni puzzle (kullanıcı istedi): çilek, ay, koyun → 2×2;
+    karpuz, bisiklet, kaplumbağa → 2×3; ananas, uçak, Satürn → 3×3. Ay ve
+    Satürn **doğa** kategorisinde. *(Tarihçe: kademe yerleşimi K-15 ile
+    kalktı; hepsi tek havuzda.)*
+  - **K-13** — boyama defterine kamyon ve traktör: 5 model, sırayla sedan,
+    kamyonet, yarış, kamyon, traktör.
+  - **K-14** — yeni kategori **Eşyalar** (`objects`): kitap, mikroskop,
+    dürbün. §4'ün 5 kategori kuralı 6'ya çıktı. Her kademeye bir tane
+    (kitap 2×2, dürbün 2×3, mikroskop 3×3). *(Tarihçe: görselleri kullanıcı
+    koyacaktı; K-16 ile kodla çizildi, K-15'ten sonra kademe yok.)*
   - **K-15** — **yeni oyun kuralları** (kullanıcı istedi; kademeler bitti):
     bir oyun 3 araba, bir araba 5 safha. Her safhada havuzdan rastgele resim
     (bir oyunda tekrar yok), ebat safhadan: 2×2 → 2×3 → 3×3 → 4×3 → 4×4.
     Safha sonunda bir parça boyanır; boyanan parça kilitli, geç oku kalır.
-    5. safhadan sonra araba nasıl olursa olsun gider. 3 arabada oyun sonu:
+    5. safhadan sonra araba nasıl olursa olsun gider *(K-18 bunu değiştirdi:
+    safhayı boyama ilerletir, araba beş parçası boyanınca gider)*. 3 arabada oyun sonu:
     biten arabaların geçidi + konfeti → Home → yeni oyun; arabalar sırayla
     devam. Board gerektiğinde küçülür (64 px ve kaymayan tepsi korunur).
     Albümden seçilen resim o safhanın ebadıyla oynanır.
-  - **K-23** — 1.0.0 **sürüm notları** iki dilde yazıldı
-    (`docs/store-listing.md`). Play dil başına 500 karakterde keser ve çok
-    dilli alanda metinler `<tr-TR>…</tr-TR>`, `<en-US>…</en-US>` diye
-    sarılır. Test hem sınırı hem de notların `pubspec.yaml`'daki sürümle
-    aynı numarayı taşımasını denetler.
-  - **K-22** — mağaza açıklamasına **gelişimsel beceriler** paragrafı, iki
-    dilde (kullanıcı 20 Eylül'de istedi; Öğretmen Onaylı programının
-    baktığı kriterlerden biri). Abartılı iddia yok: yalnızca oyunun
-    gerçekten yaptırdığı şeyler. Uzunluk 4000 sınırının altında, testle
-    korunuyor.
+  - **K-16** — kitap, mikroskop, dürbün **kodla çizildi** (kullanıcı 17 Eylül'de
+    istedi): `python3 tool/generate_object_images.py` (Pillow), OpenMoji
+    üslubu, 1024×1024, şeffaf. §33 kaynak listesine "projenin kendi çizimi"
+    eklendi — [ZORUNLU] kural değişikliği, 17 Eylül'de **onaylandı**. Havuz 21.
+  - **K-17** — boyama arabaları **hacimli** (kullanıcı 17 Eylül'de istedi):
+    her parçaya kendi sınırına kırpılmış açıktan koyuya perde, arabanın
+    altına elips gölge. Perde **dolgudan sonra, çizgiden önce** çizilir.
+    Perdenin ortası saydam: seçilen renk orta bantta birebir görünür
+    (K-9 korunur).
+  - **K-18** — **safhayı boyama ilerletir** (kullanıcı 20 Eylül'de istedi):
+    sayfa atlanırsa safha yerinde kalır, resim değişir. Safha = o arabanın
+    boyanmış parça sayısı (türetilir). Amaç: oyun sonunda boyanmamış parça
+    kalmasın.
+  - **K-19** — puzzle parçaları **kabartmalı** (kullanıcı 20 Eylül'de istedi):
+    konturun içinde sol üstte ışık, sağ altta gölge; board'daki parça ayrıca
+    ince gölge düşürür. **Tamamlanan resimde dikişler görünür** — §14'ün
+    pürüzsüzlük hedefinden bilerek vazgeçildi.
+  - **K-20** — **Play Store yayını** (kullanıcı 20 Eylül'de istedi):
+    paket kimliği `com.iylabs.emojipuzzle` (eskisi
+    `com.emojipuzzlekids.emoji_puzzle_kids`; ilerleme sıfırlanır, kullanıcı
+    kabul etti), sürüm 1.0.0+1, ekran yönü kilidi kaldırıldı (yatay da
+    açılır), yayın imzası `android/key.properties`'ten okunur. Anahtar
+    **20 Eylül'de kuruldu**: `~/emojipuzzle-upload.jks`, takma ad `upload`;
+    `key.properties` depoya girmez. Adımlar: `docs/play-store-release.md`.
   - **K-21** — **giriş ekranı** (kullanıcı 20 Eylül'de istedi): oyna düğmesi
     gülen suratın dört parçalı bitmiş yapbozu + sağ altta kırmızı oynat
     işareti; ⓘ iki saniye basılı tutunca açılır (dolan halka); Hakkında'da
     oyunun kısa tarifi, IY Labs ve ibrahimyasar68@hotmail.com; mağaza
     metni ikinci dil olarak İngilizce.
-  - **K-20** — **Play Store yayını** (kullanıcı 20 Eylül'de istedi):
-    paket kimliği `com.iylabs.emojipuzzle` (eskisi
-    `com.emojipuzzlekids.emoji_puzzle_kids`; ilerleme sıfırlanır, kullanıcı
-    kabul etti), sürüm 1.0.0+1, ekran yönü kilidi kaldırıldı (yatay da
-    açılır), yayın imzası `android/key.properties`'ten okunur — **anahtar
-    kullanıcıda, henüz yok**. Adımlar: `docs/play-store-release.md`.
-  - **K-19** — puzzle parçaları **kabartmalı** (kullanıcı 20 Eylül'de istedi):
-    konturun içinde sol üstte ışık, sağ altta gölge; board'daki parça ayrıca
-    ince gölge düşürür. **Tamamlanan resimde dikişler görünür** — §14'ün
-    pürüzsüzlük hedefinden bilerek vazgeçildi.
-  - **K-18** — **safhayı boyama ilerletir** (kullanıcı 20 Eylül'de istedi):
-    sayfa atlanırsa safha yerinde kalır, resim değişir. Safha = o arabanın
-    boyanmış parça sayısı (türetilir). Amaç: oyun sonunda boyanmamış parça
-    kalmasın.
-  - **K-17** — boyama arabaları **hacimli** (kullanıcı 17 Eylül'de istedi):
-    her parçaya kendi sınırına kırpılmış açıktan koyuya perde, arabanın
-    altına elips gölge. Perde **dolgudan sonra, çizgiden önce** çizilir.
-    Perdenin ortası saydam: seçilen renk orta bantta birebir görünür
-    (K-9 korunur). Sırada: puzzle parçalarında kabartma.
-  - **K-16** — kitap, mikroskop, dürbün **kodla çizildi** (kullanıcı 17 Eylül'de
-    istedi): `python3 tool/generate_object_images.py` (Pillow), OpenMoji
-    üslubu, 1024×1024, şeffaf. §33 kaynak listesine "projenin kendi çizimi"
-    eklendi — [ZORUNLU] kural değişikliği, 17 Eylül'de **onaylandı**. Havuz 21.
-  - **K-14** — yeni kategori **Eşyalar** (`objects`): kitap, mikroskop,
-    dürbün. §4'ün 5 kategori kuralı 6'ya çıktı. Her kademeye bir tane
-    (kitap 2×2, dürbün 2×3, mikroskop 3×3). **Görselleri kullanıcı koyacak**
-    (indirme izni vermedi); dürbünün Unicode emojisi yok.
-  - **K-13** — boyama defterine kamyon ve traktör: 5 model, sırayla sedan,
-    kamyonet, yarış, kamyon, traktör.
-  - **K-12** — 9 yeni puzzle (kullanıcı istedi): çilek, ay, koyun → 2×2;
-    karpuz, bisiklet, kaplumbağa → 2×3; ananas, uçak, Satürn → 3×3. Ay ve
-    Satürn **doğa** kategorisinde (5 kategori kuralı korundu). Kullanıcı
-    "sonra oyun kurallarını değiştireceğiz" dedi; kademe yerleşimi geçici
-    olabilir.
-  - **K-10** — seçilen renk sol üst köşedeki çerçeveli bir karede de
-    görünür (kullanıcı istedi). Yatay ekranda "geç" oku karenin altına iner.
+  - **K-22** — mağaza açıklamasına **gelişimsel beceriler** paragrafı, iki
+    dilde (kullanıcı 20 Eylül'de istedi; Öğretmen Onaylı programının
+    baktığı kriterlerden biri). Abartılı iddia yok: yalnızca oyunun
+    gerçekten yaptırdığı şeyler. Uzunluk 4000 sınırının altında, testle
+    korunuyor.
+  - **K-23** — 1.0.0 **sürüm notları** iki dilde yazıldı
+    (`docs/store-listing.md`). Play dil başına 500 karakterde keser ve çok
+    dilli alanda metinler `<tr-TR>…</tr-TR>`, `<en-US>…</en-US>` diye
+    sarılır. Test hem sınırı hem de notların `pubspec.yaml`'daki sürümle
+    aynı numarayı taşımasını denetler.
   - Boyama durumu `GameProgress`'e değil **ayrı bir anahtara** yazılır
     (`emoji_puzzle.colouring`; feature bağımsızlığı, şema değişince
     ilerleme silinmesin). Klasör adı `features/colouring/` — kod tabanının
@@ -167,15 +174,27 @@ dart run tool/generate_sfx.dart     # ses dosyalarını yeniden üretir
 python3 tool/generate_app_icon.py   # uygulama ikonunu yeniden üretir (Pillow)
 python3 tool/generate_object_images.py  # kitap, mikroskop, dürbün (Pillow)
 python3 tool/generate_store_graphics.py # Play öne çıkan grafiği (Pillow)
-flutter build appbundle --release   # Play'e yüklenecek paket
+flutter build appbundle --release   # Play'e yüklenecek paket (imzalı)
+flutter build apk --release         # telefona elle kurmak için
 git push                            # CI'yi tetikler
+```
+
+İmza `android/key.properties`'ten okunur; dosya yoksa Gradle uyarı basar ve
+**debug anahtarına düşer** — o paketi Play'e yükleme. İmzayı parolasız
+doğrulamak için:
+
+```bash
+unzip -p build/app/outputs/bundle/release/app-release.aab META-INF/UPLOAD.RSA | keytool -printcert | head -3
 ```
 
 **Not:** `gh` bu makinede kurulu değil; depo işleri düz `git` ile yapılıyor.
 
 Testler `build/` altına kanıt görselleri bırakır: `preview_2x2.png`,
 `screen_3x3.png`, `solved_2x2.png`, `drag_overlay.png`, `hint_ghost.png`,
-`placement_feedback.png`, `level2_banana.png`, `balloon_game.png`.
+`placement_feedback.png`, `level2_banana.png`, `balloon_game.png`,
+`colouring.png`. Mağaza görselleri ise `docs/store/` altındadır ve test
+değil, elle üretilir (ikon fontu yüklenmiş geçici bir test dosyasıyla —
+bkz. §7).
 
 ---
 
@@ -185,10 +204,18 @@ Testler `build/` altına kanıt görselleri bırakır: `preview_2x2.png`,
 docs/spec-v2.2.md                   # EMOJI PUZZLE KIDS v2.2 — tek kaynak (§0–§51)
 docs/play-store-release.md          # yayın kontrol listesi (K-20)
 docs/store/                         # öne çıkan grafik + 5 ekran görüntüsü
-docs/privacy-policy.md              # §35 — yayımlanacak metin
-docs/store-listing.md               # §33 attribution + mağaza açıklaması
+docs/privacy-policy.md              # §35 — TR + EN, iletişim adresi dolu
+docs/store-listing.md               # §33 attribution, TR + EN açıklama, sürüm notları
+docs/index.md, docs/_config.yml     # GitHub Pages (gizlilik adresi için)
 docs/branding/                      # ikon kaynağı, 1024 ana görsel, Play 512
 tool/generate_app_icon.py           # kaynaktan bütün ikon boyutları
+tool/generate_object_images.py      # kitap, mikroskop, dürbün, gülen surat (K-16, K-21)
+tool/generate_store_graphics.py     # Play öne çıkan grafiği
+tool/generate_sfx.dart              # ses efektleri
+assets/images/puzzles/              # 21 resim: 18 OpenMoji + 3 kodla çizilmiş
+assets/images/ui/smile.png          # oyna düğmesinin yüzü (puzzle değil)
+android/key.properties              # yayın imzası — depoda YOK, yalnızca bu makinede
+test/architecture/release_readiness_test.dart  # Play şartları: imza, sürüm, görseller, metin sınırları
 lib/
 ├── app/app.dart                    # servisleri kurar, MultiProvider
 ├── app/themed_app.dart             # MaterialApp, seçilen görünüme bağlı
@@ -217,10 +244,11 @@ lib/
     │   │   ├── tray_shuffler.dart
     │   │   └── hint_target.dart
     │   ├── data/        # puzzle_catalog, puzzle_palette, progress_repository
-    │                    # game_rules (K-15), katalog artık 18 resimlik havuz, ilerleme şema 2
+    │                    # game_rules (K-15), katalog 21 resimlik havuz, ilerleme şema 2
     │   ├── providers/   # game_provider, hint_controller
     │   ├── widgets/     # board, tray, drag_layer, feedback_layer, hint_layer,
-    │   │                # piece_painter, ghost_painter, debug_overlay_painter
+    │   │                # piece_painter (kabartma K-19, kenar çizgisi),
+    │   │                # ghost_painter, debug_overlay_painter
     │   └── screens/puzzle_screen.dart
     ├── celebration/widgets/celebration_overlay.dart
     ├── balloon/                     # §24, puzzle'a bağımlı DEĞİL
@@ -232,14 +260,16 @@ lib/
     │   └── widgets/  # sticker_tile, sticker_reward_overlay
     ├── colouring/                   # §24.2 — hiçbir feature'a bağımlı DEĞİL
     │   ├── models/car_model.dart      # CarPart, CarModel (100×80 birim)
-    │   ├── data/      # car_catalog (3 araba, kodla), paint_colours (palet)
+    │   ├── data/      # car_catalog (5 araba, kodla), paint_colours (palet)
     │   ├── providers/colouring_book.dart  # hangi araba, hangi parça, kalıcı
-    │   └── widgets/   # colouring_overlay, car_painter, colouring_layout
-    │                  # car_parade_overlay (oyun sonu, K-15)
+    │   └── widgets/   # colouring_overlay, car_painter (hacim gölgesi K-17),
+    │                  # colouring_layout, car_parade_overlay (oyun sonu, K-15)
     └── home/
         ├── screens/home_screen.dart    # §29 giriş ekranı
-        ├── screens/about_screen.dart   # §26 sıfırlama, §33 attribution, görünüm
-        └── widgets/home_button.dart
+        ├── screens/about_screen.dart   # oyun tarifi, IY Labs, iletişim, §33
+        │                               # attribution, görünüm, §26 sıfırlama
+        ├── widgets/home_button.dart    # yuvarlak düğme; holdDuration → yetişkin kapısı
+        └── widgets/play_puzzle_button.dart  # oyna: 4 parçalı gülen surat + kırmızı işaret
 ```
 
 ---
@@ -471,7 +501,26 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   kurmaz. Testler `scrollUntilVisible` kullanır ve **yalnızca tek yöne**
   kaydırır — sticker'lar katalog sırasında değil, album (kategori) sırasında
   gezilmeli, yoksa liste bir aşağı bir yukarı gitmek zorunda kalır ve test
-  "Bad state: No element" ile patlar.
+  "Bad state: No element" ile patlar. Hakkında'ya oyun tarifi girince
+  (K-21) attribution da ekranın altına düştü; o test de artık kaydırır.
+- **Dokunma tanıyıcı basmayı bir kare sonra bildirir.** Basılı tutma testi
+  `startGesture` → `pump(150 ms)` → `pump(süre)` → `+20 ms` sırasıyla
+  yazılır; tek `pump(2 sn)` sayacı daha başlamadan tüketir (yaşandı).
+- **Test ortamında ikon fontu yoktur**: `Icon`'lar kutu olarak çizilir.
+  Mağaza ekran görüntüsü alırken `MaterialIcons-Regular.otf` ve Roboto
+  `FontLoader` ile `~/flutter/flutter/bin/cache/artifacts/material_fonts/`
+  altından yüklenir, görüntü `toImage(pixelRatio: 3)` ile 1080×1920 alınır.
+- **Dart'ta `\w` yalnızca ASCII'dir**: "Türkçe" gibi bir başlığı `(\w+)`
+  yakalamaz; mağaza testleri `(.+)` kullanır.
+- **Bir testte yüklenen görsel, o testin `evictAll`'ıyla serbest kalır.**
+  `setUpAll`'da paylaşılan bir `ui.Image`'ı sonraki testte çizmek
+  `ImageShader` assert'iyle patlar; her test kendi kopyasını yükler.
+- **Mutasyonu `git checkout` ile geri alma** — dosyada commit edilmemiş iş
+  varsa onu da siler (16 Eylül'de yaşandı). Dosyayı scratchpad'e kopyala,
+  mutasyondan sonra oradan geri koy.
+- **Piksel ölçümünde örnek noktası çizimde ölçülerek seçilir.** Faz 22 ve
+  24'te dört kez "gövde" sanılan nokta teker, cam kenarı ya da çizginin dış
+  yarısı çıktı; her seferinde render kaydedilip taranarak bulundu.
 
 ---
 
@@ -500,6 +549,20 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
    parıltıları kullanıcı olduğu gibi uygun buldu.
    (Tamamlanınca kesikli çerçevenin görünmesi Faz 16'da, tepsi
    parçalarındaki şekil bozukluğu Faz 15 sonunda düzeltildi.)
+7. **Faz 17–28 gerçek cihazda ya da emülatörde elle oynanmadı.** Hepsi
+   testlerle ve render'larla doğrulandı. Özellikle bakılmalı: yatay ekran
+   (kilit K-20'de kalktı), ⓘ'yi iki saniye tutmak, kabartmalı parçaların
+   cihazdaki görünümü, boyama atlanınca safhanın yerinde kalması.
+8. **Play Console'da kalanlar (kullanıcıda):** GitHub Pages'i açmak
+   (Settings → Pages → `main` / `docs`; gizlilik adresi
+   `…github.io/emojipuzzle/privacy-policy.html`), uygulamayı oluşturup
+   metin/görsel/formları doldurmak, bireysel hesapsa 12 kişilik 14 günlük
+   kapalı test, Öğretmen Onaylı değerlendirmesine katılmak, AAB'yi yüklemek.
+9. **Yükleme anahtarının yedeği** — `~/emojipuzzle-upload.jks` ve parolası
+   bilgisayar dışında bir yerde durmalı; kaybolursa güncelleme yapılamaz.
+10. **Parça başına `saveLayer` maliyeti** (Faz 16 cila) ve kabartmanın iki
+   bulanık çizgisi (K-19) cihazda ölçülmedi; §42 profiling'iyle birlikte
+   bakılmalı.
 
 ---
 
@@ -708,7 +771,7 @@ Bunlar pahalıya mal olmuş kararlar; yeni kod bunları ihlal etmemeli.
   kademede meyve, beş kategorinin hepsi dolu. İki mutasyonla kanıtlandı
   (lisans satırı silinir → lisans testi kırmızı; Ay meyvelere düşer →
   kategori testi kırmızı).
-- **Dikkat:** `firstUnsolved` bir kademeyi bitirmeden üstüne geçmez; artık
+- *(Çözüldü — K-15 kademeleri kaldırdı.)* **Dikkat:** `firstUnsolved` bir kademeyi bitirmeden üstüne geçmez; artık
   2×3'e varmak için altı 2×2 puzzle gerekiyor. Kullanıcının haber verdiği
   kural değişikliğinde bu konuşulmalı.
 - Bisiklet resmi ince çizgili ve çok boşluklu: 2×3'te bazı parçalar
@@ -783,6 +846,37 @@ Beş mutasyonla kanıtlandı. Aşağıdaki liste tarihçedir.
   için geometrik olarak imkânsız; kod doğruydu.
 - **Gözle görülen:** 12 ve 16 parçada emoji resimlerinin şeffaf kenarları
   yüzünden birçok parça neredeyse boş; onları yalnızca gradyan ayırıyor.
-- **Emülatörde elle oynanmadı.** Kitap/mikroskop/dürbün görselleri hâlâ
-  bekleniyor; gelince havuza eklenir (kademe gerekmez).
+- **Emülatörde elle oynanmadı.** *(Kitap/mikroskop/dürbün sonradan K-16
+  ile kodla çizilip havuza eklendi.)*
 
+---
+
+## 15. Faz 22–28 durumu (17–20 Eylül)
+
+| Faz | Karar | Ne değişti | Nerede |
+| --- | ----- | ---------- | ------ |
+| 22 | K-17 | Boyama arabalarında hacim perdesi + yere gölge | `car_painter.dart`, `car_shading_test.dart` |
+| 23 | K-18 | Safhayı boyama ilerletir; safha = boyanmış parça sayısı | `GameProvider.finishStage` |
+| 24 | K-19 | Puzzle parçalarında kabartma, board'da ince gölge; dikişler görünür | `puzzle_piece_painter.dart`, `piece_bevel_test.dart` |
+| 25 | K-20 | Paket kimliği, sürüm, imza, yön kilidi, mağaza görselleri | `build.gradle.kts`, `docs/store/`, `release_readiness_test.dart` |
+| 26 | K-21 | Oyna düğmesi 4 parçalı gülen surat; ⓘ iki saniye; Hakkında'da IY Labs + iletişim; EN mağaza metni | `play_puzzle_button.dart`, `home_button.dart`, `about_screen.dart` |
+| 27 | K-22 | Mağaza açıklamasına gelişimsel beceriler, iki dilde | `docs/store-listing.md` |
+| 28 | K-23 | 1.0.0 sürüm notları, iki dilde, `<tr-TR>`/`<en-US>` etiketleri | `docs/store-listing.md` |
+
+Her fazın yeni testleri mutasyonla kanıtlandı. Ayrıntılar spec §0.3 ve
+§44'te; burada yalnızca yeni devralan birinin bilmesi gereken iki şey:
+
+- **Safha türetilir** (K-18): `GameProvider`'a verilen boyama defteri oyun
+  ilerlemesiyle aynı depoyu görmeli. Testlerde de
+  `ColouringBook(storage: storage)..load()` verilir, yoksa her oturum 2×2'den
+  başlar. Bir safhayı ileri saran test kurulumları o kadar parçayı da boyar
+  (sondan başlayarak, gövde boş kalsın diye).
+- **Kabartma ve dikiş tonu** (K-19): §14'ün dikiş tonu testi kabartma
+  **kapalı** ölçer (`PuzzleBoard(bevelled: false)`); kabartmanın kendisini
+  `piece_bevel_test.dart` ölçer.
+
+**21 Eylül güncellik taraması:** `lib/` yorumlarında K-15 ile kalkan
+"Serbest Mod"u hâlâ varmış gibi anlatan yedi yer düzeltildi (davranış
+değişmedi), README'nin test sayısı (887) ve oyun tarifi güncellendi, bu
+dosyadaki geçersizleşen maddeler "Tarihçe" diye işaretlendi. CI son sekiz
+push'ta yeşil.

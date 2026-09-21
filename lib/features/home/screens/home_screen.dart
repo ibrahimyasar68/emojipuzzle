@@ -125,7 +125,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// Serbest Mod: albüm kapanır ve o resim yeniden başlar (§4).
+  /// Albümden yeniden oynama: albüm kapanır ve o resim, o anki safhanın
+  /// ebadıyla yeniden başlar (§4, K-15).
   Future<void> _replay(
     NavigatorState navigator,
     GameProvider game,

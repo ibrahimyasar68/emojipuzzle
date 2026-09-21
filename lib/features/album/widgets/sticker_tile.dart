@@ -24,8 +24,7 @@ class StickerTile extends StatelessWidget {
   /// Çocuğun bu puzzle'ı bitirip bitirmediği.
   final bool earned;
 
-  /// Serbest Mod: kazanılmış bir çıkartmaya dokunmak o puzzle'ı yeniden
-  /// oynatır (§4). Henüz bulunmamış olanlarda null — hiçbir şey olmaz ve
+  /// Kazanılmış bir çıkartmaya dokunmak o puzzle'ı yeniden oynatır (§4). Henüz bulunmamış olanlarda null — hiçbir şey olmaz ve
   /// nedeni hakkında hiçbir şey söylenmez.
   final VoidCallback? onTap;
 

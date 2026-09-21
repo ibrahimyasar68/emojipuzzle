@@ -3,7 +3,7 @@ import 'dart:math' show Random;
 /// Her parçanın hangi tepsi yuvasında başlayacağını belirler (§16.3).
 ///
 /// Rastgelelik dışarıdan verilir; böylece bir test dizilimi sabitleyebilir
-/// ve Serbest Mod aynı puzzle'ı her oturumda yeniden karıştırabilir.
+/// ve albümden yeniden oynanan bir resim her seferinde başka dizilir.
 class TrayShuffler {
   TrayShuffler({Random? random}) : _random = random ?? Random();
 

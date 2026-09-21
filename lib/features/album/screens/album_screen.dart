@@ -9,8 +9,9 @@ import '../widgets/sticker_tile.dart';
 
 /// Çocuğun yaptığı her şey, kategorilere göre gruplanmış (§25).
 ///
-/// Aynı zamanda Serbest Mod'un kapısıdır (§4): kazanılmış bir çıkartma,
-/// yeniden karıştırılıp tekrar oynanabilecek bir resimdir. Henüz
+/// Aynı zamanda yeniden oynamanın kapısıdır (§4): kazanılmış bir
+/// çıkartma, o anki safhanın ebadıyla tekrar oynanabilecek bir resimdir
+/// (K-15). Henüz
 /// bulunmamış olanlar gridir ve hiçbir şey yapmaz — albüm bir çocuğu
 /// eksiği için asla azarlamaz.
 class AlbumScreen extends StatelessWidget {

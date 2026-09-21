@@ -386,9 +386,10 @@ class _PuzzleScreenState extends State<PuzzleScreen>
   /// konfetinin arkasında nabız atan bir tepsi saçmalık olurdu (§21).
   void _beginCelebration(GameProvider game, {required bool alreadyEarned}) {
     _hint.pause();
-    // Şimdi not edilir, iki adım sonra teslim edilir (§23). Serbest Mod'da
-    // yeniden oynanan bir resim yeni bir şey kazandırmaz ve iki kez verilen
-    // bir çıkartma, hiçbir şeyin ödülü olurdu (§4, §25).
+    // Şimdi not edilir, iki adım sonra teslim edilir (§23). Daha önce
+    // bitirilmiş bir resim — albümden ya da havuzdan yeniden gelen —
+    // yeni bir şey kazandırmaz; iki kez verilen bir çıkartma hiçbir şeyin
+    // ödülü olurdu (§4, §25).
     _awardedSticker = alreadyEarned ? null : game.puzzle;
     setState(() => _celebrating = true);
   }
@@ -410,8 +411,8 @@ class _PuzzleScreenState extends State<PuzzleScreen>
   /// durumda da hiçbir şey sayılmaz ve hiçbir şey söylenmez (§20, §24).
   ///
   /// Sırada çıkartma var, ve yalnızca ilk kez bitirilen bir resim için:
-  /// Serbest Mod'da çocuk ona zaten sahiptir ve yeniden teslim etmek hiçbir
-  /// şeyin ödülü olurdu (§4, §25). Çıkartmadan sonra — ya da çıkartma yoksa
+  /// yeniden oynanan bir resmin çıkartması çocukta zaten vardır ve yeniden
+  /// teslim etmek hiçbir şeyin ödülü olurdu (§4, §25). Çıkartmadan sonra — ya da çıkartma yoksa
   /// hemen — boyama gelir (§24.2).
   void _finishBalloons(GameProvider game) {
     if (!_playingBalloons) return;
@@ -435,8 +436,10 @@ class _PuzzleScreenState extends State<PuzzleScreen>
 
   /// Bir parça boyandı ya da çocuk geçti. Sıradaki resme (§23, §24.2).
   ///
-  /// Boyama her bitirişte gelir, Serbest Mod dahil: çıkartma yalnızca bir
-  /// kez kazanılır, ama arabanın bir parçası her seferinde (K-6).
+  /// Boyama her bitirişte gelir, yeniden oynanan resimde de: çıkartma
+  /// yalnızca bir kez kazanılır, ama arabanın bir parçası her seferinde
+  /// (K-6). Safhayı ilerleten boyamadır; geçilen sayfa safhayı yerinde
+  /// bırakır (K-18, [GameProvider.finishStage]).
   void _finishColouring(GameProvider game) {
     if (!_colouring) return;
     setState(() => _colouring = false);

@@ -85,7 +85,7 @@ görüyorsanız paketi yüklemeyin.
 
 ## 4. Yayından önce bakılması iyi olacaklar
 
-- **Gerçek cihazda elle oynama.** Faz 17–24 yalnızca testlerle doğrulandı;
+- **Gerçek cihazda elle oynama.** Faz 17–28 yalnızca testlerle doğrulandı;
   emülatörde en son Faz 16 oynandı.
 - **Yatay ekran.** Kilit yeni kalktı; yatay yerleşimler testlerde geçiyor ama
   cihazda görülmedi.

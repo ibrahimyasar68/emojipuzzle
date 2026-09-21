@@ -116,8 +116,8 @@ void main() {
     addTearDown(game.dispose);
     await _pumpAlbum(tester, game);
 
-    // Grouping is by category, not by level: the two fruit puzzles live in
-    // different levels but sit side by side here.
+    // Grouping is by category, not by catalogue order: the two fruit
+    // pictures are far apart in the pool but sit side by side here.
     final apple = tester.getTopLeft(_sticker('apple_01'));
     final banana = tester.getTopLeft(_sticker('banana_01'));
     expect(apple.dy, banana.dy, reason: 'same row');
